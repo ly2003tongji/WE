@@ -17,6 +17,8 @@ outputs/
 *.bin
 *.tar
 *.zip
+*.pdf
+reports/bootstrap_*.txt
 
 # Local environments and caches
 .conda/
