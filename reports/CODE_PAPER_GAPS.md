@@ -55,6 +55,8 @@
 - `rl_loss_weight={bce:0, rank:0, PG:0.01, entropy:1}`（`:255-260`）；
 - `hard_case_no_imi=True`（`:261`）。
 
+`代码事实`：不只是 rare-log；`configs/worldengine/` 下 5 个 `e2e_vadv2_50pct_rlft_*.py` 全部设置 `rl_finetuning=False`（common log `:252`、rare log `:252`、rare rollout `:258`、BWM rollout `:259`、synthetic replay `:258`）。这与 `docs/config_guide.md:95-118,173-181,233-239` 把 RLFT 描述为 `rl_finetuning=True`、hard cases “only RL losses” 直接矛盾。
+
 训练 pipeline 收集六个 PDM fields 和 `fail_mask`（`:321-350`）；训练 dataset 是 `NavSimOpenSceneE2EFineTune`，并加载三个 rare YAML（`:48-71,394-419`）。
 
 ### 实际 loss data flow

@@ -14,7 +14,7 @@
 - `运行事实`：gsplat v1.4.0 在 `sm_90` 上编译成功，并完成真实 64×64 antialiased rasterization。
 - `运行事实`：MMCV full 1.6.2 custom ops 编译成功；官方 `.dev_scripts/check_installation.py` 的 CPU/CUDA 检查均通过，额外的 H20 `box_iou_rotated` CUDA 调用返回 `[[1.0]]`。
 - `运行事实`：SimEngine import、Ray 本地任务和项目模块 import 通过；AlgEngine 的 OpenMMLab 栈、`mmdet3d_plugin` 和 NAVSIM/nuPlan import 通过。
-- `运行事实`：持久占用约 25 GB（SimEngine 12 GB、AlgEngine 13 GB、MMCV/NAVSIM 源码约 111 MB），低于用户告知的 `/workspace` 40 GB 限额。
+- `运行事实`：持久占用精确为 25,827,864,576 bytes（SimEngine 12,662,599,680；AlgEngine 13,049,319,424；MMCV/NAVSIM 源码 115,945,472），低于用户告知的 `/workspace` 40 GB 限额。
 
 ## 持久与临时路径
 
@@ -282,7 +282,7 @@ export PYTHONPATH=$SIMENGINE_ROOT:$ALGENGINE_ROOT:$NAVSIM_DEVKIT_ROOT
 export PATH=/root/anaconda3/condabin:/usr/bin:/bin
 ```
 
-阶段 4 开始前还需通过 symlink 接入 CPFS 上的 checkpoint、vocabulary、PDMS cache、过滤后的 scenario pickle、匹配的 3DGS assets 和 nuPlan maps。
+阶段 4 开始前还需通过 symlink 接入 CPFS 上的 checkpoint、vocabulary、过滤后的 scenario pickle、匹配的 3DGS assets 和 nuPlan maps。Closed-loop dataset 不读取预计算 PDMS cache。
 
 ## 回滚
 

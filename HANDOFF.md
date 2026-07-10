@@ -56,13 +56,13 @@
 - 官方代码固定在 `fc79b937050ed9d68e18add2b480ae72578a7ea5`。
 - Hugging Face 数据版本 `8728616abaf090d195b3bdc7af6aacde40271145`：174 文件、4.854 TB；ModelScope 完整包含这些数据，另有 6 个文档/脚本文件。
 - 默认 quick test 实际运行完整 288 个 `navtest_failures`，文档中的 “1/10” 不是脚本默认值；现有 `debug_scene_name` 没有被 runner 使用。
-- 1–10 scene 最小可操作下载约 36.0 GB：完整 checkpoint、trajectory vocabulary、navtest PDMS cache、单体 rare scenario pickle、nuPlan maps，以及一个约 31 GB 的 rare asset shard。下载后还需生成过滤后的 scenario pickle。
-- 任意指定 scene 因缺少 scene→shard 远端索引，保守需三个 rare asset shards；288 baseline 下载约 93.6 GB，工作盘保守需 380–500 GB。
+- 1–10 scene 最小可操作下载约 30.2–33.2 GB：完整 checkpoint、trajectory vocabulary、单体 rare scenario pickle、nuPlan maps，以及一个 rare asset shard。下载后还需生成过滤后的 scenario pickle。
+- 任意指定 scene 因缺少 scene→shard 远端索引，保守需三个 rare asset shards；288 baseline 下载约 90.8 GB，工作盘保守需 380–500 GB。
 - 闭环 smoke test 可避免 OpenScene 全量 metadata/sensor blobs；SimEngine metric 仍需要外部 nuPlan maps。
 - 两个持久环境位于 `/workspace/worldengine/envs/{simengine,algengine}`，源码位于 `/workspace/worldengine/src/`；总占用约 25 GB，低于 `/workspace` 40 GB 限额。临时 cache 放 `/tmp`。
 - Driver 570 保持不变；两个环境均已验证 PyTorch 2.0.1+cu118 在 H20 `sm_90` 上运行。
 - gsplat v1.4.0 已完成真实 rasterization；MMCV full 1.6.2 已通过官方 CPU/CUDA 检查和 H20 CUDA op 测试。
-- 已选择性下载并逐项校验 33.0 GB：checkpoint、vocabulary、navtest PDMS cache、288-scene pickle、rare asset part003 和 nuPlan maps；没有下载 OpenScene blobs 或全量数据。
+- 已选择性下载并逐项校验 33.0 GB；其中 navtest PDMS cache 2.791 GB 经后续代码追踪和无-cache 复跑确认并非闭环必需，实际最小集合为 30.208 GB。没有下载 OpenScene blobs 或全量数据。
 - part003 已确认包含 90 个完整 asset；已构造 1-scene（337.9 MB assets）和 10-scene（3.532 GB assets）filtered subsets。
 - 1-scene NR/R、10-scene NR/R 均完成真实闭环，runner technical success 均为 100%。10-scene NR/R 均无 collision、drivable compliance/SR 均为 70%；R 相对 NR 的 EP 为 0.51100 vs 0.48689，score 为 0.62125 vs 0.61120。
 - 1-scene profile 峰值显存 13,638 MiB、峰值 GPU util 97%；10-scene NR/R 墙钟分别约 8.9/9.5 分钟。

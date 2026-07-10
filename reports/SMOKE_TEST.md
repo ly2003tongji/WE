@@ -13,7 +13,7 @@
 - `运行事实`：10-scene NR 与 IDM reactive 均无 at-fault collision；按 README “无碰撞且无 off-road” 的 SR 定义，两者均为 7/10 = 70%，因为相同 3 scenes 的 drivable-area compliance 为 0。
 - `运行事实`：10-scene IDM 相对 NR 的平均 ego progress 从 0.48689 增至 0.51100，PDMS-style score 从 0.61120 增至 0.62125；样本仅 10 个且来自同一 asset shard，不能外推为正式效果结论。
 - `运行事实`：1-scene profile 峰值显存 13,638 MiB、峰值 GPU util 97%，说明单 H20 显存余量充足。
-- `代码/运行事实`：不需要 OpenScene 原始 metadata/sensor blobs；当前闭环确实需要完整 E2E checkpoint、trajectory vocabulary、navtest PDMS cache、scenario pickle、matching 3DGS asset 和 nuPlan maps。
+- `代码/运行事实`：不需要 OpenScene 原始 metadata/sensor blobs 或 navtest PDMS cache；当前闭环需要完整 E2E checkpoint、trajectory vocabulary、scenario pickle、matching 3DGS asset 和 nuPlan maps。
 
 ## 数据与完整性
 
@@ -32,6 +32,8 @@ WorldEngine 数据版本：Hugging Face commit `8728616abaf090d195b3bdc7af6aacde
 | **合计** | **32,999,385,087** | 每项均通过本地 `sha256sum` |
 
 前 5 项本地 hash 与官方 Hugging Face LFS oid 逐项一致。
+
+`pdm_8192_gt_cache_navtest.pkl` 已在首次清单中下载并校验，但后续完整代码追踪确认它对 closed-loop inference 非必需：`NavSimOpenSceneE2EClosedLoop.load_pdm_infos()` 为空实现，并在 `get_data_info()` 中填充零 PDM vectors（`navsim_openscene_closed_loop.py:68-82,121-126`）。因此实际最小远端 payload 应从上表合计减去 2,791,314,758 bytes，即 **30,208,070,329 bytes**。
 
 nuPlan 官方 NAVSIM 脚本指向 Motional S3，但本机对该域名的 HTTPS/HTTP 多次出现 connection reset。地图改从公开 Hugging Face mirror `pengxiang/nuplan_maps@a7afa514750a61fd2646745661612c25b556d044` 下载；文件名、精确大小和 LFS SHA-256 与公开元数据一致。该 mirror 不是 WorldEngine 官方数据仓，正式长期归档时应从 Motional 官方源重新获取并复核相同 hash。
 
@@ -206,7 +208,7 @@ upstream/WorldEngine/experiments/closed_loop_exps/
 ## 发现的实现细节
 
 1. `运行事实`：`configs.tar.gz` 对本闭环入口不必需；只有匹配 scene 的 `background/*.ckpt` 与 `road_height_map/*` 被使用。
-2. `运行事实`：navtest PDMS cache 必须存在，否则 AlgEngine dataset 构造器会失败；这与阶段 2 代码追踪一致。
+2. `代码/运行事实`：navtest PDMS cache 对 closed-loop inference 非必需；移除 cache symlink 后，`e2e_vadv2_50pct-smoke1-nocache` 仍以 1/1 成功完成。PDM metric 由 SimEngine `MetricManager` 实时计算。
 3. `运行事实`：metric 在 simulator step 11 保存，而 AlgEngine 在检测 completion flag 前仍处理最后一个 `_11.pkl` 并保存 trajectory step 12。
 4. `运行事实`：runner `succeeded=true` 仅表示技术执行成功，不等同于 closed-loop SR；本 10-scene 例子 technical success 100%，但按 no collision + no off-road 的 SR 为 70%。
 5. `运行事实`：README 的 “5–10 分钟” 对本机 10 scenes 基本成立（NR 8.9 分钟、R 9.5 分钟），但默认脚本是 288 scenes，不能据此推断完整默认运行只需 5–10 分钟。

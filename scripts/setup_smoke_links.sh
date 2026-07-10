@@ -32,9 +32,6 @@ link_path \
   "${HF_ROOT}/data/alg_engine/ckpts/e2e_vadv2_50pct_ep8.pth" \
   "${WORLDENGINE_ROOT}/data/alg_engine/ckpts/e2e_vadv2_50pct_ep8.pth"
 link_path \
-  "${HF_ROOT}/data/alg_engine/pdms_cache/pdm_8192_gt_cache_navtest.pkl" \
-  "${WORLDENGINE_ROOT}/data/alg_engine/pdms_cache/pdm_8192_gt_cache_navtest.pkl"
-link_path \
   "${HF_ROOT}/data/alg_engine/test_8192_kmeans.npy" \
   "${WORLDENGINE_ROOT}/data/alg_engine/test_8192_kmeans.npy"
 link_path \

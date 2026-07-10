@@ -12,7 +12,7 @@ ModelScope 数据版本：`ca77ed5c425640dfa413f1bcbe5e8f5a64ba90b5`
 - `代码事实`：默认 single-GPU quick test 不是 10 scenes，而是整个 288-scene `navtest_failures`。
 - `代码事实`：当前入口没有生效的场景数过滤参数；scenario 是一个 911,923,264-byte 单体 pickle，rare assets 是 3 个 27.9–30.9 GB 的 tar.gz 分片。
 - `推断`：可实现的最小 1–10 scene 路径是先取一个 rare-asset 分片、从其中选择 scene 目录，再把单体 scenario pickle 过滤成小 pickle。远端没有公开 “scene → shard” 索引，因此在下载/列 tar 前不能指定任意 scene。
-- `代码事实`：闭环 smoke test 不需要官方 OpenScene 原始 sensor blobs 或预处理 `nuplan_openscene_navtest.pkl`；SimEngine 会生成 AlgEngine 客户端读取的图像和 annotation。但当前数据集构造器会无条件读取 navtest PDMS cache，因此该 2.791 GB 文件仍是必需项。
+- `代码事实`：闭环 smoke test 不需要官方 OpenScene 原始 sensor blobs、预处理 `nuplan_openscene_navtest.pkl` 或 navtest PDMS cache；SimEngine 会生成 AlgEngine 客户端读取的图像和 annotation，closed-loop dataset 覆写 `load_pdm_infos()` 并填充零 PDM vectors。
 
 ## 审计方法与完整文件清单
 
@@ -57,7 +57,7 @@ python3 scripts/audit_data_manifest.py --source modelscope
 | `data/alg_engine/ckpts/track_map_nuplan_r50_navtrain_50pct_bs1x8.pth` | 319,956,525 | 50% 训练初始化 | 否；`sim_test.py` 直接加载完整 checkpoint |
 | `data/alg_engine/merged_infos_navformer/nuplan_openscene_navtest.pkl` | 848,516,627 | open-loop navtest annotation | 否；闭环时被生成 annotation 覆写 |
 | `data/alg_engine/merged_infos_navformer/nuplan_openscene_navtrain.pkl` | 16,125,493,728 | 训练 annotation | 否 |
-| `data/alg_engine/pdms_cache/pdm_8192_gt_cache_navtest.pkl` | 2,791,314,758 | navtest PDM token cache | **是（当前代码无条件加载）** |
+| `data/alg_engine/pdms_cache/pdm_8192_gt_cache_navtest.pkl` | 2,791,314,758 | navtest PDM token cache | 否；closed-loop subclass 跳过加载 |
 | `data/alg_engine/pdms_cache/pdm_8192_gt_cache_navtrain.pkl` | 23,736,976,138 | navtrain PDM token cache | 否 |
 | `data/alg_engine/test_8192_kmeans.npy` | 3,932,288 | 8192 trajectory vocabulary/post-process | **是** |
 
@@ -65,7 +65,7 @@ python3 scripts/audit_data_manifest.py --source modelscope
 
 - 模型和 post-process 都读取 vocabulary：`configs/worldengine/e2e_vadv2_50pct.py:246-253`、`closed_loop/sim_test.py:236-248`。
 - 闭环 loop 在建 dataset 前覆写 annotation 和 image root：`closed_loop/sim_test.py:142-159`。
-- dataset 构造器按 navtest 选择 cache 并无条件打开 pickle：`mmdet3d_plugin/datasets/navsim_openscene_nuplan.py:81-95,134-175`。
+- 基类会读取 cache，但 closed-loop subclass 覆写为空实现并生成零 PDM vectors：`mmdet3d_plugin/datasets/navsim_openscene_closed_loop.py:68-82,121-126`。
 
 ### Rare closed-loop 文件
 
@@ -125,7 +125,7 @@ ModelScope 的 `.gitattributes` 为 27,034 bytes、README 为 13,491 bytes；Hug
 | rare 3DGS assets | `run_testing.sh:24-26` → `render/mtgs/mtgs.py:436-474` | 对被选 scene 必需 |
 | OpenScene metadata | 闭环 loop 动态合并 SimEngine 生成 annotation | smoke test 不需远端 merged info |
 | OpenScene sensor blobs | `run_testing.sh:88` 覆写 `data_root`，loop 覆写 image root | smoke test 不需原始 blobs |
-| PDMS cache | dataset `load_pdm_infos()` | 当前实现必需 navtest cache |
+| PDMS cache | closed-loop subclass 覆写 `load_pdm_infos()` | smoke test 不需要；训练/开环需要 |
 
 ### 地图缺口
 
@@ -138,7 +138,7 @@ ModelScope 的 `.gitattributes` 为 27,034 bytes、README 为 13,491 bytes；Hug
 
 | 对象 | 可按文件选择 | 可按 scene 选择 | 结论 |
 | --- | --- | --- | --- |
-| checkpoint/vocab/cache/scenario | 是 | scenario pickle 否 | HF `include` 或 ModelScope file path 可取单文件 |
+| checkpoint/vocab/scenario | 是 | scenario pickle 否 | HF `include` 或 ModelScope file path 可取单文件 |
 | rare assets | 可按 3 个 tar.gz shard | 远端否 | 下载一个 shard 后可按 tar 内 scene 目录选择解压 |
 | maps | 官方外部 archive | 未交代 | map archive 很小，应完整准备 |
 | OpenScene blobs/meta | 外部数据 | 通常可按 log，但本 smoke 不需 | 不下载 |
@@ -155,27 +155,26 @@ ModelScope 的 `.gitattributes` 为 27,034 bytes、README 为 13,491 bytes；Hug
 | --- | ---: |
 | 完整 E2E checkpoint | 434,886,551 |
 | trajectory vocabulary | 3,932,288 |
-| navtest PDMS cache | 2,791,314,758 |
 | rare scenario 单体 pickle | 911,923,264 |
-| **官方固定项合计** | **4,142,056,861（4.142 GB）** |
+| **官方固定项合计** | **1,350,742,103（1.351 GB）** |
 | nuPlan maps archive | 约 0.971 GB（外部估计） |
 
 ### 1 scene
 
-- 最小可操作下载：固定项 4.142 GB + 最大单个 asset shard 30.904 GB + map 约 0.971 GB = **约 36.018 GB**。
+- 最小可操作下载：固定项 1.351 GB + 最大单个 asset shard 30.904 GB + map 约 0.971 GB = **约 33.226 GB**。
 - 条件：不预先指定 scene；下载一个 shard 后，从 shard 内选择一个有 scenario key 的 scene。
-- 若必须命中任意指定 rare scene，因缺少 scene→shard 映射，保守下载为三个 shards，合计 **约 93.584 GB**。
-- 工作盘保守预算：**45–55 GB**（保留一个 shard、解压 ≤1 GB/scene、地图解压和 ≤10 GB 输出/临时文件）。
+- 若必须命中任意指定 rare scene，因缺少 scene→shard 映射，保守下载为三个 shards，合计 **约 90.793 GB**。
+- 工作盘保守预算：**42–52 GB**（保留一个 shard、解压 ≤1 GB/scene、地图解压和 ≤10 GB 输出/临时文件）。
 
 ### 10 scenes
 
-- 若选择同一 shard 中的 10 scenes，下载仍约 **36.018 GB**。
-- 若任意指定 10 scenes 跨 shard，保守下载约 **93.584 GB**。
-- 工作盘保守预算：**65–130 GB**（每 scene 按 ≤1 GB 解压，输出/临时文件预留 20 GB；范围取决于保留 1 还是 3 个压缩 shard）。
+- 若选择同一 shard 中的 10 scenes，下载仍约 **33.226 GB**。
+- 若任意指定 10 scenes 跨 shard，保守下载约 **90.793 GB**。
+- 工作盘保守预算：**62–127 GB**（每 scene 按 ≤1 GB 解压，输出/临时文件预留 20 GB；范围取决于保留 1 还是 3 个压缩 shard）。
 
 ### 288 scenes
 
-- 精确官方 payload：固定项 4,142,056,861 + rare assets 88,471,215,961 = **92,613,272,822 bytes（92.613 GB）**；加地图约为 **93.584 GB**。
+- 精确官方 payload：固定项 1,350,742,103 + rare assets 88,471,215,961 = **89,821,958,064 bytes（89.822 GB）**；加地图约为 **90.793 GB**。
 - 工作盘保守预算：**380–500 GB**。依据是官方仅称每 scene “几百 MB”，本预算按最高 1 GB/scene 的解压资产上界、保留 88.5 GB 压缩包，并为地图、生成帧、annotation、轨迹、metric 和失败重跑预留 50–120 GB。
 - 单个远端文件均小于 100 GB，总下载小于 300 GB；因此不触发下载确认阈值。但阶段 2 不下载数据，阶段 4 前仍先完成环境 import/ABI 检查。
 
@@ -190,4 +189,4 @@ ModelScope 的 `.gitattributes` 为 27,034 bytes、README 为 13,491 bytes；Hug
 
 ## 阶段 2 判定
 
-阶段 2 已完成：两端全部远端文件已通过只读 API 列出和比对；没有下载全量数据。1–10 scenes 可在约 36 GB 下载预算内构造，但需要先下载一个 rare shard 才能建立 scene→shard 映射，并需要生成过滤后的 scenario pickle。288 rare baseline 下载约 93.6 GB、工作盘保守 380–500 GB。
+阶段 2 已完成：两端全部远端文件已通过只读 API 列出和比对；没有下载全量数据。1–10 scenes 可在约 30.2–33.2 GB 下载预算内构造，但需要先下载一个 rare shard 才能建立 scene→shard 映射，并需要生成过滤后的 scenario pickle。288 rare baseline 下载约 90.8 GB、工作盘保守 380–500 GB。
