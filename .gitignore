@@ -1,0 +1,27 @@
+# Secrets and local credentials
+.env
+.env.*
+*.token
+credentials*
+
+# External repositories and large artifacts
+upstream/
+data/
+datasets/
+checkpoints/
+experiments/
+outputs/
+*.pth
+*.pt
+*.ckpt
+*.bin
+*.tar
+*.zip
+
+# Local environments and caches
+.conda/
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
