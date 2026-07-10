@@ -46,9 +46,12 @@
 
 ## H20 Agent 状态
 
-- 阶段 1、2 已完成，详见：
+- 阶段 1–5 已完成，详见：
   - `reports/H20_ENV_AUDIT.md`
   - `reports/DATA_MANIFEST.md`
+  - `reports/ENV_SETUP.md`
+  - `reports/SMOKE_TEST.md`
+  - `reports/CODE_PAPER_GAPS.md`
   - `scripts/audit_data_manifest.py`
 - 官方代码固定在 `fc79b937050ed9d68e18add2b480ae72578a7ea5`。
 - Hugging Face 数据版本 `8728616abaf090d195b3bdc7af6aacde40271145`：174 文件、4.854 TB；ModelScope 完整包含这些数据，另有 6 个文档/脚本文件。
@@ -56,15 +59,23 @@
 - 1–10 scene 最小可操作下载约 36.0 GB：完整 checkpoint、trajectory vocabulary、navtest PDMS cache、单体 rare scenario pickle、nuPlan maps，以及一个约 31 GB 的 rare asset shard。下载后还需生成过滤后的 scenario pickle。
 - 任意指定 scene 因缺少 scene→shard 远端索引，保守需三个 rare asset shards；288 baseline 下载约 93.6 GB，工作盘保守需 380–500 GB。
 - 闭环 smoke test 可避免 OpenScene 全量 metadata/sensor blobs；SimEngine metric 仍需要外部 nuPlan maps。
-- Driver 570 可保留；应让两个隔离环境统一使用 cu118。下一步进入阶段 3，逐层验证 PyTorch、gsplat 与 MMCV custom ops。
+- 两个持久环境位于 `/workspace/worldengine/envs/{simengine,algengine}`，源码位于 `/workspace/worldengine/src/`；总占用约 25 GB，低于 `/workspace` 40 GB 限额。临时 cache 放 `/tmp`。
+- Driver 570 保持不变；两个环境均已验证 PyTorch 2.0.1+cu118 在 H20 `sm_90` 上运行。
+- gsplat v1.4.0 已完成真实 rasterization；MMCV full 1.6.2 已通过官方 CPU/CUDA 检查和 H20 CUDA op 测试。
+- 已选择性下载并逐项校验 33.0 GB：checkpoint、vocabulary、navtest PDMS cache、288-scene pickle、rare asset part003 和 nuPlan maps；没有下载 OpenScene blobs 或全量数据。
+- part003 已确认包含 90 个完整 asset；已构造 1-scene（337.9 MB assets）和 10-scene（3.532 GB assets）filtered subsets。
+- 1-scene NR/R、10-scene NR/R 均完成真实闭环，runner technical success 均为 100%。10-scene NR/R 均无 collision、drivable compliance/SR 均为 70%；R 相对 NR 的 EP 为 0.51100 vs 0.48689，score 为 0.62125 vs 0.61120。
+- 1-scene profile 峰值显存 13,638 MiB、峰值 GPU util 97%；10-scene NR/R 墙钟分别约 8.9/9.5 分钟。
+- 代码核查确认：主仓只有 BWM synthetic data consumer、没有 BWM generator；MTGS 重建指向外部仓库。
+- 默认 rare-log `RLFT` 的 `rl_finetuning=False`，不调用 `compute_RL_loss`。默认实际为 LoRA + reward-head BCE；normal imitation 使用 importance ratio，rare/hard imitation 被 mask。
+- 下一步是下载剩余两个 rare asset shards 并运行正式 288 NR/R baseline；尚未启动该约 60.6 GB 增量下载。
 
 ## 尚未解决的问题
 
-- rare asset 三个 tar shard 内的 scene→shard 映射未公开，需在首次选择性下载后生成本地索引。
-- H20 上旧版 MMCV custom CUDA ops 与 PyTorch 2.0.1/cu118/GCC 11 是否能完成编译和真实 kernel smoke test？
-- gsplat v1.4.0 是否能在 H20 `sm_90` 上以严格 cu118 工具链完成编译和 rasterization？
+- part003 的 90-scene 映射已可从 tar 获取；part001/part002 尚未下载和索引。
+- AlgEngine 官方 pins 与依赖 metadata 有两个已知冲突：`networkx==2.5` 对 mmdet3d 的 `<2.3`，`Shapely==2.0.4` 对 nuscenes-devkit 的 `<2.0`；当前 import/CUDA op 通过，需在真实数据路径继续观察。
 - 288 scenes 的实际解压体积、运行耗时、输出体积和 quick-start “5–10 分钟”说法仍需运行验证。
-- 默认 `rl_finetuning=False` 是发布配置失误，还是论文中的“post-training”主要依赖 reward-shaped supervised objectives？
+- 论文 full WorldEngine 所用 BWM/checkpoint/训练开关与当前默认开源配置的精确对应关系仍未交代。
 
 ## 同步协议
 

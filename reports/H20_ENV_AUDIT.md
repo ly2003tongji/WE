@@ -35,12 +35,13 @@
 
 | 路径 | 类型与容量 | 性能证据 | 推荐用途 |
 | --- | --- | --- | --- |
-| `/root`、`/home`、`/tmp` 所在 `/` | container overlay；1008 GiB total，217 GiB available；inode 9% used | 未做写入型 benchmark；overlay 位于容器本地层 | Conda 环境、源码构建和小型 cache；需控制在约 40 GiB 内，避免挤占系统盘 |
-| `/dev/shm` | tmpfs；2.0 TiB available | 内存文件系统 | 临时编译/解压中转或短生命周期 IPC；重启/容器结束即丢失，不能存持久数据 |
+| `/workspace` | NFS v3 持久目录；用户告知逻辑限额 40 GB（底层 `df` 不反映该限额） | `rsize/wsize=1 MiB`；未做写入型 benchmark | 两个 Conda 环境与关键小型配置，合计必须控制在 40 GB 内 |
+| `/root`、`/home`、`/tmp` 所在 `/` | container overlay；1008 GiB total，217 GiB available；inode 9% used | 未做写入型 benchmark；overlay 位于容器本地层 | 仅放可重建的 Conda package cache、源码 build tree 和临时日志；实例停止后丢失 |
+| `/dev/shm` | tmpfs；2.0 TiB available | 内存文件系统 | 临时编译/解压中转或短生命周期 IPC；实例停止即丢失，不能存持久数据 |
 | `/mnt/cpfs` | `fuse.aliyun-alinas-efc` 网络文件系统；70 TiB total，1.5 TiB available，98% used；inode 14% used | 挂载参数 `max_read=1048576`；未做破坏性写入 benchmark | 数据、权重、3DGS assets、实验输出；通过 symlink 接入，避免复制。大量小文件解压可能有 metadata 开销 |
 | 裸设备 `nvme2n1`–`nvme5n1` | 各 3.5 TiB，当前未见挂载点 | 仅 `lsblk` 可见；是否允许使用未交代 | 不擅自分区或挂载 |
 
-`推断`：环境放本地 Conda 根目录更适合频繁 import/编译；大数据放 CPFS。由于未获授权进行大文件写入压测，本报告不把理论存储类型当作实测吞吐。
+`运行事实`：用户明确说明 `/workspace` 持久、限额 40 GB，而 `/tmp`、`/root` 等目录停止后丢失。`推断`：环境放 `/workspace/worldengine/envs`，下载/编译 cache 放 `/tmp` 或 `/root`，大数据放 CPFS。由于未获授权进行大文件写入压测，本报告不把理论存储类型当作实测吞吐。
 
 ### 网络与端口
 
@@ -106,8 +107,8 @@ subject: Update README.md
 
 ## 推荐环境方案
 
-1. 在本机 Conda 根下创建两个独立环境：`simengine`、`algengine`，均为 Python 3.9。
-2. 环境和构建 cache 放本地 `/root/anaconda3`；数据和实验输出放 CPFS。
+1. 在 `/workspace/worldengine/envs/` 下按 prefix 创建两个独立环境：`simengine`、`algengine`，均为 Python 3.9；两者总量不得超过 40 GB。
+2. Conda package cache、源码 build tree 和编译日志暂放 `/tmp` 或 `/root`，成功后将关键日志写回协作仓库；数据和实验输出放 CPFS。
 3. 每层设置停止点：
    - Python/pip；
    - torch/torchvision cu118 + GPU kernel；
@@ -121,8 +122,8 @@ subject: Update README.md
 ### 回滚
 
 ```bash
-conda env remove -n simengine
-conda env remove -n algengine
+conda env remove --prefix /workspace/worldengine/envs/simengine
+conda env remove --prefix /workspace/worldengine/envs/algengine
 ```
 
 以上仅删除项目隔离环境。上游源码位于被 `.gitignore` 排除的 `upstream/WorldEngine`，可重新克隆；CPFS 数据通过 symlink 接入，不随环境删除。
