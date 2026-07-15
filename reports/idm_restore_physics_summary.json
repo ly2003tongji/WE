@@ -1,0 +1,83 @@
+{
+  "status": "ok",
+  "wall_s": 355.364,
+  "rss_gb": 1.709,
+  "cutoff": 3,
+  "horizon": 9,
+  "plan_idx": 1333,
+  "plan_idx_resolution": {
+    "plan_idx": 1333,
+    "source": "smoke_default_DEFAULT_PLAN_IDX",
+    "plan_idx_step": 4,
+    "note": "SMOKE CONVENIENCE: default plan_idx=1333 (NR disagreement smoke1 first action at step=4). Prefer --plan-idx-csv for multi-scene.",
+    "warning": "plan_idx came from hardcoded smoke default"
+  },
+  "cutoff_gate_grade": "A",
+  "cutoff_gate_allow_reward_compare": true,
+  "tolerances_declared_a_priori": {
+    "strict_pos_m": 0.05,
+    "strict_heading_deg": 0.5,
+    "strict_speed_mps": 0.05,
+    "soft_pos_m": 0.1,
+    "soft_heading_deg": 1.0,
+    "soft_speed_mps": 0.2,
+    "size_atol_m": 0.001
+  },
+  "identity_violations": [],
+  "policy_navigation_identity_preserved": true,
+  "idm_truly_starts_at_step": 0,
+  "ego_post_cutoff_pos_error_max_m": 0.0,
+  "ego_post_cutoff_heading_error_max_deg": 0.0,
+  "focus_token": "44df645d1b5b584b",
+  "focus_summary": {
+    "token": "44df645d1b5b584b",
+    "restored_near_stationary_oscillation": true,
+    "restored_complete_stall": false,
+    "restored_net_disp_m": 1.2500016700982262,
+    "restored_vs_replay_max_ade_m": 15.301885144307995,
+    "restored_has_valid_lane": true,
+    "restored_lane_kind": "CenterLane",
+    "cold_near_stationary_oscillation": true,
+    "warm_near_stationary_oscillation": false,
+    "warm_complete_stall": true,
+    "cold_vs_restored_max_dev_m": 0.00023305974036560417
+  },
+  "restored_vs_replay_flips": {
+    "noc_safe_to_danger": 2658,
+    "noc_danger_to_safe": 0,
+    "noc_total_flip": 2658,
+    "ttc_safe_to_danger": 2316,
+    "ttc_total_flip": 2316,
+    "fingerprint_matches_cold_replay_fingerprint": true
+  },
+  "attribution_full_restored_noc_flip": 2658,
+  "attribution_top_single_agent": [
+    {
+      "hybrid": "single_44df645d",
+      "n_idm_agents": 1,
+      "idm_tokens": [
+        "44df645d1b5b584b"
+      ],
+      "noc_total_flip": 2658,
+      "noc_safe_to_danger": 2658,
+      "ttc_total_flip": 2316,
+      "max_set_jaccard_vs_replay": 0.1067509145327569,
+      "kendall_tau_b": 0.6114436353789869,
+      "dac_equal": true,
+      "comfort_equal": true,
+      "direction_equal": true,
+      "noc_flip_frac_of_full": 1.0
+    }
+  ],
+  "verdict": "B_real_disagreement_under_strict_pairing",
+  "verdict_reason": "Cutoff physics strictly paired (gate A); restored IDM trajectory still stalls/oscillates for focus agent and NOC/TTC flips persist under fair comparison.",
+  "expand_allowed_this_round": false,
+  "idm_rolled_count": 5,
+  "idm_rolled": [
+    "3a6b749e38305b9d",
+    "44df645d1b5b584b",
+    "74c0b539dabe5e9b",
+    "7cd47126ba8f584e",
+    "dfcaa5d389bc56ef"
+  ]
+}

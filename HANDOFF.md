@@ -1,6 +1,6 @@
 # WorldEngine 双 Agent 交接
 
-最后更新：2026-07-15（阶段 0+1+1.5+1.6+1.7+**1.8** 完成后；暂停）
+最后更新：2026-07-15（阶段 0+1+1.5+1.6+1.7+1.8+**1.9** 完成后；暂停）
 
 ## 共同目标
 
@@ -78,12 +78,16 @@
 - 阶段 0+1（分歧数据可观测性）已完成，详见 `reports/DISAGREEMENT_DATA_AUDIT.md`。
 - 1-scene NR 基础 smoke 复跑通过；NR/R dense-reward 均通过 60min/64GB/5GB 资源门并写出 8192 维 `pdms_pkl`。
 - **DenseRewardManager 不能直接比较交通模型**：R 模式评分仍读日志 future；NR/R step≥4 差异是 rollout-conditioned。
-- **阶段 1.5+1.6+1.7+1.8 frozen-state**：详见 `reports/FROZEN_STATE_PAIRED_SCORING.md`、`reports/FROZEN_DISAGREEMENT_ATTRIBUTION.md`、`reports/IDM_WARM_START_VALIDATION.md`。
-  - 1.5–1.7：cold-start sidecar 跑通；2658 NOC 归因到 `44df645d` 近静止振荡。
-  - **1.8 warm-start**：完整场景官方 IDM 从 step 0 滚动；cutoff 状态门控 **C**（step 1 起分叉）；**未**跑 warm 奖励。
-  - `44df645d`：cold 振荡 **未**在 warm 复现；warm 为完全停滞（净位移 0，卡在 scene 起点）。
-  - **判定：阶段 1.5–1.7 的 32% 翻转为冷启动伪影记录；不得作效应量；扩样禁止**，直至 warm/restore-physics 协议过门控 A/B。
-- 摘要：`reports/frozen_paired_compare_summary_v3.*`、`reports/frozen_disagreement_attribution_summary.*`、`reports/idm_warm_start_summary.*`；原始数组 Git 外 `data/frozen_paired/`。
+- **阶段 1.5–1.9 frozen-state**：详见 `reports/FROZEN_STATE_PAIRED_SCORING.md`、`reports/FROZEN_DISAGREEMENT_ATTRIBUTION.md`、`reports/IDM_WARM_START_VALIDATION.md`、`reports/IDM_RESTORE_PHYSICS_VALIDATION.md`。
+  - 1.5–1.7：cold-start sidecar 跑通；2658 NOC / 2316 TTC 翻转归因到 `44df645d` 近静止振荡。
+  - **1.8 warm-start**：完整场景官方 IDM 从 step 0 滚动、不做 cutoff 物理恢复；cutoff 状态门控 **C**（step 1 起分叉，物理漂移 1–4m）；未跑奖励。`44df645d` 在 warm 完全停滞（净位移 0），与 cold 的振荡不同模式——当时无法判断 32% 翻转是否为伪影。
+  - **1.9 restore-physics（最终结论）**：新增 `validate_idm_restore_physics.py`，保留 warm 阶段已构建的 `IDMPolicy`/`IDMNavigation` 对象（identity 恢复前后完全不变），在 cutoff 用公开 setter（`set_position/set_heading_theta/set_velocity/set_angular_velocity`）+ `navigation.update_localization()` 把物理状态**严格恢复**为日志冻结态。安全审计：仅用公开接口，`enable_lane_change=False` 硬编码使车道变更缓存为死代码，无需处理；cutoff 前 40/40 token 均无不可逆车道切换。
+    - 恢复后 cutoff 门控 = **A**（38 个共同 agent 全部严格通过）。
+    - `44df645d` 恢复后仍近静止振荡（净位移 1.25m，与 cold 最大偏差仅 **0.000233 m**），非完全停滞，`current_lane` 有效（`CenterLane`，`lat=0`）。
+    - 严格配对下 Replay vs Restored-IDM：**NOC flip 2658、TTC flip 2316**，与 cold-start 数值**完全一致**；single-agent/LOO 归因确认**仍完全由 `44df645d` 单独造成**。
+    - **最终判定：该振荡与翻转是官方 IDM 在此场景下的真实行为，不是 sidecar 冷启动 bug**（判定类别 B：严格配对下仍有分歧）。仍只是 1-scene 工程证据。
+  - **扩样**：技术条件已具备（restore-physics 协议、门控 A、归因清晰），**仍需用户明确批准**；批准后必须使用 restore-physics 协议而非 `slice_scene_from_cutoff`。
+- 摘要：`reports/frozen_paired_compare_summary_v3.*`、`reports/frozen_disagreement_attribution_summary.*`、`reports/idm_warm_start_summary.*`、`reports/idm_restore_physics_summary.*`；原始数组 Git 外 `data/frozen_paired/`。
 - 未改 upstream。BWM / SMART / Nexus / 10-scene 均未执行。
 
 ## 尚未解决的问题
@@ -111,13 +115,12 @@
 
 ## H20 下一步
 
-阶段 0+1+1.5+1.6+1.7+1.8 已暂停。下一步需用户明确批准后择一推进：
+阶段 0+1+1.5+1.6+1.7+1.8+1.9 已暂停。restore-physics 协议已跑通、门控 A、32% 翻转已确认为该场景下官方 IDM 真实行为。下一步需用户明确批准后择一推进：
 
-1. **优先**：实现「保留 warm navigation + cutoff 恢复冻结物理」协作层方案（若需 upstream 则先设计再停）；过门控 A/B 后重做奖励配对；
-2. 通过后再考虑 10-scene 工程子集（不得沿用 cold-start 32%）；
-3. 阶段 2：下载最小 BWM augmented pkl 并审计能否冻结配对；
-4. 阶段 4/5：SMART / Nexus sidecar；
-5. 正式假设验证改用 train-side 长尾场景；288 rare navtest 保留最终测试。
+1. **优先**：用 restore-physics 协议扩到 10-scene 工程子集，观察近静止振荡/停滞类样本的发生率与效应量分布（仍非研究结论；须继续用 single-agent 归因监测是否有新的致因车型）；
+2. 阶段 2：下载最小 BWM augmented pkl 并审计能否冻结配对；
+3. 阶段 4/5：SMART / Nexus sidecar；
+4. 正式假设验证改用 train-side 长尾场景；288 rare navtest 保留最终测试。
 
 ## 同步协议
 

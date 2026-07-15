@@ -8,7 +8,9 @@
 
 2658 个 NOC 翻转（及 2316 个 TTC 翻转）**几乎完全由单车 `44df645d1b5b584b` 的 IDM 轨迹造成**；该车在 **cold-start** IDM 下近静止振荡，而 Replay 继续前驶，几何上更贴近/碰撞 ego 候选。
 
-> **阶段 1.8 更正**：warm-start 验证表明该振荡**不能**在完整场景官方 IDM 连续跑到 cutoff 时复现（warm 上该车完全停滞于 scene 起点；cutoff 状态门控 **C**）。因此 1.5–1.7 的 32% 翻转仅保留为**冷启动伪影发现记录**，**不得**用作效应量，**不得扩样**。详见 `reports/IDM_WARM_START_VALIDATION.md`。
+> **阶段 1.8 更正（已被阶段 1.9 进一步更正，见下）**：warm-start 验证表明该振荡**不能**在完整场景官方 IDM 连续跑到 cutoff（未做 cutoff 物理恢复）时复现（warm 上该车完全停滞于 scene 起点；cutoff 状态门控 **C**）。当时因门控不配对，1.5–1.7 的 32% 翻转仅保留为工程观察记录，未定论。
+>
+> **阶段 1.9 更正（最终结论，见 `reports/IDM_RESTORE_PHYSICS_VALIDATION.md`）**：cold-start振荡模式确认属于截断重初始化伪影相关的工程观察；由于warm-start在cutoff状态不配对（门控C），当时无法直接确定32% NOC/TTC翻转的真实效应量；阶段1.9通过restore-physics严格配对（门控A）重新计算后，确认该翻转在严格配对下依然完全存在且可归因到同一车辆，应视为官方IDM在此场景下的真实行为而非冷启动伪影。restore-physics 下 cold 与 restored 轨迹最大偏差仅 0.000233 m，NOC/TTC 翻转数值（2658/2316）与归因（单车 `44df645d1b5b584b`）完全复现。
 
 ## 1. 修正后的 tie 指标（v3）
 
@@ -85,17 +87,17 @@ IDM 动态车：`3a6b749e38305b9d`, `44df645d1b5b584b`, `74c0b539dabe5e9b`, `7cd
 结论：flip 与 **该 agent 轨迹靠近 ego** 一致，而非尺寸/坐标/valid 标签错误。
 （注：此为几何可行性检查，非完整 PDM at-fault 复刻。）
 
-## 6. 扩样技术门（阶段 1.8 后：**关闭**）
+## 6. 扩样技术门（阶段 1.9 后：**技术条件已具备，仍需用户批准**）
 
-| 条件 | 状态 |
-|---|---|
-| tie 指标数学有效且有测试 | 通过（工程） |
-| 15.3 m 可解释 | 通过，但机制为 **cold-start 振荡伪影** |
-| NOC/TTC 可归因 | 通过（cold 单车），**warm 未复现同模式** |
-| cutoff 冷/热启动状态配对 | **失败（门控 C）** |
-| warm-start 奖励可公平比较 | **否（跳过）** |
+| 条件 | 阶段 1.8 状态 | 阶段 1.9 状态 |
+|---|---|---|
+| tie 指标数学有效且有测试 | 通过（工程） | 通过 |
+| 15.3 m 可解释 | 通过，机制推测为 cold-start 振荡伪影 | **确认为官方 IDM 真实行为**（严格配对下复现） |
+| NOC/TTC 可归因 | 通过（cold 单车），warm 未复现同模式 | **通过；restore-physics 单车归因数值与 cold 完全一致（2658/2316）** |
+| cutoff 冷/热启动状态配对 | 失败（门控 C） | **通过（门控 A，restore-physics 协议）** |
+| 奖励可公平比较 | 否（跳过） | **是（已执行，见 `reports/IDM_RESTORE_PHYSICS_VALIDATION.md`）** |
 
-**扩样：禁止。** 须先实现 warm-start 或「保留 warm nav + cutoff 恢复冻结物理」并通过门控 A/B 后再谈效应量分布。
+**扩样：技术条件已具备**（restore-physics 协议可复用、门控 A、归因清晰）；**仍需用户明确批准**才可执行，且扩样时必须使用 restore-physics 协议而非 `slice_scene_from_cutoff` 冷启动。
 
 ## 产物
 

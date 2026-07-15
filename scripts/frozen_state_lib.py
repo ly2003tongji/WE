@@ -1068,6 +1068,139 @@ def classify_cutoff_gate(
     }
 
 
+def extract_log_agent_full_state_at(
+    scene: Dict[str, Any],
+    step: int,
+    include_ego: bool = True,
+) -> Dict[str, Any]:
+    """Full physical vector state (position/heading/velocity/angular_velocity) from
+    log scene at one step, for use as a restore target (stage 1.9).
+
+    Angular velocity uses the same forward-difference convention as upstream's
+    parse_scenario_state.compute_angular_velocity((heading[t+1]-heading[t])/dt),
+    so a restored agent's angular velocity is consistent with how the engine would
+    have derived it at spawn time. Not used by IDMPolicy.act() itself (only cosmetic
+    / state-completeness), since LogPlayController overwrites it every subsequent tick
+    from the policy's generated trajectory.
+    """
+    dt_s = 0.5
+    out: Dict[str, Any] = {}
+    for token, ot in scene["object_track"].items():
+        if token == "ego" and not include_ego:
+            continue
+        st = ot["state"]
+        pos = np.asarray(st["position"], dtype=np.float64)
+        if step >= len(pos):
+            continue
+        heading = _as_1d(np.asarray(st["heading"], dtype=np.float64))
+        vel = np.asarray(st.get("velocity", np.zeros((len(pos), 2))), dtype=np.float64)
+        valid = agent_valid_at(st, step)
+        h = float(heading[step]) if step < len(heading) else 0.0
+        if vel.ndim == 2 and vel.shape[1] >= 2:
+            vxy = vel[step, :2].tolist()
+        else:
+            vxy = [float(vel[step]) if step < len(vel) else 0.0, 0.0]
+        if step + 1 < len(heading):
+            angvel = float(heading[step + 1] - heading[step]) / dt_s
+        elif step > 0:
+            angvel = float(heading[step] - heading[step - 1]) / dt_s
+        else:
+            angvel = 0.0
+        length = np.asarray(st.get("length", [[0.0]]))
+        width = np.asarray(st.get("width", [[0.0]]))
+        ln = float(length[step, 0]) if length.ndim == 2 else float(length[step])
+        wd = float(width[step, 0]) if width.ndim == 2 else float(width[step])
+        out[token] = {
+            "type": ot.get("type"),
+            "position": pos[step, :2].tolist(),
+            "heading": h,
+            "velocity": vxy,
+            "angular_velocity": angvel,
+            "valid": bool(valid),
+            "length": ln,
+            "width": wd,
+        }
+    return out
+
+
+def restore_agent_physics_via_public_api(
+    ag: Any,
+    target: Dict[str, Any],
+    restore_angular_velocity: bool = True,
+) -> Dict[str, Any]:
+    """Restore ONE live agent's physical state using only public BaseAgent setters
+    (set_position / set_heading_theta / set_velocity / set_angular_velocity) plus
+    navigation.update_localization(). Never reassigns agent.policy or agent.navigation,
+    never touches private/underscored fields directly.
+
+    Safety audit (stage 1.9, read-only review of upstream before writing this function):
+      - IDMPolicy.act() only reads agent.current_position/current_speed/speed_km_h and
+        agent.navigation.current_lane/current_ref_lanes; routing_target_lane is
+        self-healing every act() via move_to_next_road() (recomputed from
+        navigation.current_lane, which update_localization() just refreshed).
+      - enable_lane_change=False and disable_idm_deceleration=False are hardcoded in
+        IDMPolicy.__init__ with no config override anywhere in the repo (grep-verified),
+        so lane_change_policy() is dead code for this config; no lane-change cache to sync.
+      - LogPlayController.step() is stateless per tick (reads only agent.trajectory,
+        refreshed every step by the policy).
+      - BaseAgent.before_step() re-derives last_position/last_heading_dir/last_velocity
+        from the (now restored) current state automatically on the next tick.
+      - Non-ego BaseAgent has no persistent "acceleration" field at all; nothing to
+        restore for that quantity for IDM agents.
+    Residual documented risk: IDMNavigation.update_localization() only makes forward
+    (monotonic) lane/route transitions; if a transition (following_original_traj
+    True->False, or current_lane switching to a downstream map lane) already happened
+    during pre-cutoff rollout, restoring position backward will NOT un-flip it. Caller
+    must check this empirically (see following_original_traj_before/after and
+    lane_object_id_before/after in the returned dict) and report, not assume away.
+    """
+    policy_id_before = id(getattr(ag, "policy", None))
+    nav_id_before = id(getattr(ag, "navigation", None))
+
+    pos = np.asarray(target["position"], dtype=np.float64).reshape(-1)[:2]
+    heading = float(target["heading"])
+    vel = np.asarray(target.get("velocity", [0.0, 0.0]), dtype=np.float64).reshape(-1)[:2]
+
+    ag.set_position(pos)
+    ag.set_heading_theta(heading, in_rad=True)
+    ag.set_velocity(vel, value=None, in_local_frame=False)
+
+    angvel_applied = None
+    if restore_angular_velocity and hasattr(ag, "set_angular_velocity"):
+        angvel = target.get("angular_velocity")
+        if angvel is not None:
+            ag.set_angular_velocity(float(angvel), in_rad=True)
+            angvel_applied = float(angvel)
+
+    nav = getattr(ag, "navigation", None)
+    lane_before = getattr(nav, "current_lane", None) if nav is not None else None
+    following_before = getattr(nav, "following_original_traj", None) if nav is not None else None
+    if nav is not None:
+        nav.update_localization()
+    lane_after = getattr(nav, "current_lane", None) if nav is not None else None
+    following_after = getattr(nav, "following_original_traj", None) if nav is not None else None
+
+    policy_id_after = id(getattr(ag, "policy", None))
+    nav_id_after = id(getattr(ag, "navigation", None))
+
+    return {
+        "position_applied": pos.tolist(),
+        "heading_applied": heading,
+        "velocity_applied": vel.tolist(),
+        "angular_velocity_applied": angvel_applied,
+        "policy_identity_preserved": policy_id_before == policy_id_after,
+        "navigation_identity_preserved": nav_id_before == nav_id_after,
+        "policy_id_before": policy_id_before,
+        "policy_id_after": policy_id_after,
+        "navigation_id_before": nav_id_before,
+        "navigation_id_after": nav_id_after,
+        "lane_object_id_before_update_localization": id(lane_before) if lane_before is not None else None,
+        "lane_object_id_after_update_localization": id(lane_after) if lane_after is not None else None,
+        "following_original_traj_before": following_before,
+        "following_original_traj_after": following_after,
+    }
+
+
 def capture_live_agent_nav(ag: Any) -> Dict[str, Any]:
     """Serialize navigation fields from a live BaseAgent."""
     nav = getattr(ag, "navigation", None)
