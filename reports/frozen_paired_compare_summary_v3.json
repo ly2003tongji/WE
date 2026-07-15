@@ -1,0 +1,183 @@
+{
+  "engineering_validation_only": true,
+  "not_research_conclusion": true,
+  "validity_revision": "v3",
+  "input_state_fingerprint_doc": "6a8a81e9fd7688670c33b84b311e2a1b5fc0a095ced830fcbc6e10f81befebf5",
+  "independent_fingerprints": {
+    "build_replay": "6a8a81e9fd7688670c33b84b311e2a1b5fc0a095ced830fcbc6e10f81befebf5",
+    "build_idm": "6a8a81e9fd7688670c33b84b311e2a1b5fc0a095ced830fcbc6e10f81befebf5",
+    "score_replay_pre_inject": "0249ede0cdcb40db448783228ca834ebb61586d821e050b0dd7a8bb825673e92",
+    "score_idm_pre_inject": "0249ede0cdcb40db448783228ca834ebb61586d821e050b0dd7a8bb825673e92",
+    "build_pair_equal": true,
+    "score_pair_equal": true,
+    "all_four_equal": false,
+    "note": "Build-stage Hydra has with_dense_reward_manager=false; score-stage has true. Expect build fingerprint != score fingerprint when scorer_config includes that flag; Replay/IDM pairs within each stage must match."
+  },
+  "ego_conditioning_verification": {
+    "requested_hash": "24c92e28e514283515ab56d651477109eb9e04f78c19e8430657533b00987143",
+    "executed_hash": "24c92e28e514283515ab56d651477109eb9e04f78c19e8430657533b00987143",
+    "pos_error_max_m": 0.0,
+    "heading_error_max_deg": 0.0
+  },
+  "futures_differ": true,
+  "future_compare_formal": {
+    "traj_dev_common_valid_max_m": 15.30188437153799,
+    "traj_dev_common_valid_mean_m": 0.3199459997010111,
+    "legacy_unmasked_max_m": 73.35327187024602,
+    "artifact_diagnosis": [
+      {
+        "token": "7cd47126ba8f584e",
+        "unmasked_max_ade_m": 73.35327187024602,
+        "common_valid_max_ade_m": 0.9178340589570124,
+        "replay_valid_count": 8,
+        "idm_valid_count": 9,
+        "likely_cause": "unmasked_ade_includes_invalid_or_padded_timesteps"
+      }
+    ]
+  },
+  "reward_keys": {
+    "no_at_fault_collisions": {
+      "equal": false,
+      "n": 8192,
+      "max_abs_diff": 1.0,
+      "mean_abs_diff": 0.324462890625,
+      "n_changed_gt_1e-6": 2658,
+      "replay_mean": 0.6168212890625,
+      "idm_mean": 0.2923583984375
+    },
+    "drivable_area_compliance": {
+      "equal": true,
+      "n": 8192,
+      "max_abs_diff": 0.0,
+      "mean_abs_diff": 0.0,
+      "n_changed_gt_1e-6": 0,
+      "replay_mean": 0.8701171875,
+      "idm_mean": 0.8701171875
+    },
+    "time_to_collision_within_bound": {
+      "equal": false,
+      "n": 8192,
+      "max_abs_diff": 1.0,
+      "mean_abs_diff": 0.28271484375,
+      "n_changed_gt_1e-6": 2316,
+      "replay_mean": 0.535888671875,
+      "idm_mean": 0.253173828125
+    },
+    "comfort": {
+      "equal": true,
+      "n": 8192,
+      "max_abs_diff": 0.0,
+      "mean_abs_diff": 0.0,
+      "n_changed_gt_1e-6": 0,
+      "replay_mean": 0.44140625,
+      "idm_mean": 0.44140625
+    },
+    "ego_progress": {
+      "equal": false,
+      "n": 8192,
+      "max_abs_diff": 1.0,
+      "mean_abs_diff": 0.4214497738728937,
+      "n_changed_gt_1e-6": 3961,
+      "replay_mean": 0.52178955078125,
+      "idm_mean": 0.10033977690835627
+    },
+    "driving_direction_compliance": {
+      "equal": true,
+      "n": 8192,
+      "max_abs_diff": 0.0,
+      "mean_abs_diff": 0.0,
+      "n_changed_gt_1e-6": 0,
+      "replay_mean": 0.5074462890625,
+      "idm_mean": 0.5074462890625
+    },
+    "score": {
+      "equal": false,
+      "n": 8192,
+      "max_abs_diff": 1.0,
+      "mean_abs_diff": 0.30444674415927864,
+      "n_changed_gt_1e-6": 4012,
+      "replay_mean": 0.49157460530598956,
+      "idm_mean": 0.18712786114671096
+    }
+  },
+  "noc_directional": {
+    "replay_safe_to_idm_danger": 2658,
+    "replay_danger_to_idm_safe": 0,
+    "both_safe": 2395,
+    "both_danger": 3139,
+    "total_flip": 2658,
+    "flip_ratio": 0.324462890625
+  },
+  "ttc_directional": {
+    "replay_safe_to_idm_danger": 2316,
+    "replay_danger_to_idm_safe": 0,
+    "both_safe": 2074,
+    "both_danger": 3802,
+    "total_flip": 2316,
+    "flip_ratio": 0.28271484375
+  },
+  "ranking_ties": {
+    "replay_max_score": 1.0,
+    "idm_max_score": 1.0,
+    "replay_max_set_size": 3007,
+    "idm_max_set_size": 321,
+    "intersection_size": 321,
+    "union_size": 3007,
+    "jaccard": 0.1067509145327569,
+    "frac_replay_max_in_idm_max": 0.1067509145327569,
+    "frac_idm_max_in_replay_max": 1.0,
+    "idm_max_is_subset_of_replay_max": true,
+    "argmax_index_replay": 2,
+    "argmax_index_idm": 23,
+    "both_unique_optimum": false,
+    "can_claim_unique_top1_flip": false,
+    "interpretation": "存在大规模并列：不能声称唯一最优动作翻转；A max-set=3007, B max-set=321, 交集=321, Jaccard=0.106751",
+    "index_tie_broken_note": "np.argmax/argsort break ties by smaller index; index-tie-broken Top-K is implementation behavior, not a stable ranking conclusion"
+  },
+  "topk_index_tie_broken_only": {
+    "k=1": {
+      "overlap": 0.0,
+      "note": "index-tie-broken implementation behavior only; not a stable ranking conclusion"
+    },
+    "k=5": {
+      "overlap": 0.0,
+      "note": "index-tie-broken implementation behavior only; not a stable ranking conclusion"
+    },
+    "k=10": {
+      "overlap": 0.2,
+      "note": "index-tie-broken implementation behavior only; not a stable ranking conclusion"
+    },
+    "k=50": {
+      "overlap": 0.16,
+      "note": "index-tie-broken implementation behavior only; not a stable ranking conclusion"
+    },
+    "k=100": {
+      "overlap": 0.13,
+      "note": "index-tie-broken implementation behavior only; not a stable ranking conclusion"
+    }
+  },
+  "kendall_tau_b_score": 0.6114436353789869,
+  "ego_progress_note": "Exported ego_progress is NOC/DAC-gated (pdm_scorer._aggregate_scores); changes with agent futures via multiplicative gating.",
+  "overall_score_max_abs_diff": 1.0,
+  "rewards_identical": false,
+  "score_provenance_replay": {
+    "shape": [
+      8192
+    ],
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 1.0,
+    "mean": 0.49157460530598956,
+    "sha256": "0e2c656beaa52aa2be3d3ebb40a2b2e33d630c66293568afd5961636d6304623"
+  },
+  "score_provenance_idm": {
+    "shape": [
+      8192
+    ],
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 1.0,
+    "mean": 0.18712786114671096,
+    "sha256": "b092cdb05c2f35947a23cb1721bf16e83290d37df720b443e3846814378e13d3"
+  }
+}

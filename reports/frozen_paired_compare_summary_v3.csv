@@ -1,0 +1,2 @@
+validity_revision,noc_r_safe_to_i_danger,noc_r_danger_to_i_safe,noc_both_safe,noc_both_danger,ttc_r_safe_to_i_danger,ttc_r_danger_to_i_safe,replay_max_set,idm_max_set,max_set_intersection,jaccard,idm_subset_of_replay,can_claim_unique_top1_flip,kendall_tau_b,common_valid_max_ade
+v3,2658,0,2395,3139,2316,0,3007,321,321,0.1067509145327569,True,False,0.6114436353789869,15.30188437153799

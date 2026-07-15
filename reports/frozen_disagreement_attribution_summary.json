@@ -1,0 +1,135 @@
+{
+  "engineering_validation_only": true,
+  "full_noc_flip": 2658,
+  "noc_directional": {
+    "replay_safe_to_idm_danger": 2658,
+    "replay_danger_to_idm_safe": 0,
+    "both_safe": 2395,
+    "both_danger": 3139,
+    "total_flip": 2658,
+    "flip_ratio": 0.324462890625
+  },
+  "ttc_directional": {
+    "replay_safe_to_idm_danger": 2316,
+    "replay_danger_to_idm_safe": 0,
+    "both_safe": 2074,
+    "both_danger": 3802,
+    "total_flip": 2316,
+    "flip_ratio": 0.28271484375
+  },
+  "ranking_ties": {
+    "replay_max_score": 1.0,
+    "idm_max_score": 1.0,
+    "replay_max_set_size": 3007,
+    "idm_max_set_size": 321,
+    "intersection_size": 321,
+    "union_size": 3007,
+    "jaccard": 0.1067509145327569,
+    "frac_replay_max_in_idm_max": 0.1067509145327569,
+    "frac_idm_max_in_replay_max": 1.0,
+    "idm_max_is_subset_of_replay_max": true,
+    "argmax_index_replay": 2,
+    "argmax_index_idm": 23,
+    "both_unique_optimum": false,
+    "can_claim_unique_top1_flip": false,
+    "interpretation": "存在大规模并列：不能声称唯一最优动作翻转；A max-set=3007, B max-set=321, 交集=321, Jaccard=0.106751",
+    "index_tie_broken_note": "np.argmax/argsort break ties by smaller index; index-tie-broken Top-K is implementation behavior, not a stable ranking conclusion"
+  },
+  "single_agent_ranked_by_noc_flip": [
+    {
+      "hybrid": "single_44df645d",
+      "idm_tokens": [
+        "44df645d1b5b584b"
+      ],
+      "noc_total_flip": 2658,
+      "noc_safe_to_danger": 2658,
+      "noc_flip_frac_of_full": 1.0,
+      "ttc_total_flip": 2316,
+      "kendall_tau_b": 0.6572929364563184
+    },
+    {
+      "hybrid": "single_3a6b749e",
+      "idm_tokens": [
+        "3a6b749e38305b9d"
+      ],
+      "noc_total_flip": 0,
+      "noc_safe_to_danger": 0,
+      "noc_flip_frac_of_full": 0.0,
+      "ttc_total_flip": 0,
+      "kendall_tau_b": 1.0
+    },
+    {
+      "hybrid": "single_74c0b539",
+      "idm_tokens": [
+        "74c0b539dabe5e9b"
+      ],
+      "noc_total_flip": 0,
+      "noc_safe_to_danger": 0,
+      "noc_flip_frac_of_full": 0.0,
+      "ttc_total_flip": 0,
+      "kendall_tau_b": 0.7668113033748253
+    },
+    {
+      "hybrid": "single_7cd47126",
+      "idm_tokens": [
+        "7cd47126ba8f584e"
+      ],
+      "noc_total_flip": 0,
+      "noc_safe_to_danger": 0,
+      "noc_flip_frac_of_full": 0.0,
+      "ttc_total_flip": 0,
+      "kendall_tau_b": 0.7668113033748253
+    }
+  ],
+  "loo_noc_flips": [
+    {
+      "hybrid": "loo_without_3a6b749e",
+      "idm_tokens": [
+        "44df645d1b5b584b",
+        "74c0b539dabe5e9b",
+        "7cd47126ba8f584e"
+      ],
+      "noc_total_flip": 2658,
+      "noc_flip_frac_of_full": 1.0
+    },
+    {
+      "hybrid": "loo_without_44df645d",
+      "idm_tokens": [
+        "3a6b749e38305b9d",
+        "74c0b539dabe5e9b",
+        "7cd47126ba8f584e"
+      ],
+      "noc_total_flip": 0,
+      "noc_flip_frac_of_full": 0.0
+    },
+    {
+      "hybrid": "loo_without_74c0b539",
+      "idm_tokens": [
+        "3a6b749e38305b9d",
+        "44df645d1b5b584b",
+        "7cd47126ba8f584e"
+      ],
+      "noc_total_flip": 2658,
+      "noc_flip_frac_of_full": 1.0
+    },
+    {
+      "hybrid": "loo_without_7cd47126",
+      "idm_tokens": [
+        "3a6b749e38305b9d",
+        "44df645d1b5b584b",
+        "74c0b539dabe5e9b"
+      ],
+      "noc_total_flip": 2658,
+      "noc_flip_frac_of_full": 1.0
+    }
+  ],
+  "focus_agent": {
+    "token": "44df645d1b5b584b",
+    "likely_cause": "idm_route_or_control_oscillation_near_stationary",
+    "max_ade_m": 15.30188437153799,
+    "replay_net_travel_m": 16.542104468729597,
+    "idm_net_travel_m": 1.2500026943555405,
+    "geometry_safe_to_danger_rate": 1.0
+  },
+  "expansion_gate": "PASS_technical_engineering_only"
+}

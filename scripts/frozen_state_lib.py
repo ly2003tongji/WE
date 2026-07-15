@@ -55,6 +55,8 @@ def _json_default(obj: Any) -> Any:
         return obj.tolist()
     if isinstance(obj, (np.floating, np.integer)):
         return obj.item()
+    if isinstance(obj, np.bool_):
+        return bool(obj)
     if isinstance(obj, Path):
         return str(obj)
     raise TypeError(f"Object of type {type(obj)} is not JSON serializable")

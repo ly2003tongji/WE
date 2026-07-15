@@ -1,0 +1,10 @@
+hybrid,n_idm,noc_flip,noc_safe_to_danger,noc_frac_of_full,ttc_flip,kendall_tau_b,dac_equal,comfort_equal
+full_idm,4,2658,2658,1.0,2316,0.6114436353789869,True,True
+single_3a6b749e,1,0,0,0.0,0,1.0,True,True
+single_44df645d,1,2658,2658,1.0,2316,0.6572929364563184,True,True
+single_74c0b539,1,0,0,0.0,0,0.7668113033748253,True,True
+single_7cd47126,1,0,0,0.0,0,0.7668113033748253,True,True
+loo_without_3a6b749e,3,2658,2658,1.0,2316,0.6114436353789869,True,True
+loo_without_44df645d,3,0,0,0.0,0,0.7668113033748253,True,True
+loo_without_74c0b539,3,2658,2658,1.0,2316,0.6114436353789869,True,True
+loo_without_7cd47126,3,2658,2658,1.0,2316,0.6114436353789869,True,True
