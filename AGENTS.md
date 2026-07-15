@@ -13,7 +13,11 @@
 
 - Mac Agent：论文精读、前置知识讲解、实验假设和研究方向。
 - H20 Agent：环境、依赖、数据清单、复现、训练和评测。
-- 两边通过 `HANDOFF.md` 和 `reports/` 交换状态，不假设聊天记忆自动同步。
+- 两边通过 `HANDOFF.md`、`research/` 和 `reports/` 交换状态，不假设聊天记忆自动同步。
+- 交通模型分歧实验开始前必须阅读：
+  - `research/RESEARCH_HANDOFF.md`
+  - `research/EXPERIMENT_PROTOCOL.md`
+  - `research/TRAFFIC_MODEL_INVENTORY.md`
 
 ## H20 执行约束
 
@@ -34,9 +38,10 @@
 
 ## 当前优先级
 
-1. 验证官方代码、数据和 checkpoint 的实际开放范围。
-2. 建立最小闭环 baseline，而不是直接追求完整复现。
-3. 核查默认 `rl_finetuning=False` 对“RL post-training”表述的影响。
-4. 评估 non-reactive replay 与 IDM reactive 闭环结果的差异。
-5. 根据实验决定是否研究真正的策略梯度/KL 后训练。
+1. 保持已跑通的 1/10-scene NR/R 最小闭环可重复。
+2. 审计候选级 PDM 子奖励、轨迹词表和 synthetic data schema。
+3. 验证 Replay / IDM / BWM-Offline 的配对条件与初步奖励分歧。
+4. 核验并接入 SMART；优先评估 Nexus 单场景 ego-conditioned adapter。
+5. 只有分歧能够增量预测 held-out 失败后，才设计风险敏感后训练。
+6. 288 rare navtest 保留为最终测试，不用于反复调整分歧公式。
 

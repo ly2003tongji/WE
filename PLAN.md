@@ -2,7 +2,7 @@
 
 ## 总目标
 
-先用论文建立系统地图，再按需补齐闭环评测、3D Gaussian Splatting（3DGS）与策略后训练知识，并以单张 H20 上的最小闭环实验筛选方向。重点不是从头复现整套系统，而是验证“仿真经验如何有效改进 action policy”。
+在已跑通 WorldEngine 最小闭环的基础上，验证交通模型分歧能否预测合成经验在未见模型中的迁移失败，并在前提成立后提出分歧校准的风险敏感后训练方法。
 
 ## 当前判断
 
@@ -56,9 +56,49 @@
 ### B3. 最小消融
 
 1. Non-reactive replay 与 IDM reactive agents。
-2. rare-log LoRA：reward-shaped imitation learning baseline。
-3. 有可靠 rollout 数据后，再尝试 rollout post-training。
-4. 记录 SR、EP、PDMS*、失败类型、吞吐、显存和随机性。
+2. 对齐同一场景、候选轨迹和 PDM 子奖励。
+3. 审计 BWM-Offline augmented scenarios 的可配对性。
+4. 接入至少一个独立学习式在线交通模型。
+5. 记录 SR、EP、PDMS*、失败类型、吞吐、显存和随机性。
+
+## 工作流 C：交通模型分歧研究
+
+完整协议见 `research/EXPERIMENT_PROTOCOL.md`。
+
+### C1. 数据可观测性
+
+- 确认 `pdms_pkl` 的字段、shape和候选索引；
+- 确认8192候选是否共享他车future；
+- 确认BWM augmented scene与original scene映射。
+
+### C2. 前提诊断
+
+- 区分基础风险与模型分歧；
+- 比较模型间和同模型多seed波动；
+- 测量NOC/TTC翻转、Top-1变化和排序分歧；
+- 使用scene级划分和统计。
+
+### C3. 严格held-out验证
+
+优先形成三个独立在线模型族：
+
+```text
+IDM + SMART → held-out Nexus
+IDM + Nexus → held-out SMART
+SMART + Nexus → held-out IDM
+```
+
+Replay和BWM-Offline作为辅助外部域单独报告。
+
+### C4. 后训练
+
+只有分歧相对TTC、车辆数、平均/最坏奖励具有增量预测力后，才比较：
+
+- 单模型训练；
+- 多模型均匀混合；
+- 平均/最坏奖励；
+- GroupDRO/CVaR；
+- 分歧自适应方法。
 
 ## 论文—代码重点核查
 
@@ -68,20 +108,31 @@
 4. 主仓只有 MTGS 渲染消费端，重建训练依赖外部 MTGS 仓库。
 5. 区分论文完整系统、当前开源仓库和产业内部验证三者的能力边界。
 
-## 候选方向
+## 已锁定方向
 
-1. **首选：闭环经验质量与真正的策略后训练。** 比较 reward-shaped IL、policy-gradient 分支、KL/参考策略约束和 hard-case weighting。
-2. **次选：交通行为模型敏感性与泛化。** 比较 replay、IDM 和不同交互强度，研究 simulator-policy overfitting。
-3. **高风险：3DGS 离轨渲染可靠性。** 估计视角/轨迹偏移下的不确定性，并对低可信帧降权。
-4. **暂缓：完整 BWM 或 MTGS 重建。** 当前开源边界和工程成本不适合作为第一个目标。
+**交通模型分歧校准的闭环后训练。**
+
+目标不是简单提高 WorldEngine 上限，而是解决：
+
+> 当合成监督来自不完美交通模型时，如何识别具有迁移风险的经验，并避免策略过拟合特定交通行为生成机制。
+
+暂缓：
+
+- 完整 BWM 或 MTGS 重建；
+- 3DGS离轨不确定性；
+- 从零训练TrafficBots；
+- 修改驾驶backbone；
+- 在分歧前提未通过时设计复杂后训练网络。
 
 ## 决策门槛
 
 首选 idea 必须同时满足：
 
-- 现象在小规模实验中稳定；
-- 闭环实验相对开环提供不可替代的信息；
-- 单 H20 数天内能完成一轮；
-- 代码改动和对照实验可审计；
-- 能清晰区分论文已有贡献与新增贡献。
+- 模型间分歧大于模型内随机波动；
+- 分歧能在至少两个held-out在线模型族上预测失败或决策遗憾；
+- 相比TTC、车辆数等简单基线有增量；
+- 后训练优于多模型均匀混合；
+- 未见模型最坏性能提高；
+- common能力、进度和非保守性不明显退化；
+- 代码改动、数据谱系和对照实验可审计。
 

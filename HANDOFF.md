@@ -1,16 +1,20 @@
 # WorldEngine 双 Agent 交接
 
-最后更新：2026-07-10
+最后更新：2026-07-15
 
 ## 共同目标
 
-理解并验证 WorldEngine 中“3DGS 数字孪生环境 + action policy 闭环 rollout + post-training”的技术链，最终形成一个可复现、可消融、可投稿的研究问题。
+以 WorldEngine 为实验平台，研究不同交通行为模型生成的奖励监督是否稳定迁移到未见模型，并在前提成立后提出分歧校准的风险敏感后训练方法。
 
 ## Mac 论文会话状态
 
-- WorldEngine 论文 PDF 已获取，准备按 `PLAN.md` 进行正式导读。
-- 已完成全文和附录的预读，但尚未开始面向用户的逐节讲解。
-- 下一步：输出基本信息、论文类型、写作逻辑、分级大纲和核心问题，然后暂停等待用户“继续”。
+- 已完成 WorldEngine 正文、附录、公开代码边界和相关领域文献调研。
+- 已确定唯一主方向：交通模型分歧能否预测合成经验在未见模型中的迁移失败，并用于稳健后训练。
+- 研究定义、实验协议和模型清单已写入：
+  - `research/RESEARCH_HANDOFF.md`
+  - `research/EXPERIMENT_PROTOCOL.md`
+  - `research/TRAFFIC_MODEL_INVENTORY.md`
+- H20 新会话使用 `prompts/H20_DISAGREEMENT_AGENT_PROMPT.md`，不要继续使用旧的基础复现提示作为主任务。
 
 ## 已确认的论文事实
 
@@ -34,6 +38,9 @@
   - `importance_sampling=True`
 - 因此默认所谓 RLFT 配置不会进入 `compute_RL_loss`；这一点必须通过运行和完整 loss/data flow 再验证，不能仅凭命名下结论。
 - BWM rollout 配置中的 synthetic folder 路径仍为 `/path/to/...` 占位符。
+- 官方数据发布了 `data/sim_engine/scenarios/augmented/` 下的 BWM-generated scenarios，但 `data/alg_engine/openscene-synthetic/` 仍需通过 SimEngine 生成。
+- 当前可把 BWM 预生成轨迹作为 `BWM-Offline` 行为来源，不能声称可调用完整 BWM。
+- Replay/IDM 已在 SimEngine 中分别对应 NR/R；SMART 和 Nexus 尚未在本项目中完成可运行接入。
 
 ## H20 已知资源
 
@@ -76,6 +83,34 @@
 - AlgEngine 官方 pins 与依赖 metadata 有两个已知冲突：`networkx==2.5` 对 mmdet3d 的 `<2.3`，`Shapely==2.0.4` 对 nuscenes-devkit 的 `<2.0`；当前 import/CUDA op 通过，需在真实数据路径继续观察。
 - 288 scenes 的实际解压体积、运行耗时、输出体积和 quick-start “5–10 分钟”说法仍需运行验证。
 - 论文 full WorldEngine 所用 BWM/checkpoint/训练开关与当前默认开源配置的精确对应关系仍未交代。
+- 当前 `pdms_pkl` 是否保存并可对齐 8192 候选的全部子奖励、候选索引和最终排序，尚未完成运行审计。
+- BWM augmented scenarios 是否包含 original source token、是否能严格配对、是否针对特定 ego plan 生成，尚未核验。
+- SMART 的公开 nuPlan drop-in 实现是否实际可获取、checkpoint 是否可复现，尚未核验。
+- Nexus 有公开 nuPlan checkpoint 和特征管线，但缺少可直接替换 IDM 的完整闭环接口；需先做单场景 ego-conditioned 旁路验证。
+- 交通模型分歧是否大于同模型随机波动、是否能预测 held-out failure，尚无实验结论。
+
+## 新研究假设与阶段门
+
+研究必须依次满足：
+
+1. 不同交通模型对同一场景和 ego candidate 产生非微小的 NOC/TTC/排序分歧；
+2. 分歧相对 TTC、车辆数、平均/最坏奖励提供额外 held-out 风险信息；
+3. 分歧方法优于多模型均匀混合，并改善未见在线模型和最坏模型性能；
+4. rare 安全提升不能以 common 遗忘、低进度或停车为代价。
+
+若第 2 条不成立，停止“分歧可靠性后训练”，不得仅因模型意见不同继续堆方法。
+
+## H20 下一步
+
+严格按 `research/EXPERIMENT_PROTOCOL.md`：
+
+1. 保持现有1-scene smoke可复现；
+2. 输出`reports/DISAGREEMENT_DATA_AUDIT.md`，审计`plan_traj/meta_datas/pdms_pkl`；
+3. 审计BWM-Offline augmented pkl的schema、配对关系和频率；
+4. 用10 scenes构建Replay/IDM初步分歧统计；
+5. 核验SMART drop-in代码；
+6. 使用Nexus公开nuPlan checkpoint完成单场景ego candidate条件生成；
+7. 在没有至少三个独立在线模型族前，不宣称完整held-out泛化实验已经具备条件。
 
 ## 同步协议
 

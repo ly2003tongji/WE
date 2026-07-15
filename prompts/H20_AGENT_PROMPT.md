@@ -1,5 +1,7 @@
 # H20 工程 Agent 启动提示词
 
+> 状态：基础复现阶段提示词。当前分支已完成环境、数据审计和1/10-scene闭环复现；开展交通模型分歧研究时请改用 `prompts/H20_DISAGREEMENT_AGENT_PROMPT.md`。
+
 将下面整段发送给 H20 工作站上的 Cursor Agent：
 
 ---
