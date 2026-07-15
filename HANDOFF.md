@@ -1,6 +1,6 @@
 # WorldEngine 双 Agent 交接
 
-最后更新：2026-07-15
+最后更新：2026-07-15（阶段 0+1+1.5 完成后）
 
 ## 共同目标
 
@@ -75,7 +75,16 @@
 - 1-scene profile 峰值显存 13,638 MiB、峰值 GPU util 97%；10-scene NR/R 墙钟分别约 8.9/9.5 分钟。
 - 代码核查确认：主仓只有 BWM synthetic data consumer、没有 BWM generator；MTGS 重建指向外部仓库。
 - 默认 rare-log `RLFT` 的 `rl_finetuning=False`，不调用 `compute_RL_loss`。默认实际为 LoRA + reward-head BCE；normal imitation 使用 importance ratio，rare/hard imitation 被 mask。
-- 下一步是下载剩余两个 rare asset shards 并运行正式 288 NR/R baseline；尚未启动该约 60.6 GB 增量下载。
+- 阶段 0+1（分歧数据可观测性）已完成，详见 `reports/DISAGREEMENT_DATA_AUDIT.md`。
+- 1-scene NR 基础 smoke 复跑通过；NR/R dense-reward 均通过 60min/64GB/5GB 资源门并写出 8192 维 `pdms_pkl`。
+- **DenseRewardManager 不能直接比较交通模型**：R 模式评分仍读日志 future；NR/R step≥4 差异是 rollout-conditioned。
+- **阶段 1.5 frozen-state 配对已技术通过**（详见 `reports/FROZEN_STATE_PAIRED_SCORING.md`）：
+  - 同一 fingerprint 下 Replay vs IDM source-conditioned future + 统一 8192 PDM 评分；
+  - 无 3DGS、无 upstream patch；build~9s、score~70s、输出~89MB；
+  - 本 smoke scene：4 辆 IDM 车 future 不同；NOC flip 32.4%；Kendall τ-b=0.657；Top-1 未变；DAC/Comfort 稳定；
+  - Replay 分数与历史 NR step=3 逐元素一致（评分路径校准）。
+- 协作层脚本：`scripts/run_frozen_paired_scoring.sh` 及 build/score/compare；摘要在 `reports/frozen_paired_compare_summary.*`；原始数组在 Git 外 `data/frozen_paired/`。
+- 未改 upstream，未 commit/push。288 baseline / BWM / SMART / Nexus / 10-scene 研究统计均未执行。
 
 ## 尚未解决的问题
 
@@ -83,11 +92,11 @@
 - AlgEngine 官方 pins 与依赖 metadata 有两个已知冲突：`networkx==2.5` 对 mmdet3d 的 `<2.3`，`Shapely==2.0.4` 对 nuscenes-devkit 的 `<2.0`；当前 import/CUDA op 通过，需在真实数据路径继续观察。
 - 288 scenes 的实际解压体积、运行耗时、输出体积和 quick-start “5–10 分钟”说法仍需运行验证。
 - 论文 full WorldEngine 所用 BWM/checkpoint/训练开关与当前默认开源配置的精确对应关系仍未交代。
-- 当前 `pdms_pkl` 是否保存并可对齐 8192 候选的全部子奖励、候选索引和最终排序，尚未完成运行审计。
+- 冻结态 Replay/IDM 在 1-scene smoke 上已见 NOC/TTC/排序分歧，但这 **不是** 研究假设成立的证据；需 train-side 长尾与 held-out 协议。
 - BWM augmented scenarios 是否包含 original source token、是否能严格配对、是否针对特定 ego plan 生成，尚未核验。
 - SMART 的公开 nuPlan drop-in 实现是否实际可获取、checkpoint 是否可复现，尚未核验。
 - Nexus 有公开 nuPlan checkpoint 和特征管线，但缺少可直接替换 IDM 的完整闭环接口；需先做单场景 ego-conditioned 旁路验证。
-- 交通模型分歧是否大于同模型随机波动、是否能预测 held-out failure，尚无实验结论。
+- 交通模型分歧是否大于同模型随机波动、是否能预测 held-out failure，尚无实验结论；且不得用 `navtest_failures` 工程 smoke 代替研究判定。
 
 ## 新研究假设与阶段门
 
@@ -102,15 +111,13 @@
 
 ## H20 下一步
 
-严格按 `research/EXPERIMENT_PROTOCOL.md`：
+阶段 0+1+1.5 已暂停。下一步需用户明确批准后择一推进：
 
-1. 保持现有1-scene smoke可复现；
-2. 输出`reports/DISAGREEMENT_DATA_AUDIT.md`，审计`plan_traj/meta_datas/pdms_pkl`；
-3. 审计BWM-Offline augmented pkl的schema、配对关系和频率；
-4. 用10 scenes构建Replay/IDM初步分歧统计；
-5. 核验SMART drop-in代码；
-6. 使用Nexus公开nuPlan checkpoint完成单场景ego candidate条件生成；
-7. 在没有至少三个独立在线模型族前，不宣称完整held-out泛化实验已经具备条件。
+1. 将 frozen-state sidecar 扩展到 10-scene 工程子集，仅估效应量分布（仍非研究判定）；
+2. 阶段 2：下载最小 BWM augmented pkl（约 3.13 GB）并审计能否冻结配对；19 GB original 仍需单独批准；
+3. 阶段 4/5：SMART 公开性核验与 Nexus sidecar（schema+严格配对管线已技术通过）；
+4. 正式假设验证改用 train-side 长尾场景；288 rare navtest 保留最终测试。
+5. （可选）经批准再考虑 `dense_reward_manager` / `meta_datas` flush 最小 upstream patch；当前 sidecar 已不依赖它们。
 
 ## 同步协议
 

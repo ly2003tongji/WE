@@ -1,0 +1,148 @@
+{
+  "engineering_validation_only": true,
+  "not_research_conclusion": true,
+  "input_state_fingerprint": "d02737044abc8e8001499b5a7f036a1caa9df8c99bf2e6f7401dd2aa2be515af",
+  "fingerprint_match_replay_idm": true,
+  "ego_conditioning_hash": "e414b16f9300215dd4c573d5ad0a8546239ce9d98aff3bdb77ce98366cf5c55c",
+  "futures_differ": true,
+  "future_compare": {
+    "n_changed_agents_maxade_gt_5cm": 4,
+    "traj_dev_mean_m": 0.4243458036313114,
+    "traj_dev_max_m": 73.35327187024602,
+    "coverage_replay_n_vehicle": 15,
+    "coverage_idm_rolled": 4,
+    "coverage_idm_fallback": 44
+  },
+  "reward_keys": {
+    "no_at_fault_collisions": {
+      "equal": false,
+      "n": 8192,
+      "max_abs_diff": 1.0,
+      "mean_abs_diff": 0.324462890625,
+      "mean_diff": -0.324462890625,
+      "n_changed": 2658,
+      "n_changed_gt_1e-6": 2658,
+      "flip_count_threshold_1": 2658,
+      "flip_ratio_threshold_1": 0.324462890625,
+      "replay_mean": 0.6168212890625,
+      "idm_mean": 0.2923583984375
+    },
+    "drivable_area_compliance": {
+      "equal": true,
+      "n": 8192,
+      "max_abs_diff": 0.0,
+      "mean_abs_diff": 0.0,
+      "mean_diff": 0.0,
+      "n_changed": 0,
+      "n_changed_gt_1e-6": 0,
+      "flip_count_threshold_1": 0,
+      "flip_ratio_threshold_1": 0.0,
+      "replay_mean": 0.8701171875,
+      "idm_mean": 0.8701171875
+    },
+    "time_to_collision_within_bound": {
+      "equal": false,
+      "n": 8192,
+      "max_abs_diff": 1.0,
+      "mean_abs_diff": 0.28271484375,
+      "mean_diff": -0.28271484375,
+      "n_changed": 2316,
+      "n_changed_gt_1e-6": 2316,
+      "flip_count_threshold_1": 2316,
+      "flip_ratio_threshold_1": 0.28271484375,
+      "replay_mean": 0.535888671875,
+      "idm_mean": 0.253173828125
+    },
+    "comfort": {
+      "equal": true,
+      "n": 8192,
+      "max_abs_diff": 0.0,
+      "mean_abs_diff": 0.0,
+      "mean_diff": 0.0,
+      "n_changed": 0,
+      "n_changed_gt_1e-6": 0,
+      "flip_count_threshold_1": 0,
+      "flip_ratio_threshold_1": 0.0,
+      "replay_mean": 0.44140625,
+      "idm_mean": 0.44140625
+    },
+    "ego_progress": {
+      "equal": false,
+      "n": 8192,
+      "max_abs_diff": 1.0,
+      "mean_abs_diff": 0.26776123046875,
+      "mean_diff": -0.26776123046875,
+      "n_changed": 2256,
+      "n_changed_gt_1e-6": 2256,
+      "flip_count_threshold_1": null,
+      "flip_ratio_threshold_1": null,
+      "replay_mean": 0.52178955078125,
+      "idm_mean": 0.2540283203125
+    },
+    "driving_direction_compliance": {
+      "equal": true,
+      "n": 8192,
+      "max_abs_diff": 0.0,
+      "mean_abs_diff": 0.0,
+      "mean_diff": 0.0,
+      "n_changed": 0,
+      "n_changed_gt_1e-6": 0,
+      "flip_count_threshold_1": 0,
+      "flip_ratio_threshold_1": 0.0,
+      "replay_mean": 0.5074462890625,
+      "idm_mean": 0.5074462890625
+    },
+    "score": {
+      "equal": false,
+      "n": 8192,
+      "max_abs_diff": 1.0,
+      "mean_abs_diff": 0.24040985107421878,
+      "mean_diff": -0.24040985107421878,
+      "n_changed": 2307,
+      "n_changed_gt_1e-6": 2307,
+      "flip_count_threshold_1": null,
+      "flip_ratio_threshold_1": null,
+      "replay_mean": 0.49157460530598956,
+      "idm_mean": 0.2511647542317708
+    }
+  },
+  "noc_consistent_safe": 2395,
+  "noc_consistent_danger": 3139,
+  "noc_conflict": 2658,
+  "noc_flip_count": 2658,
+  "noc_flip_ratio": 0.324462890625,
+  "top1_replay": 2,
+  "top1_idm": 2,
+  "top1_changed": false,
+  "topk_overlap": {
+    "k=1": 1.0,
+    "k=5": 0.2,
+    "k=10": 0.1,
+    "k=50": 0.02,
+    "k=100": 0.01
+  },
+  "kendall_tau_b_score": 0.6572929364563184,
+  "overall_score_max_abs_diff": 1.0,
+  "overall_score_mean_abs_diff": 0.24040985107421878,
+  "rewards_identical": false,
+  "score_provenance_replay": {
+    "shape": [
+      8192
+    ],
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 1.0,
+    "mean": 0.49157460530598956,
+    "sha256": "0e2c656beaa52aa2be3d3ebb40a2b2e33d630c66293568afd5961636d6304623"
+  },
+  "score_provenance_idm": {
+    "shape": [
+      8192
+    ],
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 1.0,
+    "mean": 0.2511647542317708,
+    "sha256": "383d2d3bbbeb408cd0df96cb3ad8a00d3c0f9c4a6fb62fdef5985ed08a9dce9d"
+  }
+}

@@ -1,0 +1,2 @@
+input_state_fingerprint,futures_differ,n_changed_agents,traj_dev_mean_m,traj_dev_max_m,noc_flip_count,noc_flip_ratio,noc_conflict,ttc_max_abs_diff,dac_max_abs_diff,comfort_max_abs_diff,score_max_abs_diff,top1_changed,topk10_overlap,kendall_tau_b_score,rewards_identical
+d02737044abc8e8001499b5a7f036a1caa9df8c99bf2e6f7401dd2aa2be515af,True,4,0.4243458036313114,73.35327187024602,2658,0.324462890625,2658,1.0,0.0,0.0,1.0,False,0.1,0.6572929364563184,False
