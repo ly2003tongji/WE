@@ -1,0 +1,2 @@
+validity_revision,build_pair_fp_equal,score_pair_fp_equal,ego_pos_err_max_m,common_valid_max_ade_m,legacy_unmasked_max_ade_m,noc_flip_count,ttc_flip_count,replay_n_tied_at_max,idm_n_tied_at_max,max_score_jaccard,both_unique_optimum,kendall_tau_b_score,topk10_optimistic,topk10_pessimistic
+v2,True,True,0.0,15.30188437153799,73.35327187024602,2658,2316,3007,321,0.1067509145327569,False,0.6114436353789869,32.1,0.0

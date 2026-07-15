@@ -1,131 +1,107 @@
-# Frozen-State Paired Scoring（阶段 1.5）
+# Frozen-State Paired Scoring（阶段 1.5 → 1.6 有效性修正）
 
 **工程验证 only**。不得用本报告对研究假设做 go / narrow / no-go。场景来自 `navtest_failures` 1-scene smoke。
 
-最后更新：2026-07-15
+最后更新：2026-07-15（阶段 1.6 validity_v2）
 
 ## 硬性警告（审查必读）
 
 - **当前仅为 `navtest_failures` 单场景工程验证**，只证明管线可审计、可配对；**不能据此判断研究假设成立**。
-- **8192 候选共享一组 source-conditioned 他车 future**：每个交通来源只生成一组 future，全体候选共用；**不是** candidate-conditioned IDM reaction（未对每个候选做 8192 次 IDM rollout）。
-- **覆盖范围**：仅 **4 个动态 VEHICLE** 由 `IDMPolicy` 推进；11 个静态车走 `trajectory_policy`；行人/骑行者等 **44** 个 agent 为 log fallback。比较解读必须带上该 coverage。
-- **max ADE = 73.4 m**（token `7cd47126ba8f584e`）异常偏大，**必须后续检查**是否来自 IDM 路线漂移、坐标/valid mask、agent 匹配错误或 future 构造 bug，不能直接当作“真实交互差异”。
-- **NOC/TTC 大幅翻转**（约 32% / 28%）**可能是**真实交通模型差异，**也可能是** IDM 路线、valid mask、agent 匹配或 future 构造伪影；在未完成代码与异常审查前，不得当作效应量结论。
-- **Top-1 未改变**（idx=2）；排序分歧主要体现在 Top-K / Kendall，不宜过度解读为“最优计划翻转”。
-- **下一步必须先审查代码与上述异常，再扩大场景**；暂停新实验扩样，直至审查闭环。
+- **8192 候选共享一组 source-conditioned 他车 future**：每个交通来源只生成一组 future，全体候选共用；**不是** candidate-conditioned IDM reaction。
+- **覆盖范围**：仅 **4 个动态 VEHICLE** 由 `IDMPolicy` 推进；11 个静态车走 `trajectory_policy`；行人/骑行者等 **44** 个 agent 为 log fallback。
+- **阶段 1.5 的 max ADE=73.4 m 已确认为 artifact**（见下）：未对 invalid/padding 时间步做 mask。正式指标改用 **common-valid ADE**。
+- **NOC/TTC 大幅翻转仍存在**（约 32% / 28%），**可能是**真实交通模型差异，**也可能是** IDM 路线、valid mask、agent 匹配或 future 构造伪影；在未完成代码与异常审查前，不得当作效应量结论。
+- **不得简单声称「Top-1 未变化」**：双方在 max score=1.0 处存在大规模并列（Replay 3007 / IDM 321）；`np.argmax` 为 index-tie-broken。阶段 1.5 的 Top-1 结论已更正。
+- **下一步必须先审查代码与上述异常，再扩大场景**。
 
-## 结论摘要
+## 阶段 1.6 修正摘要
 
-| 项 | 结果 |
-|---|---|
-| frozen input fingerprint 是否严格一致 | **是**（Replay/IDM 共用同一 fingerprint） |
-| IDM future 是否真正来自 IDM | **是**（4 辆动态车 `IDMPolicy`；其余按 WorldEngine 规则 fallback） |
-| Replay/IDM future 是否不同 | **是**（4 agents max ADE>5cm；future hash 不同） |
-| 8192 候选奖励能否严格逐项比较 | **是**（同 vocab、同 scorer、同 fingerprint） |
-| 是否需要 upstream patch | **否**（协作层 sidecar 完成） |
-| 资源门 | build ~9s / score ~70s；RSS <2GB；输出 ~89MB |
-
-## 只读设计核查（阶段 1.5 第一部分）
-
-| 主题 | 位置 / 结论 |
-|---|---|
-| DenseReward 读 from_scene future | `dense_reward_manager.py` `before_step`：`convert_to_detections_tracks_from_scene` 预载 `observations_list`；`compute_pdm_scores` 用该列表，**不用**在线 IDM agent |
-| R 模式 IDM 推进 | `idm_policy.py` `act` + `idm_navigation`；依赖完整 engine/map |
-| 冻结初始化最小字段 | `object_track` 位置/朝向/速度/valid/尺寸；地图 `map_features`；TL；ego conditioning；vocab/scorer 配置 |
-| PDM Scorer 接口 | ego state + `DetectionsTracks` futures + map_api + route roadblocks；vocab `[8192,T,3]` |
-| horizon / 频率 / 尺寸 / mask | `reward_sampling_poses=8`（0.1s×40）；obs buffer=9×0.5s；Pacifica；agent valid 由 position/valid 推出 |
-| 无 3DGS | **可行**：`with_render_manager=false` 可完成结构化 future + densereward 评分 |
-
-**为何 DenseRewardManager 不能直接比较交通模型**：即使 R 模式，评分仍读日志 future；NR/R step≥4 的差异是 rollout-conditioned（ego plan 已分叉），不是冻结态交通模型分歧。
-
-## 实验设置
-
-- Scene：`2021.09.29.15.23.04_veh-28_00601_00802-6326d00e52115da4`
-- Cutoff：`step=3`（`num_history-1`）
-- Ego conditioning：NR Action Policy `plan_idx=1333`（vocab 局部 → WE center）
-- 模式：**source-conditioned**（每源一组他车 future，8192 候选共享；非 8192 次 candidate-conditioned IDM）
-- 无渲染、无 AlgEngine、未改 upstream
-
-`input_state_fingerprint`：
-
-`d02737044abc8e8001499b5a7f036a1caa9df8c99bf2e6f7401dd2aa2be515af`
-
-（不含交通模型 future；Replay/IDM 评分 provenance 一致。）
-
-## 两种他车 future
-
-| | Replay | IDM |
+| 项 | 阶段 1.5 | 阶段 1.6 (validity_v2) |
 |---|---|---|
-| source | `log_replay` | `idm`（4 车）+ fallback |
-| future hash | `4dc058b9…844c` | `151fb2b8…3237` |
-| ego conditioning hash | `e414b16f…c55c`（相同） | 同左 |
-| coverage | 59 valid agents；15 VEHICLE | IDM rolled 4；static traj 11；non-vehicle log fallback 44 |
+| ADE 定义 | 未 mask（含 invalid） | **common-valid ADE（正式）**；保留 unmasked 仅作诊断 |
+| 正式 max ADE | 73.35 m（误） | **15.30 m** |
+| token `7cd47126…` | unmasked 73.35 m | common-valid **0.92 m**；73.35 = IDM 续写 vs Replay `valid=0` 的 `[0,0]` |
+| ego conditioning | 仅存 live positions | requested/executed hash **一致**；pos/heading 误差 **0** |
+| fingerprint | 生成一次再赋给两路 | **阶段内独立双路**（build 对 / score 对）均相等 |
+| Top-1 | 声称未变（idx=2） | **并列打破后不可如此解释**；argmax 2 vs 23；Jaccard(max-set)=0.107 |
+| NOC flip | 2658 | **2658（不变）** |
+| TTC flip | 2316 | **2316（不变）** |
+| Replay vs 历史 NR step3 | 逐元素一致 | **仍逐元素一致** |
 
-变化 agent（max ADE>5cm，均为 `source=idm`）：
+输出目录（未覆盖 1.5）：`data/frozen_paired/smoke1_cutoff3_validity_v2/`
 
-| token | mean ADE (m) | max ADE (m) |
-|---|---:|---:|
-| `7cd47126ba8f584e` | 8.39 | 73.35 |
-| `44df645d1b5b584b` | 6.71 | 15.30 |
-| `74c0b539dabe5e9b` | 4.48 | 11.24 |
-| `3a6b749e38305b9d` | 5.46 | 10.39 |
+## 1. Valid 与 ADE
 
-全体共同 agent 轨迹偏差：mean 0.42 m，max 73.35 m。
+- `agent_valid_at`：有 `valid` 字段时以之为准；**不再**仅因 `[0,0]` 判无效。
+- `compare_futures`：仅在双方均 valid 的共同时间步计算正式 ADE；无共同 valid 的 agent 不进入汇总。
+- **73.4 m 原因**：`7cd47126ba8f584e` 在 horizon 末步（相对 step=8 / 绝对 step=11）Replay `valid=0` 且位置为 `[0,0]`，IDM 仍输出约 (54.1, -49.5)；unmasked ADE 把该步算进去 → 73.4 m。**common-valid 仅 8 步，max ADE=0.92 m** → **artifact**。
 
-Coverage 可解释：`BaseAgentManager.reset` 跳过 PEDESTRIAN/CYCLIST；静态车强制 `trajectory_policy`。与官方 R 行为一致，非管线失败。
+## 2. Ego conditioning 验证
 
-## 统一 PDM 评分
+- `plan_idx` 来源：`plan_idx.csv` **step=4 → 1333**（cutoff=3 后首个 Action Policy 计划）；CLI 显式传入，非静默硬编码。
+- requested hash = executed hash = `24c92e28…7143`
+- pos max error = **0.0 m**；heading max error = **0.0°**
+- IDM 确实对 **requested conditioning** 作出反应（轨迹跟踪无偏差）。
 
-- 同一 `test_8192_kmeans.npy`（sha256 `cc44a31e…8ad35`）
-- 同一 DenseReward / PDM scorer 路径（注入 future → `trajectory_policy` + `with_dense_reward_manager=true`）
-- Replay step=3 分数与历史 NR dense-reward step=3 **逐元素相同**（max abs diff = 0）→ 评分路径校准通过
-- IDM 分数 sha256 不同：`383d2d3b…ce9d` vs Replay `0e2c656b…4623`
+## 3. 独立 fingerprint
 
-## 最小比较（工程）
+| 标签 | fingerprint | 阶段内配对 |
+|---|---|---|
+| build Replay / IDM（hydra scorer @ densereward=false） | `6a8a81e9…ebf5` | **相等** |
+| score Replay / IDM（pre-inject，densereward=true） | `0249ede0…3e92` | **相等** |
+| 四者全部相等 | 否（预期：build/score 的 hydra 块含 `with_dense_reward_manager` 不同） | 阶段内配对已独立验证 |
 
-| 指标 | 结果 |
+fingerprint 含：ego/agents 历史+当前、类型尺寸 valid、地图/灯、vocab hash/shape/dtype、cutoff/horizon/频率、**实际 Hydra scorer 配置 hash**、plan_idx + requested traj hash；**不含**交通 future。
+
+## 4. 并列排名（tie-aware）
+
+- Replay 最高分 1.0，并列 **3007** 个候选；IDM 最高分 1.0，并列 **321**。
+- max-score 集合交集 321；Jaccard **0.107**。
+- `argmax`（index-tie-broken）：Replay=2，IDM=23 → **选定 index 不同**。
+- 双方均非唯一最优 → **不能**解释为「Top-1 未变化」。
+- Top-K 同时报告：index-tie-broken / optimistic / pessimistic overlap。
+- Kendall τ-b 保留（见 `frozen_paired_compare_summary_v2.json`）。
+
+## 5. ego_progress 为何随他车 future 变化
+
+代码路径（upstream，只读）：
+
+1. `pdm_scorer.py` `_aggregate_scores`（约 L174–L195）：`normalized_progress *= multiplicate_metric_scores`（NOC×DAC 等乘性项）。
+2. `dense_reward_manager.py` `_score_proposals_impl`（约 L662）：导出的 `ego_progress` 是 **gated 后的** `_weighted_metrics[PROGRESS]`，不是原始中心线进度。
+
+因此仅改变他车 future → NOC 翻转 → 对应候选的 `ego_progress` 被乘零，可出现 **2256** 条变化。**不是**注入副作用，而是 scorer 合并定义。理论上 raw progress（同 ego 候选）应不变；导出字段会变。
+
+## 6. 四辆 IDM 车诊断（要点）
+
+| token | common-valid max ADE | unmasked max | 备注 |
+|---|---:|---:|---|
+| `44df645d1b5b584b` | 15.30 | 15.30 | 正式最大偏差来源；需后续查路线 |
+| `74c0b539dabe5e9b` | ~11.2 | ~11.2 | IDM 分叉 |
+| `3a6b749e38305b9d` | ~10.4 | ~10.4 | IDM 分叉 |
+| `7cd47126ba8f584e` | **0.92** | **73.35** | 73.35 为 invalid 伪影；无大步跳变 |
+
+`7cd47126…` 末步 Replay invalid；IDM 沿 lane `47774` 继续，速度约 9.8 m/s，无 >15 m/0.5s 跳变。
+
+## 7. 扩样技术门
+
+| 条件 | 状态 |
 |---|---|
-| Future 是否不同 | 是 |
-| 变化 agent 数 | 4 |
-| NOC flip | 2658 / 8192 = **32.4%** |
-| NOC 一致安全 / 危险 / 冲突 | 2395 / 3139 / 2658 |
-| TTC flip | 2316 / 8192 = **28.3%** |
-| DAC | **完全相同** |
-| Comfort | **完全相同** |
-| Direction | **完全相同** |
-| Score max/mean abs diff | 1.0 / 0.240 |
-| Top-1 | **未变**（idx=2） |
-| Top-K 重合 | k=1:1.0；k=5:0.2；k=10:0.1；k=50:0.02 |
-| Kendall τ-b (score) | **0.657** |
+| 无 upstream patch 可跑配对 | 通过 |
+| Replay 校准（=历史 NR step3） | 通过 |
+| ego conditioning 执行一致 | 通过 |
+| 独立 fingerprint（阶段内） | 通过 |
+| valid-aware ADE | 通过；73.4 artifact 已解释 |
+| 并列排名正确报告 | 通过 |
+| 15 m 级真实 ADE / NOC 翻转归因 | **未完成** → **暂缓无审查扩样** |
+| 多场景 CLI（cutoff/plan_idx） | 已支持；默认仅 smoke convenience |
 
-解读（工程，非研究）：本 scene 在冻结态下 Replay/IDM 已产生大量 NOC/TTC/排序分歧；DAC/Comfort 稳定符合“他车 future 主要冲击碰撞/TTC 类项”的预期。不得外推到 held-out 失效预测。NOC/TTC 翻转与 max ADE=73.4 m 均需先做异常/coverage 审查，再谈扩样。
+**结论：具备继续审查与单场景复现的技术条件；不具备“直接扩到多场景做效应量”的条件。** 扩样前须审查 15 m ADE 车与 NOC 翻转机制。
 
-## 产物路径
+## 产物
 
-**Git 外（原始数组）**
+**Git 外**：`/mnt/cpfs/prediction/lyyy/myself/WE/data/frozen_paired/smoke1_cutoff3_validity_v2/`
+（含 futures/scores、`ego_conditioning_verification.json`、`idm_agent_diagnostics.json`、独立 fingerprint JSON）
 
-`/mnt/cpfs/prediction/lyyy/myself/WE/data/frozen_paired/smoke1_cutoff3/`
+**Git 内**：本报告；`reports/frozen_paired_compare_summary_v2.{json,csv}`；修正后脚本。
 
-含：`future_{log_replay,idm}.{pkl,npz}`、`scores_*.pkl`、fingerprint / provenance JSON、workdir。
-
-**Git 内（脚本 + 摘要）**
-
-- `scripts/frozen_state_lib.py`
-- `scripts/build_frozen_traffic_futures.py`
-- `scripts/score_frozen_disagreement.py`
-- `scripts/compare_frozen_rewards.py`
-- `scripts/run_frozen_paired_scoring.sh`
-- `reports/frozen_paired_compare_summary.{json,csv}`
-- 本文件 `reports/FROZEN_STATE_PAIRED_SCORING.md`
-
-## Upstream patch
-
-**不需要。** 未修改 `upstream/WorldEngine`。
-
-## 下一步建议（不执行）
-
-0. **先审查代码与异常**（max ADE、coverage、future 构造、IDM 路线），再考虑扩样。
-1. 审查通过后，才可将同一 sidecar 扩展到 10-scene 工程子集，仅估效应量分布（仍非研究判定）。
-2. 阶段 2：审计 BWM augmented pkl 能否冻结配对。
-3. Nexus/SMART sidecar：schema 已通，可在批准后接旁路。
-4. 正式假设验证改用 train-side 长尾场景；`navtest_failures` 仅保留最终测试。
+阶段 1.5 目录 `smoke1_cutoff3/` **保留未覆盖**。

@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 import pickle
@@ -13,7 +12,7 @@ import sys
 import time
 import traceback
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import numpy as np
 
@@ -22,16 +21,17 @@ sys.path.insert(0, str(SCRIPT_DIR))
 
 from frozen_state_lib import (  # noqa: E402
     DEFAULT_CUTOFF,
-    DEFAULT_PLAN_IDX,
-    SCORER_CONFIG,
+    DEFAULT_HORIZON,
+    build_input_state_fingerprint,
+    extract_scorer_config_from_hydra,
     inject_agent_futures_into_scene,
     load_scene_dict,
+    resolve_plan_idx,
     save_json,
     scene_as_dict,
     sha256_bytes,
     sha256_file,
 )
-
 
 PDM_KEYS = [
     "no_at_fault_collisions",
@@ -78,10 +78,13 @@ def score_one_source(
     futures_pack: Dict[str, Any],
     source_name: str,
     cutoff: int,
+    horizon: int,
     work_dir: Path,
     asset_folder: str,
-    fingerprint: str,
     vocab_path: Path,
+    vocab: np.ndarray,
+    plan_idx: int,
+    requested_ego_hash: str,
     wall_limit_sec: int,
     rss_limit_gb: float,
     t0: float,
@@ -96,21 +99,16 @@ def score_one_source(
     if _rss_gb() > rss_limit_gb:
         raise RuntimeError(f"HARD_PAUSE: RSS {_rss_gb():.1f}GB")
 
-    injected = inject_agent_futures_into_scene(scene, futures_pack, cutoff)
+    # Independent fingerprint BEFORE future injection (non-future inputs only)
     if work_dir.exists():
         shutil.rmtree(work_dir)
     work_dir.mkdir(parents=True, exist_ok=True)
-    pkl_path = work_dir / "all_scenarios.pkl"
-    with pkl_path.open("wb") as f:
-        pickle.dump(scene_as_dict(injected), f)
 
-    if engine_initialized():
-        close_engine()
-
-    simengine_root = Path(os.environ["SIMENGINE_ROOT"])
-    # Need scores at cutoff; stop shortly after.
     max_step = cutoff + 2
     out_root = work_dir / "sim_out"
+    simengine_root = Path(os.environ["SIMENGINE_ROOT"])
+    if engine_initialized():
+        close_engine()
     GlobalHydra.instance().clear()
     with initialize_config_dir(config_dir=str(simengine_root / "worldengine/configs"), version_base="1.2"):
         cfg = compose(
@@ -138,6 +136,24 @@ def score_one_source(
                 "exit_on_failure=true",
             ],
         )
+    hydra_scorer = extract_scorer_config_from_hydra(cfg)
+
+    fp_pre = build_input_state_fingerprint(
+        scene,
+        cutoff,
+        vocab_path,
+        plan_idx,
+        scorer_config=hydra_scorer,
+        horizon=horizon,
+        requested_ego_traj_hash=requested_ego_hash,
+        vocab=vocab,
+        fingerprint_label=f"score_{source_name}_pre_inject",
+    )
+
+    injected = inject_agent_futures_into_scene(scene, futures_pack, cutoff)
+    pkl_path = work_dir / "all_scenarios.pkl"
+    with pkl_path.open("wb") as f:
+        pickle.dump(scene_as_dict(injected), f)
 
     data = pickle.load(open(pkl_path, "rb"))
     env = build_env(cfg, name=f"frozen_score_{source_name}", data=data)
@@ -150,7 +166,6 @@ def score_one_source(
     pdms_dir = out_root / "openscene_format" / "pdms_pkl"
     target = pdms_dir / f"{scene['id']}_step_{cutoff}_scores.pkl"
     if not target.exists():
-        # fallback: any step_cutoff file
         cands = sorted(pdms_dir.glob(f"*_step_{cutoff}_scores.pkl"))
         if not cands:
             raise FileNotFoundError(f"No step_{cutoff} scores under {pdms_dir}")
@@ -159,24 +174,25 @@ def score_one_source(
     with target.open("rb") as f:
         scores = pickle.load(f)
 
-    # Persist outside git
     scores_out = work_dir.parent / f"scores_{source_name}.pkl"
     with scores_out.open("wb") as f:
         pickle.dump(scores, f)
 
     ego_cond = futures_pack.get("ego_conditioning", {})
     provenance = {
-        "input_state_fingerprint": fingerprint,
+        "input_state_fingerprint": fp_pre["input_state_fingerprint"],
+        "fingerprint_label": f"score_{source_name}_pre_inject",
         "source": source_name,
         "source_future_hash": futures_pack.get("future_hash"),
-        "ego_conditioning_hash": ego_cond.get("ego_conditioning_hash"),
+        "requested_ego_conditioning_hash": ego_cond.get("requested_ego_conditioning_hash")
+        or ego_cond.get("ego_conditioning_hash"),
+        "executed_ego_conditioning_hash": ego_cond.get("executed_ego_conditioning_hash"),
         "agent_coverage": futures_pack.get("coverage"),
         "vocabulary_sha256": sha256_file(vocab_path),
-        "scorer_config": SCORER_CONFIG,
-        "scorer_config_hash": sha256_bytes(
-            json.dumps(SCORER_CONFIG, sort_keys=True).encode("utf-8")
-        ),
+        "scorer_config": hydra_scorer,
+        "scorer_config_hash": hydra_scorer.get("scorer_config_hash"),
         "cutoff": cutoff,
+        "horizon": horizon,
         "scores_path": str(scores_out),
         "reward_summary": summarize_reward_dict(scores),
         "reaction_mode": futures_pack.get(
@@ -186,6 +202,11 @@ def score_one_source(
         "rss_gb": round(_rss_gb(), 3),
     }
     save_json(work_dir.parent / f"scores_{source_name}_provenance.json", provenance)
+    save_json(work_dir.parent / f"fingerprint_score_{source_name}.json", {
+        "input_state_fingerprint": fp_pre["input_state_fingerprint"],
+        "label": provenance["fingerprint_label"],
+        "scorer_config_hash": hydra_scorer.get("scorer_config_hash"),
+    })
     return provenance
 
 
@@ -201,15 +222,18 @@ def main() -> int:
     parser.add_argument(
         "--futures-dir",
         type=Path,
-        default=Path("/mnt/cpfs/prediction/lyyy/myself/WE/data/frozen_paired/smoke1_cutoff3"),
+        default=Path("/mnt/cpfs/prediction/lyyy/myself/WE/data/frozen_paired/smoke1_cutoff3_validity_v2"),
     )
     parser.add_argument(
         "--vocab",
         type=Path,
         default=Path("/mnt/cpfs/prediction/lyyy/myself/WE/data/hf/data/alg_engine/test_8192_kmeans.npy"),
     )
-    parser.add_argument("--cutoff", type=int, default=DEFAULT_CUTOFF)
-    parser.add_argument("--plan-idx", type=int, default=DEFAULT_PLAN_IDX)
+    parser.add_argument("--cutoff", type=int, default=None)
+    parser.add_argument("--horizon", type=int, default=DEFAULT_HORIZON)
+    parser.add_argument("--plan-idx", type=int, default=None)
+    parser.add_argument("--plan-idx-csv", type=Path, default=None)
+    parser.add_argument("--plan-idx-step", type=int, default=None)
     parser.add_argument("--asset-folder", type=str, default=None)
     parser.add_argument("--wall-limit-sec", type=int, default=3600)
     parser.add_argument("--rss-limit-gb", type=float, default=64.0)
@@ -232,37 +256,50 @@ def main() -> int:
     )
 
     fp_path = args.futures_dir / "input_state_fingerprint.json"
-    fp = json.loads(fp_path.read_text())
-    fingerprint = fp["input_state_fingerprint"]
+    fp_doc = json.loads(fp_path.read_text())
+    cutoff = args.cutoff if args.cutoff is not None else int(fp_doc.get("cutoff", DEFAULT_CUTOFF))
+    plan_res = resolve_plan_idx(
+        args.plan_idx if args.plan_idx is not None else fp_doc.get("plan_idx_resolution", {}).get("plan_idx"),
+        args.plan_idx_csv,
+        args.plan_idx_step,
+        cutoff,
+    )
+    plan_idx = int(plan_res["plan_idx"])
+    requested_ego_hash = fp_doc.get("requested_ego_conditioning_hash")
+    if not requested_ego_hash:
+        raise RuntimeError("missing requested_ego_conditioning_hash in input_state_fingerprint.json")
 
     scene = load_scene_dict(args.scene_pkl)
+    vocab = np.load(args.vocab)
 
     provenances = {}
+    score_fps = {}
     for source, pkl_name in (
         ("log_replay", "future_log_replay.pkl"),
         ("idm", "future_idm.pkl"),
     ):
         with (args.futures_dir / pkl_name).open("rb") as f:
             futures_pack = pickle.load(f)
-        if futures_pack.get("input_state_fingerprint") != fingerprint:
-            print("HARD_PAUSE: fingerprint mismatch in futures pack", source)
-            return 3
         try:
             prov = score_one_source(
                 scene=scene,
                 futures_pack=futures_pack,
                 source_name=source,
-                cutoff=args.cutoff,
+                cutoff=cutoff,
+                horizon=args.horizon,
                 work_dir=args.futures_dir / f"score_workdir_{source}",
                 asset_folder=asset_folder,
-                fingerprint=fingerprint,
                 vocab_path=args.vocab,
+                vocab=vocab,
+                plan_idx=plan_idx,
+                requested_ego_hash=requested_ego_hash,
                 wall_limit_sec=args.wall_limit_sec,
                 rss_limit_gb=args.rss_limit_gb,
                 t0=t0,
             )
             provenances[source] = prov
-            print(f"scored {source}: score_sha={prov['reward_summary']['score']['sha256'][:16]}")
+            score_fps[source] = prov["input_state_fingerprint"]
+            print(f"scored {source}: score_sha={prov['reward_summary']['score']['sha256'][:16]} fp={prov['input_state_fingerprint'][:16]}")
         except Exception as e:
             save_json(
                 args.futures_dir / f"score_{source}_error.json",
@@ -272,21 +309,47 @@ def main() -> int:
             print(traceback.format_exc())
             return 2
 
-    # Strict pairing check
-    if provenances["log_replay"]["input_state_fingerprint"] != provenances["idm"]["input_state_fingerprint"]:
-        print("HARD_PAUSE: score provenance fingerprint mismatch")
-        return 3
-    if provenances["log_replay"]["ego_conditioning_hash"] != provenances["idm"]["ego_conditioning_hash"]:
-        print("HARD_PAUSE: ego conditioning hash mismatch at score stage")
+    if score_fps["log_replay"] != score_fps["idm"]:
+        save_json(args.futures_dir / "HARD_PAUSE_fingerprint_mismatch.json", score_fps)
+        print("HARD_PAUSE: score-stage independent fingerprints differ")
+        print(score_fps)
         return 3
 
-    save_json(args.futures_dir / "score_summary.json", {
-        "status": "ok",
-        "input_state_fingerprint": fingerprint,
-        "sources": provenances,
-        "wall_s": round(time.time() - t0, 3),
-        "rss_gb": round(_rss_gb(), 3),
-    })
+    # Merge four-way report (2 build + 2 score)
+    build_fps = fp_doc.get("independent_fingerprints", {})
+    four_way = {
+        "build_replay": build_fps.get("replay_future_build_pre_hydra_scorer"),
+        "build_idm": build_fps.get("idm_env_init_pre_hydra_scorer"),
+        "score_replay_pre_inject": score_fps["log_replay"],
+        "score_idm_pre_inject": score_fps["idm"],
+    }
+    # Note: build fingerprints may differ from score because densereward=true changes hydra scorer block.
+    # Within each stage (build-only / score-only) they must match.
+    four_way["build_pair_equal"] = four_way["build_replay"] == four_way["build_idm"]
+    four_way["score_pair_equal"] = four_way["score_replay_pre_inject"] == four_way["score_idm_pre_inject"]
+    four_way["all_four_equal"] = len(set(v for k, v in four_way.items() if k.startswith(("build_", "score_")) and isinstance(v, str))) == 1
+    four_way["note"] = (
+        "Build-stage Hydra has with_dense_reward_manager=false; score-stage has true. "
+        "Expect build fingerprint != score fingerprint when scorer_config includes that flag; "
+        "Replay/IDM pairs within each stage must match."
+    )
+    save_json(args.futures_dir / "independent_fingerprints_all.json", four_way)
+
+    if not four_way["score_pair_equal"] or not four_way["build_pair_equal"]:
+        print("HARD_PAUSE: within-stage fingerprint mismatch")
+        return 3
+
+    save_json(
+        args.futures_dir / "score_summary.json",
+        {
+            "status": "ok",
+            "input_state_fingerprint_score_stage": score_fps["log_replay"],
+            "independent_fingerprints": four_way,
+            "sources": provenances,
+            "wall_s": round(time.time() - t0, 3),
+            "rss_gb": round(_rss_gb(), 3),
+        },
+    )
     return 0
 
 

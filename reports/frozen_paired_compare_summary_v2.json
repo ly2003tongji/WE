@@ -1,0 +1,252 @@
+{
+  "engineering_validation_only": true,
+  "not_research_conclusion": true,
+  "validity_revision": "v2",
+  "input_state_fingerprint_doc": "6a8a81e9fd7688670c33b84b311e2a1b5fc0a095ced830fcbc6e10f81befebf5",
+  "independent_fingerprints": {
+    "build_replay": "6a8a81e9fd7688670c33b84b311e2a1b5fc0a095ced830fcbc6e10f81befebf5",
+    "build_idm": "6a8a81e9fd7688670c33b84b311e2a1b5fc0a095ced830fcbc6e10f81befebf5",
+    "score_replay_pre_inject": "0249ede0cdcb40db448783228ca834ebb61586d821e050b0dd7a8bb825673e92",
+    "score_idm_pre_inject": "0249ede0cdcb40db448783228ca834ebb61586d821e050b0dd7a8bb825673e92",
+    "build_pair_equal": true,
+    "score_pair_equal": true,
+    "all_four_equal": false,
+    "note": "Build-stage Hydra has with_dense_reward_manager=false; score-stage has true. Expect build fingerprint != score fingerprint when scorer_config includes that flag; Replay/IDM pairs within each stage must match."
+  },
+  "ego_conditioning_verification": {
+    "requested_hash": "24c92e28e514283515ab56d651477109eb9e04f78c19e8430657533b00987143",
+    "executed_hash": "24c92e28e514283515ab56d651477109eb9e04f78c19e8430657533b00987143",
+    "pos_error_max_m": 0.0,
+    "heading_error_max_deg": 0.0,
+    "warnings": [],
+    "hard_fail": false
+  },
+  "futures_differ": true,
+  "future_compare_formal": {
+    "n_changed_agents_common_valid_maxade_gt_5cm": 4,
+    "traj_dev_common_valid_mean_m": 0.3199459997010111,
+    "traj_dev_common_valid_max_m": 15.30188437153799,
+    "artifact_diagnosis": [
+      {
+        "token": "7cd47126ba8f584e",
+        "unmasked_max_ade_m": 73.35327187024602,
+        "common_valid_max_ade_m": 0.9178340589570124,
+        "replay_valid_count": 8,
+        "idm_valid_count": 9,
+        "likely_cause": "unmasked_ade_includes_invalid_or_padded_timesteps"
+      }
+    ],
+    "legacy_unmasked_max_m": 73.35327187024602,
+    "coverage_idm_rolled": 4
+  },
+  "reward_keys": {
+    "no_at_fault_collisions": {
+      "equal": false,
+      "n": 8192,
+      "max_abs_diff": 1.0,
+      "mean_abs_diff": 0.324462890625,
+      "mean_diff": -0.324462890625,
+      "n_changed": 2658,
+      "n_changed_gt_1e-6": 2658,
+      "flip_count_threshold_1": 2658,
+      "flip_ratio_threshold_1": 0.324462890625,
+      "replay_mean": 0.6168212890625,
+      "idm_mean": 0.2923583984375
+    },
+    "drivable_area_compliance": {
+      "equal": true,
+      "n": 8192,
+      "max_abs_diff": 0.0,
+      "mean_abs_diff": 0.0,
+      "mean_diff": 0.0,
+      "n_changed": 0,
+      "n_changed_gt_1e-6": 0,
+      "flip_count_threshold_1": 0,
+      "flip_ratio_threshold_1": 0.0,
+      "replay_mean": 0.8701171875,
+      "idm_mean": 0.8701171875
+    },
+    "time_to_collision_within_bound": {
+      "equal": false,
+      "n": 8192,
+      "max_abs_diff": 1.0,
+      "mean_abs_diff": 0.28271484375,
+      "mean_diff": -0.28271484375,
+      "n_changed": 2316,
+      "n_changed_gt_1e-6": 2316,
+      "flip_count_threshold_1": 2316,
+      "flip_ratio_threshold_1": 0.28271484375,
+      "replay_mean": 0.535888671875,
+      "idm_mean": 0.253173828125
+    },
+    "comfort": {
+      "equal": true,
+      "n": 8192,
+      "max_abs_diff": 0.0,
+      "mean_abs_diff": 0.0,
+      "mean_diff": 0.0,
+      "n_changed": 0,
+      "n_changed_gt_1e-6": 0,
+      "flip_count_threshold_1": 0,
+      "flip_ratio_threshold_1": 0.0,
+      "replay_mean": 0.44140625,
+      "idm_mean": 0.44140625
+    },
+    "ego_progress": {
+      "equal": false,
+      "n": 8192,
+      "max_abs_diff": 1.0,
+      "mean_abs_diff": 0.4214497738728937,
+      "mean_diff": -0.4214497738728937,
+      "n_changed": 3961,
+      "n_changed_gt_1e-6": 3961,
+      "flip_count_threshold_1": null,
+      "flip_ratio_threshold_1": null,
+      "replay_mean": 0.52178955078125,
+      "idm_mean": 0.10033977690835627
+    },
+    "driving_direction_compliance": {
+      "equal": true,
+      "n": 8192,
+      "max_abs_diff": 0.0,
+      "mean_abs_diff": 0.0,
+      "mean_diff": 0.0,
+      "n_changed": 0,
+      "n_changed_gt_1e-6": 0,
+      "flip_count_threshold_1": 0,
+      "flip_ratio_threshold_1": 0.0,
+      "replay_mean": 0.5074462890625,
+      "idm_mean": 0.5074462890625
+    },
+    "score": {
+      "equal": false,
+      "n": 8192,
+      "max_abs_diff": 1.0,
+      "mean_abs_diff": 0.30444674415927864,
+      "mean_diff": -0.30444674415927864,
+      "n_changed": 4012,
+      "n_changed_gt_1e-6": 4012,
+      "flip_count_threshold_1": null,
+      "flip_ratio_threshold_1": null,
+      "replay_mean": 0.49157460530598956,
+      "idm_mean": 0.18712786114671096
+    }
+  },
+  "noc_consistent_safe": 2395,
+  "noc_consistent_danger": 3139,
+  "noc_conflict": 2658,
+  "noc_flip_count": 2658,
+  "noc_flip_ratio": 0.324462890625,
+  "ranking_ties": {
+    "replay_max_score": 1.0,
+    "idm_max_score": 1.0,
+    "replay_n_tied_at_max": 3007,
+    "idm_n_tied_at_max": 321,
+    "replay_max_score_set_size": 3007,
+    "idm_max_score_set_size": 321,
+    "max_score_set_intersection_size": 321,
+    "max_score_set_jaccard": 0.1067509145327569,
+    "argmax_index_replay": 2,
+    "argmax_index_idm": 23,
+    "argmax_indices_equal": false,
+    "both_unique_optimum": false,
+    "interpretation": "选定index不同（index-tie-broken argmax）"
+  },
+  "topk_overlap": {
+    "k=1": {
+      "k": 1,
+      "index_tie_broken_overlap": 0.0,
+      "optimistic_overlap": 321.0,
+      "pessimistic_overlap": 0.0,
+      "side_a_boundary_tie_count": 3007,
+      "side_b_boundary_tie_count": 321,
+      "side_a_kth_score": 1.0,
+      "side_b_kth_score": 1.0,
+      "index_tie_broken_note": "argsort/argmax breaks ties by smaller index"
+    },
+    "k=5": {
+      "k": 5,
+      "index_tie_broken_overlap": 0.0,
+      "optimistic_overlap": 64.2,
+      "pessimistic_overlap": 0.0,
+      "side_a_boundary_tie_count": 3007,
+      "side_b_boundary_tie_count": 321,
+      "side_a_kth_score": 1.0,
+      "side_b_kth_score": 1.0,
+      "index_tie_broken_note": "argsort/argmax breaks ties by smaller index"
+    },
+    "k=10": {
+      "k": 10,
+      "index_tie_broken_overlap": 0.0,
+      "optimistic_overlap": 32.1,
+      "pessimistic_overlap": 0.0,
+      "side_a_boundary_tie_count": 3007,
+      "side_b_boundary_tie_count": 321,
+      "side_a_kth_score": 1.0,
+      "side_b_kth_score": 1.0,
+      "index_tie_broken_note": "argsort/argmax breaks ties by smaller index"
+    },
+    "k=50": {
+      "k": 50,
+      "index_tie_broken_overlap": 0.0,
+      "optimistic_overlap": 6.42,
+      "pessimistic_overlap": 0.0,
+      "side_a_boundary_tie_count": 3007,
+      "side_b_boundary_tie_count": 321,
+      "side_a_kth_score": 1.0,
+      "side_b_kth_score": 1.0,
+      "index_tie_broken_note": "argsort/argmax breaks ties by smaller index"
+    },
+    "k=100": {
+      "k": 100,
+      "index_tie_broken_overlap": 0.0,
+      "optimistic_overlap": 3.21,
+      "pessimistic_overlap": 0.0,
+      "side_a_boundary_tie_count": 3007,
+      "side_b_boundary_tie_count": 321,
+      "side_a_kth_score": 1.0,
+      "side_b_kth_score": 1.0,
+      "index_tie_broken_note": "argsort/argmax breaks ties by smaller index"
+    }
+  },
+  "kendall_tau_b_score": 0.6114436353789869,
+  "ego_progress_analysis": {
+    "code_path": "pdm_scorer.py:_aggregate_scores (~L174-L195): normalized_progress *= multiplicate_metric_scores; dense_reward_manager.py:_score_proposals_impl L662 exports scorer._weighted_metrics[PROGRESS] after this gating",
+    "mechanism": "ego_progress exported by DenseReward is NOC/DAC-gated normalized progress, not raw centerline progress. Changing agent futures flips NOC → zeros progress for colliding proposals even if ego trajectory identical.",
+    "n_changed": 3961,
+    "expected_if_only_multiplicative_gate": true
+  },
+  "overall_score_max_abs_diff": 1.0,
+  "overall_score_mean_abs_diff": 0.30444674415927864,
+  "rewards_identical": false,
+  "old_vs_new": {
+    "available": true,
+    "stage15_noc_flip": 2658,
+    "v2_noc_flip": 2658,
+    "stage15_traj_dev_max_m_unmasked": 73.35327187024602,
+    "v2_traj_dev_common_valid_max_m": 15.30188437153799,
+    "v2_legacy_unmasked_max_m": 73.35327187024602,
+    "stage15_top1_changed": false,
+    "v2_tie_interpretation": "选定index不同（index-tie-broken argmax）"
+  },
+  "score_provenance_replay": {
+    "shape": [
+      8192
+    ],
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 1.0,
+    "mean": 0.49157460530598956,
+    "sha256": "0e2c656beaa52aa2be3d3ebb40a2b2e33d630c66293568afd5961636d6304623"
+  },
+  "score_provenance_idm": {
+    "shape": [
+      8192
+    ],
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 1.0,
+    "mean": 0.18712786114671096,
+    "sha256": "b092cdb05c2f35947a23cb1721bf16e83290d37df720b443e3846814378e13d3"
+  }
+}

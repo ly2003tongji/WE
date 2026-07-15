@@ -85,19 +85,26 @@ def _as_1d(arr: np.ndarray) -> np.ndarray:
 
 
 def agent_valid_at(state: Dict[str, Any], step: int) -> bool:
+    """Validity at one step. Prefer explicit `valid` when present; never infer from [0,0] alone."""
     pos = np.asarray(state["position"])
     if step >= len(pos):
         return False
-    if np.allclose(pos[step, :2], 0.0) and (pos.shape[1] < 3 or np.allclose(pos[step], 0.0)):
-        # zeros often mean invalid; still check valid flag if present
-        pass
     if "valid" in state:
         v = _as_1d(np.asarray(state["valid"]))
-        if step < len(v) and float(v[step]) <= 0:
+        if step >= len(v):
             return False
-    if np.allclose(pos[step, :2], 0.0):
-        return False
-    return True
+        return float(v[step]) > 0
+    # Heuristic only when valid field is absent.
+    return not np.allclose(pos[step, :2], 0.0)
+
+
+def future_valid_mask(fut: Dict[str, Any]) -> np.ndarray:
+    """Per-timestep valid mask for a future dict (prefer explicit valid)."""
+    pos = np.asarray(fut["position"])
+    n = len(pos)
+    if "valid" in fut:
+        return (_as_1d(np.asarray(fut["valid"], dtype=np.float64))[:n] > 0)
+    return ~np.all(np.isclose(pos[:n, :2], 0.0), axis=1)
 
 
 def sorted_agent_tokens(scene: Dict[str, Any], include_ego: bool = False) -> List[str]:
@@ -170,21 +177,64 @@ def extract_traffic_light_payload(scene: Dict[str, Any], cutoff: int) -> Dict[st
     return {"n": len(items), "states_at_cutoff": items}
 
 
+def vocab_meta(vocab_path: Path, vocab: Optional[np.ndarray] = None) -> Dict[str, Any]:
+    arr = vocab if vocab is not None else np.load(vocab_path)
+    return {
+        "path": str(vocab_path),
+        "sha256": sha256_file(vocab_path),
+        "shape": list(arr.shape),
+        "dtype": str(arr.dtype),
+    }
+
+
+def extract_scorer_config_from_hydra(cfg: Any) -> Dict[str, Any]:
+    """Pull scorer-relevant knobs from an actual Hydra compose result."""
+    keys = [
+        "num_history",
+        "num_future",
+        "buffer_size",
+        "reward_sampling_poses",
+        "reward_buffer_size",
+        "sample_rate",
+        "frame_rate",
+        "planning_frame_rate",
+        "with_dense_reward_manager",
+        "agent_policy",
+        "ego_policy",
+    ]
+    out: Dict[str, Any] = {}
+    for k in keys:
+        if k in cfg:
+            out[k] = cfg[k]
+    out["proposal_interval_length"] = 0.1
+    out["sim_sample_interval_s"] = float(cfg.get("frame_rate", 0.5))
+    out["scorer_config_hash"] = sha256_json(out)
+    return out
+
+
 def build_input_state_fingerprint(
     scene: Dict[str, Any],
     cutoff: int,
     vocab_path: Path,
     plan_idx: int,
     scorer_config: Optional[Dict[str, Any]] = None,
+    horizon: int = DEFAULT_HORIZON,
+    requested_ego_traj_hash: Optional[str] = None,
+    vocab: Optional[np.ndarray] = None,
+    fingerprint_label: str = "",
 ) -> Dict[str, Any]:
     """Fingerprint of frozen inputs. Does NOT include traffic-model futures."""
-    scorer_config = scorer_config or SCORER_CONFIG
+    scorer_config = scorer_config or dict(SCORER_CONFIG)
     agents = extract_frozen_agent_snapshot(scene, cutoff)
     ego = agents[scene["sdc_id"]]
+    vmeta = vocab_meta(vocab_path, vocab=vocab)
     payload = {
         "scene_id": scene.get("id"),
         "scene_token": scene.get("token"),
         "cutoff": cutoff,
+        "horizon": horizon,
+        "frequency_hz": 2.0,
+        "dt_s": 0.5,
         "sample_rate": scene.get("sample_rate"),
         "log_length": scene.get("log_length"),
         "base_timestamp": scene.get("base_timestamp"),
@@ -195,15 +245,135 @@ def build_input_state_fingerprint(
         "agents_sorted": {k: v for k, v in agents.items() if k != scene["sdc_id"]},
         "map": extract_map_fingerprint_payload(scene),
         "traffic_lights": extract_traffic_light_payload(scene, cutoff),
-        "vocabulary": {
-            "path": str(vocab_path),
-            "sha256": sha256_file(vocab_path),
-            "plan_idx_conditioning": plan_idx,
+        "vocabulary": vmeta,
+        "ego_conditioning": {
+            "plan_idx": int(plan_idx),
+            "requested_trajectory_hash": requested_ego_traj_hash,
         },
         "scorer_config": scorer_config,
     }
     fp = sha256_json(payload)
-    return {"input_state_fingerprint": fp, "payload": payload}
+    return {
+        "input_state_fingerprint": fp,
+        "payload": payload,
+        "fingerprint_label": fingerprint_label,
+    }
+
+
+def resolve_plan_idx(
+    plan_idx: Optional[int],
+    plan_idx_csv: Optional[Path],
+    plan_idx_step: Optional[int],
+    cutoff: int,
+    default_plan_idx: int = DEFAULT_PLAN_IDX,
+) -> Dict[str, Any]:
+    """Resolve plan_idx from CLI or CSV. Documents smoke-default provenance."""
+    if plan_idx is not None and plan_idx_csv is None:
+        return {
+            "plan_idx": int(plan_idx),
+            "source": "cli --plan-idx",
+            "plan_idx_step": plan_idx_step,
+            "note": "Explicit CLI value.",
+        }
+    if plan_idx_csv is not None:
+        import csv as _csv
+
+        rows = []
+        with open(plan_idx_csv, newline="", encoding="utf-8") as f:
+            for row in _csv.DictReader(f):
+                rows.append(row)
+        if not rows:
+            raise ValueError(f"Empty plan_idx csv: {plan_idx_csv}")
+        step = plan_idx_step if plan_idx_step is not None else (cutoff + 1)
+        match = [r for r in rows if int(r["step"]) == int(step)]
+        if not match:
+            raise ValueError(
+                f"No plan_idx for step={step} in {plan_idx_csv}; "
+                f"available steps={[int(r['step']) for r in rows[:12]]}"
+            )
+        return {
+            "plan_idx": int(match[0]["plan_idx"]),
+            "source": f"plan_idx.csv step={step}",
+            "plan_idx_step": int(step),
+            "csv": str(plan_idx_csv),
+            "note": (
+                f"Action Policy plan at step={step} used as ego conditioning for cutoff={cutoff} "
+                f"(first executed plan after open-loop history; densereward first scores at cutoff)."
+            ),
+        }
+    # smoke convenience default
+    return {
+        "plan_idx": int(default_plan_idx),
+        "source": "smoke_default_DEFAULT_PLAN_IDX",
+        "plan_idx_step": cutoff + 1,
+        "note": (
+            f"SMOKE CONVENIENCE: default plan_idx={default_plan_idx} "
+            f"(NR disagreement smoke1 first action at step={cutoff + 1}). "
+            "Prefer --plan-idx-csv for multi-scene."
+        ),
+        "warning": "plan_idx came from hardcoded smoke default",
+    }
+
+
+def verify_ego_conditioning_execution(
+    requested_center: np.ndarray,
+    requested_heading: np.ndarray,
+    live_positions: List[np.ndarray],
+    live_headings: List[float],
+    dt_s: float = 0.5,
+    warn_pos_m: float = 0.1,
+    warn_heading_deg: float = 1.0,
+    hard_pos_m: float = 0.5,
+    hard_heading_deg: float = 5.0,
+) -> Dict[str, Any]:
+    """Compare requested ego conditioning vs live IDM-sim ego trajectory."""
+    n = min(len(requested_center), len(live_positions), len(requested_heading), len(live_headings))
+    req_xy = np.asarray(requested_center[:n], dtype=np.float64)[:, :2]
+    live_xy = np.stack([np.asarray(p, dtype=np.float64).reshape(-1)[:2] for p in live_positions[:n]])
+    req_h = np.asarray(requested_heading[:n], dtype=np.float64).reshape(-1)
+    live_h = np.asarray(live_headings[:n], dtype=np.float64).reshape(-1)
+    pos_err = np.linalg.norm(req_xy - live_xy, axis=1)
+    # wrap heading error to [-pi, pi]
+    head_err = (live_h - req_h + np.pi) % (2 * np.pi) - np.pi
+    head_err_deg = np.rad2deg(np.abs(head_err))
+    per_step = []
+    for t in range(n):
+        per_step.append(
+            {
+                "t": t,
+                "time_s": float(t * dt_s),
+                "requested_xy": req_xy[t].tolist(),
+                "executed_xy": live_xy[t].tolist(),
+                "pos_error_m": float(pos_err[t]),
+                "requested_heading": float(req_h[t]),
+                "executed_heading": float(live_h[t]),
+                "heading_error_deg": float(head_err_deg[t]),
+            }
+        )
+    requested_hash = sha256_bytes(np.ascontiguousarray(req_xy).tobytes() + np.ascontiguousarray(req_h).tobytes())
+    executed_hash = sha256_bytes(np.ascontiguousarray(live_xy).tobytes() + np.ascontiguousarray(live_h).tobytes())
+    warnings = []
+    if float(np.max(pos_err)) > warn_pos_m:
+        warnings.append(f"pos_max_error {float(np.max(pos_err)):.4f}m > {warn_pos_m}m")
+    if float(np.max(head_err_deg)) > warn_heading_deg:
+        warnings.append(f"heading_max_error {float(np.max(head_err_deg)):.4f}deg > {warn_heading_deg}deg")
+    hard_fail = bool(float(np.max(pos_err)) > hard_pos_m or float(np.max(head_err_deg)) > hard_heading_deg)
+    return {
+        "n_steps": n,
+        "dt_s": dt_s,
+        "requested_ego_conditioning_hash": requested_hash,
+        "executed_ego_conditioning_hash": executed_hash,
+        "hashes_equal": requested_hash == executed_hash,
+        "pos_error_mean_m": float(np.mean(pos_err)),
+        "pos_error_max_m": float(np.max(pos_err)),
+        "heading_error_mean_deg": float(np.mean(head_err_deg)),
+        "heading_error_max_deg": float(np.max(head_err_deg)),
+        "per_step": per_step,
+        "warnings": warnings,
+        "hard_fail": hard_fail,
+        "hard_thresholds": {"pos_m": hard_pos_m, "heading_deg": hard_heading_deg},
+        "warn_thresholds": {"pos_m": warn_pos_m, "heading_deg": warn_heading_deg},
+    }
 
 
 def vocab_plan_to_center_traj(
@@ -277,9 +447,16 @@ def inject_ego_conditioning(
     st["valid"] = valid
     return {
         "plan_idx": int(plan_idx),
+        "requested_ego_conditioning_hash": sha256_bytes(
+            np.ascontiguousarray(center_traj[:n]).tobytes()
+            + np.ascontiguousarray(head_traj[:n]).tobytes()
+        ),
+        # backward-compatible alias
         "ego_conditioning_hash": sha256_bytes(np.ascontiguousarray(center_traj[:n]).tobytes()),
         "ego_conditioning_shape": list(center_traj[:n].shape),
         "n_poses": int(n),
+        "requested_center_traj": center_traj[:n].copy(),
+        "requested_heading_traj": head_traj[:n].copy(),
     }
 
 
@@ -417,36 +594,115 @@ def inject_agent_futures_into_scene(
 def compare_futures(
     replay: Dict[str, Any],
     idm: Dict[str, Any],
+    fork_thresh_m: float = 0.05,
 ) -> Dict[str, Any]:
+    """Valid-aware ADE (formal) + unmasked ADE (legacy, for artifact diagnosis)."""
     r_f = replay["futures"]
     i_f = idm["futures"]
     common = sorted(set(r_f.keys()) & set(i_f.keys()))
     only_r = sorted(set(r_f.keys()) - set(i_f.keys()))
     only_i = sorted(set(i_f.keys()) - set(r_f.keys()))
-    changed = []
-    dists_all = []
+
+    per_agent = []
+    masked_dists_all: List[float] = []
+    unmasked_dists_all: List[float] = []
+    changed_masked = []
+    changed_unmasked = []
+
     for tok in common:
-        rp = np.asarray(r_f[tok]["position"])[:, :2]
-        ip = np.asarray(i_f[tok]["position"])[:, :2]
+        rp = np.asarray(r_f[tok]["position"], dtype=np.float64)[:, :2]
+        ip = np.asarray(i_f[tok]["position"], dtype=np.float64)[:, :2]
         n = min(len(rp), len(ip))
         if n == 0:
             continue
-        d = np.linalg.norm(rp[:n] - ip[:n], axis=1)
-        dists_all.extend(d.tolist())
-        mean_d = float(np.mean(d))
-        max_d = float(np.max(d))
-        if max_d > 0.05:
-            changed.append(
+        rv = future_valid_mask(r_f[tok])[:n]
+        iv = future_valid_mask(i_f[tok])[:n]
+        # pad masks if short
+        if len(rv) < n:
+            rv = np.pad(rv, (0, n - len(rv)), constant_values=False)
+        if len(iv) < n:
+            iv = np.pad(iv, (0, n - len(iv)), constant_values=False)
+        common_valid = rv & iv
+        d_all = np.linalg.norm(rp[:n] - ip[:n], axis=1)
+        unmasked_mean = float(np.mean(d_all))
+        unmasked_max = float(np.max(d_all))
+        unmasked_dists_all.extend(d_all.tolist())
+
+        entry: Dict[str, Any] = {
+            "token": tok,
+            "type": r_f[tok].get("type"),
+            "source_r": r_f[tok].get("source"),
+            "source_i": i_f[tok].get("source"),
+            "replay_valid_count": int(np.sum(rv)),
+            "idm_valid_count": int(np.sum(iv)),
+            "common_valid_count": int(np.sum(common_valid)),
+            "unmasked_mean_ade_m": unmasked_mean,
+            "unmasked_max_ade_m": unmasked_max,
+            "first_fork_step_unmasked": int(np.argmax(d_all > fork_thresh_m)) if np.any(d_all > fork_thresh_m) else None,
+        }
+        if int(np.sum(common_valid)) == 0:
+            entry["common_valid_mean_ade_m"] = None
+            entry["common_valid_max_ade_m"] = None
+            entry["first_fork_step_common_valid"] = None
+            entry["excluded_from_formal_ade"] = True
+        else:
+            d_m = d_all[common_valid]
+            masked_dists_all.extend(d_m.tolist())
+            mean_m = float(np.mean(d_m))
+            max_m = float(np.max(d_m))
+            entry["common_valid_mean_ade_m"] = mean_m
+            entry["common_valid_max_ade_m"] = max_m
+            entry["excluded_from_formal_ade"] = False
+            # first fork among common-valid steps
+            idxs = np.where(common_valid)[0]
+            fork_local = np.where(d_m > fork_thresh_m)[0]
+            entry["first_fork_step_common_valid"] = int(idxs[fork_local[0]]) if len(fork_local) else None
+            if max_m > fork_thresh_m:
+                changed_masked.append(
+                    {
+                        "token": tok,
+                        "type": entry["type"],
+                        "mean_ade": mean_m,
+                        "max_ade": max_m,
+                        "source_r": entry["source_r"],
+                        "source_i": entry["source_i"],
+                        "common_valid_count": entry["common_valid_count"],
+                    }
+                )
+        if unmasked_max > fork_thresh_m:
+            changed_unmasked.append(
                 {
                     "token": tok,
-                    "type": r_f[tok].get("type"),
-                    "mean_ade": mean_d,
-                    "max_ade": max_d,
-                    "source_r": r_f[tok].get("source"),
-                    "source_i": i_f[tok].get("source"),
+                    "type": entry["type"],
+                    "mean_ade": unmasked_mean,
+                    "max_ade": unmasked_max,
+                    "source_r": entry["source_r"],
+                    "source_i": entry["source_i"],
                 }
             )
-    changed.sort(key=lambda x: -x["max_ade"])
+        per_agent.append(entry)
+
+    changed_masked.sort(key=lambda x: -x["max_ade"])
+    changed_unmasked.sort(key=lambda x: -x["max_ade"])
+    per_agent.sort(key=lambda x: -(x["common_valid_max_ade_m"] or -1))
+
+    # Diagnose 73.4m-style artifacts
+    artifact_notes = []
+    for e in per_agent:
+        if (e["unmasked_max_ade_m"] or 0) > 50 and (
+            e["common_valid_max_ade_m"] is None or e["common_valid_max_ade_m"] < e["unmasked_max_ade_m"] * 0.5
+        ):
+            artifact_notes.append(
+                {
+                    "token": e["token"],
+                    "unmasked_max_ade_m": e["unmasked_max_ade_m"],
+                    "common_valid_max_ade_m": e["common_valid_max_ade_m"],
+                    "replay_valid_count": e["replay_valid_count"],
+                    "idm_valid_count": e["idm_valid_count"],
+                    "likely_cause": "unmasked_ade_includes_invalid_or_padded_timesteps",
+                }
+            )
+
     return {
         "futures_equal": replay["future_hash"] == idm["future_hash"],
         "replay_future_hash": replay["future_hash"],
@@ -454,10 +710,27 @@ def compare_futures(
         "n_common_agents": len(common),
         "only_replay": only_r,
         "only_idm": only_i,
-        "n_changed_agents_maxade_gt_5cm": len(changed),
-        "changed_agents": changed,
-        "traj_dev_mean_m": float(np.mean(dists_all)) if dists_all else 0.0,
-        "traj_dev_max_m": float(np.max(dists_all)) if dists_all else 0.0,
+        # Formal (valid-aware)
+        "n_changed_agents_common_valid_maxade_gt_5cm": len(changed_masked),
+        "changed_agents_common_valid": changed_masked,
+        "traj_dev_common_valid_mean_m": float(np.mean(masked_dists_all)) if masked_dists_all else 0.0,
+        "traj_dev_common_valid_max_m": float(np.max(masked_dists_all)) if masked_dists_all else 0.0,
+        "n_agents_in_formal_ade": int(sum(1 for e in per_agent if not e["excluded_from_formal_ade"])),
+        # Legacy unmasked (diagnostic only)
+        "legacy_unmasked": {
+            "note": "NOT a formal metric; retained to explain stage-1.5 73.4m artifact",
+            "n_changed_agents_maxade_gt_5cm": len(changed_unmasked),
+            "changed_agents": changed_unmasked,
+            "traj_dev_mean_m": float(np.mean(unmasked_dists_all)) if unmasked_dists_all else 0.0,
+            "traj_dev_max_m": float(np.max(unmasked_dists_all)) if unmasked_dists_all else 0.0,
+        },
+        # aliases for backward-looking summaries
+        "n_changed_agents_maxade_gt_5cm": len(changed_masked),
+        "changed_agents": changed_masked,
+        "traj_dev_mean_m": float(np.mean(masked_dists_all)) if masked_dists_all else 0.0,
+        "traj_dev_max_m": float(np.max(masked_dists_all)) if masked_dists_all else 0.0,
+        "per_agent": per_agent,
+        "artifact_diagnosis": artifact_notes,
         "coverage_replay": replay.get("coverage"),
         "coverage_idm": idm.get("coverage"),
     }

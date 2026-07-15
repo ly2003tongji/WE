@@ -1,6 +1,6 @@
 # WorldEngine 双 Agent 交接
 
-最后更新：2026-07-15（阶段 0+1+1.5 完成后）
+最后更新：2026-07-15（阶段 0+1+1.5+1.6 完成后）
 
 ## 共同目标
 
@@ -78,13 +78,15 @@
 - 阶段 0+1（分歧数据可观测性）已完成，详见 `reports/DISAGREEMENT_DATA_AUDIT.md`。
 - 1-scene NR 基础 smoke 复跑通过；NR/R dense-reward 均通过 60min/64GB/5GB 资源门并写出 8192 维 `pdms_pkl`。
 - **DenseRewardManager 不能直接比较交通模型**：R 模式评分仍读日志 future；NR/R step≥4 差异是 rollout-conditioned。
-- **阶段 1.5 frozen-state 配对已技术通过**（详见 `reports/FROZEN_STATE_PAIRED_SCORING.md`）：
-  - 同一 fingerprint 下 Replay vs IDM source-conditioned future + 统一 8192 PDM 评分；
-  - 无 3DGS、无 upstream patch；build~9s、score~70s、输出~89MB；
-  - 本 smoke scene：4 辆 IDM 车 future 不同；NOC flip 32.4%；Kendall τ-b=0.657；Top-1 未变；DAC/Comfort 稳定；
-  - Replay 分数与历史 NR step=3 逐元素一致（评分路径校准）。
-- 协作层脚本：`scripts/run_frozen_paired_scoring.sh` 及 build/score/compare；摘要在 `reports/frozen_paired_compare_summary.*`；原始数组在 Git 外 `data/frozen_paired/`。
-- 未改 upstream，未 commit/push。288 baseline / BWM / SMART / Nexus / 10-scene 研究统计均未执行。
+- **阶段 1.5+1.6 frozen-state 配对**：详见 `reports/FROZEN_STATE_PAIRED_SCORING.md`。
+  - 1.5：首次跑通 source-conditioned Replay/IDM + 统一 8192 PDM；无 upstream patch。
+  - **1.6 有效性修正**：valid-aware ADE；独立阶段内 fingerprint；ego requested/executed 验证（误差 0）；tie-aware 排名；`plan_idx`/`cutoff` CLI 化。
+  - **73.4 m ADE 为 artifact**（invalid 未 mask）；正式 common-valid max ADE=**15.3 m**。
+  - NOC/TTC flip 仍约 32%/28%；**不能**再声称 Top-1 未变（max-score 并列数千）。
+  - `ego_progress` 变化来自 PDM 乘性门控（`pdm_scorer._aggregate_scores`），非注入副作用。
+  - **扩样技术门：条件性未过**——须先审查 15 m ADE 与 NOC 归因，再扩多场景。
+- 协作层脚本：`scripts/run_frozen_paired_scoring.sh` 及 build/score/compare/`frozen_state_lib.py`；摘要 `reports/frozen_paired_compare_summary_v2.*`；原始数组 Git 外 `data/frozen_paired/`（1.5 与 validity_v2 并存）。
+- 未改 upstream。288 baseline / BWM / SMART / Nexus / 10-scene 研究统计均未执行。
 
 ## 尚未解决的问题
 
@@ -111,13 +113,13 @@
 
 ## H20 下一步
 
-阶段 0+1+1.5 已暂停。下一步需用户明确批准后择一推进：
+阶段 0+1+1.5+1.6 已暂停。下一步需用户明确批准后择一推进：
 
-1. 将 frozen-state sidecar 扩展到 10-scene 工程子集，仅估效应量分布（仍非研究判定）；
-2. 阶段 2：下载最小 BWM augmented pkl（约 3.13 GB）并审计能否冻结配对；19 GB original 仍需单独批准；
-3. 阶段 4/5：SMART 公开性核验与 Nexus sidecar（schema+严格配对管线已技术通过）；
-4. 正式假设验证改用 train-side 长尾场景；288 rare navtest 保留最终测试。
-5. （可选）经批准再考虑 `dense_reward_manager` / `meta_datas` flush 最小 upstream patch；当前 sidecar 已不依赖它们。
+1. **优先**：审查 15 m 级 IDM ADE 与 NOC/TTC 翻转归因（单场景），通过后再考虑多场景；
+2. 将 frozen-state sidecar 扩展到 10-scene 工程子集（仅估效应量，仍非研究判定）——**依赖项 1**；
+3. 阶段 2：下载最小 BWM augmented pkl（约 3.13 GB）并审计能否冻结配对；
+4. 阶段 4/5：SMART / Nexus sidecar；
+5. 正式假设验证改用 train-side 长尾场景；288 rare navtest 保留最终测试。
 
 ## 同步协议
 
