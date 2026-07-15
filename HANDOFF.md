@@ -1,6 +1,6 @@
 # WorldEngine 双 Agent 交接
 
-最后更新：2026-07-15（阶段 0+1+1.5+1.6+1.7+1.8+**1.9** 完成后；暂停）
+最后更新：2026-07-15（阶段 0+1+1.5–1.9 + **Nexus sidecar 可行性（部分通过）**；暂停）
 
 ## 共同目标
 
@@ -40,7 +40,7 @@
 - BWM rollout 配置中的 synthetic folder 路径仍为 `/path/to/...` 占位符。
 - 官方数据发布了 `data/sim_engine/scenarios/augmented/` 下的 BWM-generated scenarios，但 `data/alg_engine/openscene-synthetic/` 仍需通过 SimEngine 生成。
 - 当前可把 BWM 预生成轨迹作为 `BWM-Offline` 行为来源，不能声称可调用完整 BWM。
-- Replay/IDM 已在 SimEngine 中分别对应 NR/R；SMART 和 Nexus 尚未在本项目中完成可运行接入。
+- Replay/IDM 已在 SimEngine 中分别对应 NR/R；Nexus sidecar 旁路在 1-scene 上部分通过；SMART 尚未可运行接入。
 
 ## H20 已知资源
 
@@ -88,7 +88,14 @@
     - **最终判定：该振荡与翻转是官方 IDM 在此场景下的真实行为，不是 sidecar 冷启动 bug**（判定类别 B：严格配对下仍有分歧）。仍只是 1-scene 工程证据。
   - **扩样**：技术条件已具备（restore-physics 协议、门控 A、归因清晰），**仍需用户明确批准**；批准后必须使用 restore-physics 协议而非 `slice_scene_from_cutoff`。
 - 摘要：`reports/frozen_paired_compare_summary_v3.*`、`reports/frozen_disagreement_attribution_summary.*`、`reports/idm_warm_start_summary.*`、`reports/idm_restore_physics_summary.*`；原始数组 Git 外 `data/frozen_paired/`。
-- 未改 upstream。BWM / SMART / Nexus / 10-scene 均未执行。
+- 未改 upstream。BWM / SMART / 10-scene 扩样均未执行。
+- **Nexus 单场景 ego-conditioned 可行性（本阶段）**：**部分通过**。详见 `reports/NEXUS_SIDECAR_FEASIBILITY.md`。
+  - 固定 Nexus `71c31ca…`、ckpt SHA256 `679f6ccf…`、nuPlan fork `e2aa9f34…`、MTR `a5ba7bda…`；隔离环境在 `nexus_sidecar/`（未污染 simengine/algengine）。
+  - 新样本 `cutoff=4`；5 帧真实历史；非 ego future 槽已清零并无日志 GT 泄漏；strict-load `missing/unexpected=[]`。
+  - ego 16 帧条件保持与同噪声复现通过；预注册 3 组 vocabulary A/B pairs 均显示候选敏感性（最大 ADE≈9.9 m）。
+  - 噪声敏感性未达 0.1 m 阈值（≈0.001 m，但 `z_T` 已确认传入）；2/14 生成车辆物理超阈并对 PDM pack 做 log fallback；地图缺 LANE_CONNECTOR/STOP_LINE/CROSSWALK 编码。
+  - conditioning candidate 单行 PDM 接口烟测通过（仅读 plan_idx 行，未解释其余 8191）。
+  - 候选 A 未复用 `plan_idx.csv` step=5（与 cutoff=4 fingerprint 不一致）；未新增 Action Policy 链。
 
 ## 尚未解决的问题
 
@@ -99,7 +106,7 @@
 - 冻结态 Replay/IDM 在 1-scene smoke 上已见 NOC/TTC/排序分歧，但这 **不是** 研究假设成立的证据；需 train-side 长尾与 held-out 协议。
 - BWM augmented scenarios 是否包含 original source token、是否能严格配对、是否针对特定 ego plan 生成，尚未核验。
 - SMART 的公开 nuPlan drop-in 实现是否实际可获取、checkpoint 是否可复现，尚未核验。
-- Nexus 有公开 nuPlan checkpoint 和特征管线，但缺少可直接替换 IDM 的完整闭环接口；需先做单场景 ego-conditioned 旁路验证。
+- Nexus 旁路接口在本 1-scene 上部分通过，但仍缺可直接替换 IDM 的闭环 wrapper；噪声波动门与地图覆盖需在后续场景复核。
 - 交通模型分歧是否大于同模型随机波动、是否能预测 held-out failure，尚无实验结论；且不得用 `navtest_failures` 工程 smoke 代替研究判定。
 
 ## 新研究假设与阶段门
@@ -115,12 +122,13 @@
 
 ## H20 下一步
 
-阶段 0+1+1.5+1.6+1.7+1.8+1.9 已暂停。restore-physics 协议已跑通、门控 A、32% 翻转已确认为该场景下官方 IDM 真实行为。下一步需用户明确批准后择一推进：
+阶段 0+1+1.5–1.9 与 Nexus sidecar 可行性（部分通过）已完成并暂停。下一步需用户明确批准后择一推进：
 
-1. **优先**：用 restore-physics 协议扩到 10-scene 工程子集，观察近静止振荡/停滞类样本的发生率与效应量分布（仍非研究结论；须继续用 single-agent 归因监测是否有新的致因车型）；
-2. 阶段 2：下载最小 BWM augmented pkl 并审计能否冻结配对；
-3. 阶段 4/5：SMART / Nexus sidecar；
-4. 正式假设验证改用 train-side 长尾场景；288 rare navtest 保留最终测试。
+1. 用 restore-physics 协议扩到 10-scene 工程子集（仍非研究结论）；
+2. 在更多场景复核 Nexus 噪声敏感性/物理门/地图覆盖，或评估闭环 wrapper；
+3. 阶段 2：BWM-Offline 审计（仍为暂缓项，除非另行批准）；
+4. SMART 公开性/可用性复核；
+5. 正式假设验证改用 train-side 长尾场景；288 rare navtest 保留最终测试。
 
 ## 同步协议
 

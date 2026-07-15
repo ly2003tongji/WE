@@ -1,0 +1,184 @@
+{
+  "verdict": "部分通过",
+  "verdict_reason": "strict-load/leakage/ego-hold/repro/candidate-sensitivity(3 pairs)/token-remap/PDM-row passed; noise-sensitivity ADE=0.001<0.1m threshold; physics 2 agents failed; map missing LANE_CONNECTOR/STOP_LINE/CROSSWALK in encoded set.",
+  "gates_ok": {
+    "gate0_history": true,
+    "candidate_source": null,
+    "candidate_manifest": true,
+    "roundtrip_history": true,
+    "official_codec": true,
+    "future_leakage": null,
+    "context_fingerprint": null,
+    "strict_load": true,
+    "agent_dim": null,
+    "map_coverage": null,
+    "same_noise_repro": true,
+    "ego_hold_16": true,
+    "candidate_sensitivity": true,
+    "noise_sensitivity": false,
+    "physics_schema": false,
+    "token_remap": true,
+    "pdm_single_row": true
+  },
+  "strict_load": {
+    "ok": true,
+    "ckpt_path": "/mnt/cpfs/prediction/lyyy/myself/WE/nexus_sidecar/checkpoints/nuplan.ckpt",
+    "ckpt_sha256": "679f6ccfbd5563f696218311566b76bb62f73c7fbfb04b39f2714fb80aefacfc",
+    "ckpt_size": 139612912,
+    "strict_load": true,
+    "missing_keys": [],
+    "unexpected_keys": []
+  },
+  "candidate_pairs": [
+    {
+      "pair_id": 0,
+      "A": 1807,
+      "B": 1412,
+      "best_agent": {
+        "token": "7cd47126ba8f584e",
+        "ade_m": 5.248504013371123,
+        "endpoint_m": 5.814272182577609
+      },
+      "n_compared": 6,
+      "candidate_sensitive": true,
+      "separation": {
+        "rms_m": 22.299968264100205,
+        "endpoint_m": 34.01889192116069
+      }
+    },
+    {
+      "pair_id": 1,
+      "A": 6351,
+      "B": 6906,
+      "best_agent": {
+        "token": "7cd47126ba8f584e",
+        "ade_m": 9.855119298499305,
+        "endpoint_m": 15.833122996100427
+      },
+      "candidate_sensitive": true,
+      "separation": {
+        "rms_m": 30.600340462969317,
+        "endpoint_m": 46.18929091937746
+      }
+    },
+    {
+      "pair_id": 2,
+      "A": 7348,
+      "B": 595,
+      "best_agent": {
+        "token": "7cd47126ba8f584e",
+        "ade_m": 7.840241978706221,
+        "endpoint_m": 13.433739812928604
+      },
+      "candidate_sensitive": true,
+      "separation": {
+        "rms_m": 20.33733917735233,
+        "endpoint_m": 34.72747650511721
+      }
+    }
+  ],
+  "noise_sensitivity": {
+    "ok": false,
+    "best": {
+      "token": "dfcaa5d389bc56ef",
+      "ade_m": 0.0011547381508749497
+    },
+    "noise0_hash": "df8738aceb08a02ba7c07e0b5bd036dd89b30ee2dff8d584874497919b2e7301",
+    "noise1_hash": "72c2e1b37900731d1243823a6a7488f51088b8ca815e7d02220fba5aef412d5a",
+    "audit": {
+      "z0_z1_hash_differ": true,
+      "z_t_used_in_sample": true,
+      "filling_keeps_noise_only_on_generate_slots": true,
+      "interpretation": "Different z_T hashes confirmed; under strong ego/history keep_mask, 32-step sampler yielded <0.1m ADE between noise0/noise1 on this scene."
+    }
+  },
+  "physics_schema": {
+    "ok": false,
+    "n_issues": 2,
+    "issues": [
+      {
+        "token": "7cd47126ba8f584e",
+        "issue": "acc_gt_12",
+        "max": 12.634578850424134
+      },
+      {
+        "token": "803cff565b865578",
+        "issue": "heading_jump_gt_90deg",
+        "max": 3.129719824038146
+      }
+    ],
+    "pdm_fallback_tokens": [
+      "7cd47126ba8f584e",
+      "803cff565b865578"
+    ],
+    "note": "2/14 nexus agents exceeded pre-registered physics thresholds; fell back to log for PDM pack only. Candidate sensitivity was measured on raw Nexus outputs before fallback."
+  },
+  "pdm_single_row": {
+    "ok": true,
+    "plan_idx": 1807,
+    "n_fields": 8,
+    "note": "Only conditioning candidate row inspected; physics-failing agents fell back to log for pack completeness.",
+    "scores_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/nexus_sidecar/outputs/smoke_cutoff4/scores_nexus.pkl",
+    "wall_s": 51.684,
+    "rss_gb": 1.353,
+    "n_nexus_kept": 12,
+    "n_physics_fallback": 2,
+    "conditioning_row": {
+      "no_at_fault_collisions": {
+        "value": "True",
+        "finite": true
+      },
+      "drivable_area_compliance": {
+        "value": "False",
+        "finite": true
+      },
+      "lane_keeping": {
+        "value": 1.0,
+        "finite": true
+      },
+      "ego_progress": {
+        "value": 0.0,
+        "finite": true
+      },
+      "time_to_collision_within_bound": {
+        "value": 0.0,
+        "finite": true
+      },
+      "comfort": {
+        "value": 1.0,
+        "finite": true
+      },
+      "driving_direction_compliance": {
+        "value": 0.5,
+        "finite": true
+      },
+      "score": {
+        "value": 0.0,
+        "finite": true
+      }
+    }
+  },
+  "future_leakage": {
+    "non_ego_future_tensor_hash": "b5eb4152569fdfddeeddf0029c9147f7b153ec973a41c7d6912cdd0b5ccea1e6",
+    "non_ego_future_task_mask_hash": "c7b79b1df4f7320ce3d5c4979bc816b08e52c846b141ddfe74954db41acba81b",
+    "non_ego_future_raw_hash": "b2d664178515d1248077e59569249d3cda905503452c510d3972f66bf362fd71",
+    "non_ego_future_initial_source": "zeros_cleared_no_log_gt",
+    "task_mask_future_all_zero": true,
+    "raw_future_all_zero": true,
+    "normalized_future_is_encode_of_zeros": true,
+    "matches_encode_zeros": true
+  },
+  "map_coverage_missing": [
+    "LANE_CONNECTOR",
+    "STOP_LINE",
+    "CROSSWALK"
+  ],
+  "versions": {
+    "nexus": "71c31ca848da94c969322a40f0f4ae2af8ca8129",
+    "ckpt_sha256": "679f6ccfbd5563f696218311566b76bb62f73c7fbfb04b39f2714fb80aefacfc",
+    "nuplan": "e2aa9f34c6d129424a0d4c70f195c23c55a0666d",
+    "mtr": "a5ba7bdafa09a1a355cc34f8a895499a2b14ddb3",
+    "we": "a5227045cd64b9709f0c279711a37499ffd3a666",
+    "upstream": "fc79b937050ed9d68e18add2b480ae72578a7ea5"
+  }
+}
