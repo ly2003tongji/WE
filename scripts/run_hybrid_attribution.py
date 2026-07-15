@@ -311,7 +311,10 @@ def main() -> int:
     plan_idx = int(fp_doc["plan_idx_resolution"]["plan_idx"])
     req_hash = fp_doc["requested_ego_conditioning_hash"]
     idm_tokens = list(idm["coverage"]["idm_rolled"])
-    assert len(idm_tokens) == 4, idm_tokens
+    if not idm_tokens:
+        raise RuntimeError("No IDM-rolled agents in future_idm coverage")
+    # Multi-scene: allow any count; do not hard-require 4.
+    print(f"[hybrid] idm_rolled_count={len(idm_tokens)} tokens={idm_tokens}", flush=True)
 
     scene = load_scene_dict(args.scene_pkl)
     vocab = np.load(args.vocab)

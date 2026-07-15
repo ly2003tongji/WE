@@ -773,3 +773,361 @@ def futures_to_numpy_bundle(futures_pack: Dict[str, Any]) -> Dict[str, np.ndarra
         "heading": heading,
         "valid": valid,
     }
+
+
+# ---------------------------------------------------------------------------
+# Stage 1.8 warm-start helpers
+# Declared a priori — do NOT loosen after observing results.
+# ---------------------------------------------------------------------------
+CUTOFF_GATE_TOLERANCES = {
+    "strict_pos_m": 0.05,
+    "strict_heading_deg": 0.5,
+    "strict_speed_mps": 0.05,
+    "soft_pos_m": 0.10,
+    "soft_heading_deg": 1.0,
+    "soft_speed_mps": 0.20,
+    "size_atol_m": 1e-3,
+}
+
+
+def truncate_scene_prefix(scene: Dict[str, Any], length: int) -> Dict[str, Any]:
+    """Keep frames [0, length) from scene start (not a cutoff slice)."""
+    sc = copy.deepcopy(scene)
+    sc["log_length"] = int(length)
+    for _oid, ot in sc["object_track"].items():
+        st = ot["state"]
+        for key, val in list(st.items()):
+            arr = np.asarray(val)
+            if arr.ndim >= 1 and arr.shape[0] >= length:
+                st[key] = arr[:length].copy()
+            elif arr.ndim >= 1 and arr.shape[0] < length:
+                pad_shape = (length - arr.shape[0],) + arr.shape[1:]
+                st[key] = np.concatenate([arr, np.zeros(pad_shape, dtype=arr.dtype)], axis=0)
+        if isinstance(ot.get("metadata"), dict):
+            ot["metadata"]["track_length"] = int(length)
+    meta = sc.get("metadata", {})
+    for mk in ("nuplan_lidar_pc_tokens", "digitaltwin_ego2globals"):
+        if mk in meta:
+            try:
+                seq = meta[mk]
+                if hasattr(seq, "__len__") and len(seq) >= length:
+                    meta[mk] = seq[:length]
+            except Exception:
+                pass
+    # traffic lights
+    for _lid, tl in sc.get("dynamic_map_states", {}).items():
+        st = tl.get("state", {})
+        if "traffic_light_state" in st:
+            arr = np.asarray(st["traffic_light_state"])
+            if arr.ndim >= 1 and len(arr) >= length:
+                st["traffic_light_state"] = arr[:length].copy()
+    return sc
+
+
+def inject_ego_conditioning_at_cutoff(
+    scene: Dict[str, Any],
+    cutoff: int,
+    plan_idx: int,
+    vocab: np.ndarray,
+    rear_axle_to_center: float = REAR_AXLE_TO_CENTER,
+) -> Dict[str, Any]:
+    """Keep ego log [0:cutoff]; overwrite [cutoff:] with same vocab plan as cold-start."""
+    ego = scene["object_track"]["ego"]
+    st = ego["state"]
+    pos = np.asarray(st["position"], dtype=np.float64).copy()
+    heading = np.asarray(st["heading"], dtype=np.float64).copy()
+    if cutoff >= len(pos):
+        raise ValueError(f"cutoff {cutoff} >= ego length {len(pos)}")
+    ego_xy = pos[cutoff, :2]
+    ego_h = float(heading[cutoff]) if heading.ndim == 1 else float(heading[cutoff, 0])
+    center_traj, head_traj = vocab_plan_to_center_traj(
+        vocab[plan_idx], ego_xy, ego_h, rear_axle_to_center=rear_axle_to_center
+    )
+    n = min(len(center_traj), len(pos) - cutoff)
+    # Preserve pre-cutoff log exactly; write conditioning from cutoff inclusive.
+    pos[cutoff : cutoff + n, :2] = center_traj[:n]
+    if heading.ndim == 1:
+        heading[cutoff : cutoff + n] = head_traj[:n]
+    else:
+        heading[cutoff : cutoff + n, 0] = head_traj[:n]
+    vel = np.asarray(st["velocity"], dtype=np.float64).copy()
+    for i in range(1, n):
+        d = (center_traj[i] - center_traj[i - 1]) / 0.5
+        gi = cutoff + i
+        if vel.ndim == 2 and vel.shape[1] >= 2:
+            vel[gi, :2] = d
+        else:
+            vel[gi] = np.linalg.norm(d)
+    if "angular_velocity" in st:
+        av = np.asarray(st["angular_velocity"], dtype=np.float64).copy()
+        for i in range(1, n):
+            av[cutoff + i] = (head_traj[i] - head_traj[i - 1]) / 0.5
+        st["angular_velocity"] = av
+    valid = np.asarray(st.get("valid", np.ones(len(pos))))
+    if valid.ndim == 1:
+        valid[cutoff : cutoff + n] = 1
+    else:
+        valid[cutoff : cutoff + n, ...] = 1
+    st["position"] = pos
+    st["heading"] = heading
+    st["velocity"] = vel
+    st["valid"] = valid
+    return {
+        "plan_idx": int(plan_idx),
+        "cutoff": int(cutoff),
+        "pre_cutoff_ego_source": "original_log",
+        "requested_ego_conditioning_hash": sha256_bytes(
+            np.ascontiguousarray(center_traj[:n]).tobytes()
+            + np.ascontiguousarray(head_traj[:n]).tobytes()
+        ),
+        "ego_conditioning_hash": sha256_bytes(np.ascontiguousarray(center_traj[:n]).tobytes()),
+        "ego_conditioning_shape": list(center_traj[:n].shape),
+        "n_poses": int(n),
+        "requested_center_traj": center_traj[:n].copy(),
+        "requested_heading_traj": head_traj[:n].copy(),
+        "freeze_ego_xy": ego_xy.tolist(),
+        "freeze_ego_heading": ego_h,
+    }
+
+
+def extract_log_agent_state_at(
+    scene: Dict[str, Any],
+    step: int,
+    include_ego: bool = True,
+) -> Dict[str, Any]:
+    """Physical + size snapshot from log scene at one step (cold freeze input)."""
+    agents = {}
+    tokens = []
+    for token, ot in scene["object_track"].items():
+        if token == "ego" and not include_ego:
+            continue
+        st = ot["state"]
+        pos = np.asarray(st["position"], dtype=np.float64)
+        if step >= len(pos):
+            continue
+        valid = agent_valid_at(st, step)
+        heading = _as_1d(np.asarray(st["heading"], dtype=np.float64))
+        vel = np.asarray(st.get("velocity", np.zeros((len(pos), 2))), dtype=np.float64)
+        length = np.asarray(st.get("length", [[0.0]]))
+        width = np.asarray(st.get("width", [[0.0]]))
+        h = float(heading[step]) if step < len(heading) else 0.0
+        if vel.ndim == 2 and vel.shape[1] >= 2:
+            vxy = vel[step, :2]
+        else:
+            vxy = np.array([float(vel[step]) if step < len(vel) else 0.0, 0.0])
+        ln = float(length[step, 0]) if length.ndim == 2 else float(length[step])
+        wd = float(width[step, 0]) if width.ndim == 2 else float(width[step])
+        agents[token] = {
+            "type": ot.get("type"),
+            "pos_xy": pos[step, :2].tolist(),
+            "heading": h,
+            "speed": float(np.linalg.norm(vxy[:2])),
+            "valid": bool(valid),
+            "length": ln,
+            "width": wd,
+        }
+        tokens.append(token)
+    tls = {}
+    for lid, tl in scene.get("dynamic_map_states", {}).items():
+        arr = np.asarray(tl.get("state", {}).get("traffic_light_state", []))
+        tls[str(lid)] = str(arr[step]) if step < len(arr) else None
+    return {
+        "step": int(step),
+        "map": scene.get("map"),
+        "agent_tokens_sorted": sorted(tokens),
+        "agents": agents,
+        "traffic_lights": tls,
+    }
+
+
+def classify_cutoff_gate(
+    cold: Dict[str, Any],
+    warm: Dict[str, Any],
+    tolerances: Optional[Dict[str, float]] = None,
+    fail_on_token_set_mismatch: bool = False,
+) -> Dict[str, Any]:
+    """
+    A: all common agents within strict tolerances + exact map/TL/size.
+    B: within soft but not all strict; exact categorical fields still required.
+    C: categorical mismatch or any soft violation.
+
+    By default token-set asymmetry (e.g. pedestrians not spawned live) is recorded
+    but does not force grade C — comparison uses the intersection (共同 agents).
+    """
+    tol = dict(CUTOFF_GATE_TOLERANCES)
+    if tolerances:
+        tol.update(tolerances)
+    issues: List[Dict[str, Any]] = []
+    per_agent: Dict[str, Any] = {}
+
+    if cold.get("map") != warm.get("map"):
+        issues.append({"kind": "map_mismatch", "cold": cold.get("map"), "warm": warm.get("map")})
+    cold_toks = set(cold.get("agent_tokens_sorted", []))
+    warm_toks = set(warm.get("agent_tokens_sorted", []))
+    token_info = {
+        "only_cold": sorted(cold_toks - warm_toks),
+        "only_warm": sorted(warm_toks - cold_toks),
+    }
+    if cold_toks != warm_toks:
+        issues.append({"kind": "token_set_asymmetry", **token_info})
+        if fail_on_token_set_mismatch:
+            issues.append({"kind": "token_set_mismatch", **token_info})
+    cold_tl = cold.get("traffic_lights", {})
+    warm_tl = warm.get("traffic_lights", {})
+    if set(cold_tl) != set(warm_tl) or any(cold_tl.get(k) != warm_tl.get(k) for k in cold_tl):
+        diffs = {
+            k: {"cold": cold_tl.get(k), "warm": warm_tl.get(k)}
+            for k in sorted(set(cold_tl) | set(warm_tl))
+            if cold_tl.get(k) != warm_tl.get(k)
+        }
+        issues.append({"kind": "traffic_light_mismatch", "diffs": diffs})
+
+    common = sorted(cold_toks & warm_toks)
+    any_soft = False
+    any_beyond_soft = False
+    all_strict = True
+    for tok in common:
+        c, w = cold["agents"][tok], warm["agents"][tok]
+        cxy = np.asarray(c["pos_xy"], dtype=np.float64)
+        wxy = np.asarray(w["pos_xy"], dtype=np.float64)
+        pos_err = float(np.linalg.norm(cxy - wxy))
+        head_err = abs((float(w["heading"]) - float(c["heading"]) + np.pi) % (2 * np.pi) - np.pi)
+        head_err_deg = float(np.rad2deg(head_err))
+        speed_err = abs(float(w["speed"]) - float(c["speed"]))
+        size_ok = (
+            abs(float(w["length"]) - float(c["length"])) <= tol["size_atol_m"]
+            and abs(float(w["width"]) - float(c["width"])) <= tol["size_atol_m"]
+        )
+        valid_ok = bool(c["valid"]) == bool(w["valid"])
+        strict_ok = (
+            pos_err <= tol["strict_pos_m"]
+            and head_err_deg <= tol["strict_heading_deg"]
+            and speed_err <= tol["strict_speed_mps"]
+            and size_ok
+            and valid_ok
+        )
+        soft_ok = (
+            pos_err <= tol["soft_pos_m"]
+            and head_err_deg <= tol["soft_heading_deg"]
+            and speed_err <= tol["soft_speed_mps"]
+            and size_ok
+            and valid_ok
+        )
+        if not strict_ok:
+            all_strict = False
+        if not soft_ok:
+            any_beyond_soft = True
+            issues.append(
+                {
+                    "kind": "agent_beyond_soft",
+                    "token": tok,
+                    "pos_err_m": pos_err,
+                    "heading_err_deg": head_err_deg,
+                    "speed_err_mps": speed_err,
+                    "size_ok": size_ok,
+                    "valid_ok": valid_ok,
+                }
+            )
+        elif not strict_ok:
+            any_soft = True
+        per_agent[tok] = {
+            "pos_err_m": pos_err,
+            "heading_err_deg": head_err_deg,
+            "speed_err_mps": speed_err,
+            "size_ok": size_ok,
+            "valid_ok": valid_ok,
+            "strict_ok": strict_ok,
+            "soft_ok": soft_ok,
+            "cold": c,
+            "warm": w,
+        }
+
+    categorical_fail = any(
+        i["kind"] in ("map_mismatch", "token_set_mismatch", "traffic_light_mismatch") for i in issues
+    )
+    if categorical_fail or any_beyond_soft:
+        grade = "C"
+    elif any_soft or not all_strict:
+        grade = "B"
+    else:
+        grade = "A"
+
+    return {
+        "grade": grade,
+        "tolerances_declared_a_priori": tol,
+        "n_common_agents": len(common),
+        "token_set": token_info,
+        "per_agent": per_agent,
+        "issues": issues,
+        "allow_future_reward_compare": grade in ("A", "B"),
+        "note": (
+            "A=strict match on common agents; B=soft numeric only; C=no reward compare. "
+            "Tolerances declared before observing warm-start results. "
+            "Pedestrian/cyclist token asymmetry is informational unless fail_on_token_set_mismatch."
+        ),
+    }
+
+
+def capture_live_agent_nav(ag: Any) -> Dict[str, Any]:
+    """Serialize navigation fields from a live BaseAgent."""
+    nav = getattr(ag, "navigation", None)
+    if nav is None:
+        return {}
+    info: Dict[str, Any] = {
+        "following_original_traj": bool(getattr(nav, "following_original_traj", False)),
+    }
+    for attr in ("current_lane", "routing_target_lane"):
+        obj = getattr(nav, attr, None)
+        if obj is None:
+            info[attr] = None
+            info[f"{attr}_kind"] = "none"
+            continue
+        lid = getattr(obj, "id", None)
+        lix = getattr(obj, "index", None)
+        if lid is not None:
+            info[attr] = str(lid)
+        elif lix is not None:
+            info[attr] = str(lix)
+        else:
+            info[attr] = None
+        info[f"{attr}_kind"] = type(obj).__name__
+    cps = getattr(nav, "_checkpoints_lane_indexes", None) or getattr(nav, "checkpoint_lanes", None)
+    if cps is not None and hasattr(cps, "__len__"):
+        info["checkpoint_lanes"] = [str(x) for x in list(cps)[:16]]
+    return info
+
+
+def live_agents_to_cutoff_state(
+    env: Any,
+    step: int,
+    map_name: Optional[str],
+    traffic_lights: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Build gate-compatible snapshot from live env agents."""
+    am = env.engine.agent_manager
+    agents = {}
+    for aid, ag in am.all_agents.items():
+        pos = np.asarray(ag.current_position, dtype=np.float64).reshape(-1)
+        vel = np.asarray(ag.current_velocity, dtype=np.float64).reshape(-1)
+        speed = float(np.linalg.norm(vel[:2])) if vel.size else 0.0
+        ot = getattr(ag, "object_track", None)
+        agents[aid] = {
+            "type": ot.get("type") if isinstance(ot, dict) else None,
+            "pos_xy": pos[:2].tolist(),
+            "heading": float(ag.current_heading),
+            "speed": speed,
+            "valid": True,
+            "length": float(getattr(ag, "length", 0.0)),
+            "width": float(getattr(ag, "width", 0.0)),
+            "policy": type(getattr(ag, "policy", None)).__name__
+            if getattr(ag, "policy", None) is not None
+            else None,
+            "navigation": capture_live_agent_nav(ag),
+        }
+    return {
+        "step": int(step),
+        "map": map_name,
+        "agent_tokens_sorted": sorted(agents.keys()),
+        "agents": agents,
+        "traffic_lights": traffic_lights,
+    }

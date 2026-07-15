@@ -273,24 +273,34 @@ def collision_geometry_samples(
                     if hit and first_coll_i is None:
                         first_coll_i = t
                     collide_i = collide_i or hit
-            samples.append(
-                {
-                    "candidate_idx": int(ci),
-                    "noc_replay": float(noc_r[ci]),
-                    "noc_idm": float(noc_i[ci]),
-                    "min_center_dist_replay_agent_m": float(min(min_dist_r)) if min_dist_r else None,
-                    "min_center_dist_idm_agent_m": float(min(min_dist_i)) if min_dist_i else None,
-                    "approx_box_collide_replay": collide_r,
-                    "approx_box_collide_idm": collide_i,
-                    "first_box_collide_step_replay": first_coll_r,
-                    "first_box_collide_step_idm": first_coll_i,
-                    "geometry_label_consistent": (
-                        # rough: danger should be likelier to collide / closer
-                        (noc_i[ci] < 1.0 and (collide_i or (min_dist_i and min(min_dist_i) < min_dist_r[0] if min_dist_r else True)))
-                        or (noc_i[ci] >= 1.0)
-                    ),
-                }
-            )
+                    min_center_r = float(min(min_dist_r)) if min_dist_r else None
+                    min_center_i = float(min(min_dist_i)) if min_dist_i else None
+                    # Use full-horizon min distances for both summary and per-sample consistency.
+                    if noc_i[ci] < 1.0:
+                        geom_ok = bool(
+                            collide_i
+                            or (
+                                min_center_i is not None
+                                and min_center_r is not None
+                                and min_center_i < min_center_r - 0.05
+                            )
+                        )
+                    else:
+                        geom_ok = True
+                    samples.append(
+                        {
+                            "candidate_idx": int(ci),
+                            "noc_replay": float(noc_r[ci]),
+                            "noc_idm": float(noc_i[ci]),
+                            "min_center_dist_replay_agent_m": min_center_r,
+                            "min_center_dist_idm_agent_m": min_center_i,
+                            "approx_box_collide_replay": collide_r,
+                            "approx_box_collide_idm": collide_i,
+                            "first_box_collide_step_replay": first_coll_r,
+                            "first_box_collide_step_idm": first_coll_i,
+                            "geometry_label_consistent": geom_ok,
+                        }
+                    )
         out_buckets[bname] = samples
 
     # summary consistency rates
@@ -300,13 +310,17 @@ def collision_geometry_samples(
             consistency[bname] = None
             continue
         if bname == "replay_safe_idm_danger":
-            # expect IDM closer or colliding more often
+            # expect IDM closer (full-horizon min) or colliding more often
             ok = 0
             for s in samples:
-                dr, di = s["min_center_dist_replay_agent_m"], s["min_center_dist_idm_agent_m"]
-                if di is not None and dr is not None and (di < dr - 0.05 or s["approx_box_collide_idm"]):
+                if s.get("geometry_label_consistent"):
                     ok += 1
-            consistency[bname] = {"n": len(samples), "idm_closer_or_collide": ok, "rate": ok / len(samples)}
+            consistency[bname] = {
+                "n": len(samples),
+                "idm_closer_or_collide": ok,
+                "rate": ok / len(samples),
+                "distance_definition": "full_horizon_min_center_distance",
+            }
         else:
             consistency[bname] = {"n": len(samples)}
 

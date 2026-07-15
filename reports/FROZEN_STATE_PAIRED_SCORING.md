@@ -2,9 +2,9 @@
 
 **工程验证 only**。不得用本报告对研究假设做 go / narrow / no-go。场景来自 `navtest_failures` 1-scene smoke。
 
-最后更新：2026-07-15（阶段 1.6 validity_v2 + **1.7 归因**）
+最后更新：2026-07-15（阶段 1.6 + 1.7 + **1.8 warm-start**）
 
-> **阶段 1.7 更新**：tie 指标已修正为 v3；NOC/TTC 方向性与 hybrid 归因见 `reports/FROZEN_DISAGREEMENT_ATTRIBUTION.md`。2658 NOC flip 由单车 `44df645d1b5b584b`（IDM 近静止振荡）造成；扩样技术门 **工程通过**（仍非研究结论）。
+> **阶段 1.8 更正**：warm-start 验证见 `reports/IDM_WARM_START_VALIDATION.md`。cutoff 门控 **C**；cold 振荡未在 warm 复现 → 1.5–1.7 的 32% 翻转为**冷启动伪影记录**，**不得扩样**、不得作效应量。
 
 ## 硬性警告（审查必读）
 

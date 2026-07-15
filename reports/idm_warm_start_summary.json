@@ -1,0 +1,97 @@
+{
+  "status": "ok",
+  "wall_s": 10.239,
+  "rss_gb": 0.716,
+  "cutoff": 3,
+  "plan_idx": 1333,
+  "cutoff_gate_grade": "C",
+  "cutoff_gate_allow_reward_compare": false,
+  "tolerances_declared_a_priori": {
+    "strict_pos_m": 0.05,
+    "strict_heading_deg": 0.5,
+    "strict_speed_mps": 0.05,
+    "soft_pos_m": 0.1,
+    "soft_heading_deg": 1.0,
+    "soft_speed_mps": 0.2,
+    "size_atol_m": 0.001
+  },
+  "idm_truly_starts_at_step": 0,
+  "ego_pre_cutoff_source": "original_log_frames_[0,cutoff)",
+  "ego_post_cutoff_pos_error_max_m": 0.0,
+  "ego_post_cutoff_heading_error_max_deg": 0.0,
+  "focus_token": "44df645d1b5b584b",
+  "focus_summary": {
+    "token": "44df645d1b5b584b",
+    "warm_near_stationary_oscillation": false,
+    "warm_complete_stall": true,
+    "warm_net_disp_m": 0.0,
+    "warm_path_length_m": 0.0,
+    "warm_speed_max": 0.0,
+    "cold_near_stationary_oscillation": true,
+    "cold_complete_stall": false,
+    "cold_net_disp_m": 1.2500026943555405,
+    "warm_lane_kind_at_cutoff": "CenterLane",
+    "warm_following_original_traj_at_cutoff": true,
+    "cold_lane_at_reset": "None",
+    "cold_warm_max_ade_m": 2.5612728373388696,
+    "warm_near_stationary": false,
+    "cold_near_stationary": true
+  },
+  "warm_vs_replay_flips": null,
+  "classification": "cold_start_artifact",
+  "classification_reason": "Cold-start near-stationary oscillation of 44df645d is NOT reproduced under warm-start (warm_complete_stall=True, warm_net_disp_m=0.0). Cutoff physics unpaired from step 1 (gate C); cold reinit at truncated scene changes control continuum. Stage 1.5–1.7 32% NOC flips must not be used as effect size; expand blocked until warm-start or restore-freeze-physics protocol.",
+  "expand_allowed_this_round": false,
+  "expand_recommendation": "block_cold_start_32pct_invalid",
+  "verdict_bits": {
+    "cutoff_gate_grade": "C",
+    "allow_reward_compare": false,
+    "warm_focus_near_stationary_oscillation": false,
+    "warm_focus_complete_stall": true,
+    "cold_focus_near_stationary_oscillation": true,
+    "warm_focus_net_disp_m": 0.0,
+    "cold_focus_net_disp_m": 1.2500026943555405,
+    "warm_lane_kind": "CenterLane",
+    "idm_starts_at_step": 0,
+    "first_pre_cutoff_divergence": {
+      "step": 1,
+      "grade": "C",
+      "n_issues": 33,
+      "max_pos_err_m": 0.5950156271414291,
+      "worst_agents": [
+        {
+          "token": "dfcaa5d389bc56ef",
+          "pos_err_m": 0.5950156271414291,
+          "heading_err_deg": 7.294905826177561
+        },
+        {
+          "token": "74c0b539dabe5e9b",
+          "pos_err_m": 0.3593303993039908,
+          "heading_err_deg": 0.6760625499295423
+        },
+        {
+          "token": "44df645d1b5b584b",
+          "pos_err_m": 0.09062988310747383,
+          "heading_err_deg": 1.7411096062597025
+        },
+        {
+          "token": "7cd47126ba8f584e",
+          "pos_err_m": 0.008952573177012342,
+          "heading_err_deg": 0.05201533612732905
+        },
+        {
+          "token": "09fd53ee07ac5675",
+          "pos_err_m": 0.0,
+          "heading_err_deg": 0.0
+        }
+      ]
+    }
+  },
+  "idm_rolled_count": 5,
+  "idm_rolled": [
+    "3a6b749e38305b9d",
+    "44df645d1b5b584b",
+    "74c0b539dabe5e9b",
+    "7cd47126ba8f584e",
+    "dfcaa5d389bc56ef"
+  ]
+}

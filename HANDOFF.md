@@ -1,6 +1,6 @@
 # WorldEngine 双 Agent 交接
 
-最后更新：2026-07-15（阶段 0+1+1.5+1.6+1.7 完成后）
+最后更新：2026-07-15（阶段 0+1+1.5+1.6+1.7+**1.8** 完成后；暂停）
 
 ## 共同目标
 
@@ -78,14 +78,13 @@
 - 阶段 0+1（分歧数据可观测性）已完成，详见 `reports/DISAGREEMENT_DATA_AUDIT.md`。
 - 1-scene NR 基础 smoke 复跑通过；NR/R dense-reward 均通过 60min/64GB/5GB 资源门并写出 8192 维 `pdms_pkl`。
 - **DenseRewardManager 不能直接比较交通模型**：R 模式评分仍读日志 future；NR/R step≥4 差异是 rollout-conditioned。
-- **阶段 1.5+1.6+1.7 frozen-state 配对与归因**：详见 `reports/FROZEN_STATE_PAIRED_SCORING.md`、`reports/FROZEN_DISAGREEMENT_ATTRIBUTION.md`。
-  - 1.5：首次跑通 source-conditioned Replay/IDM + 统一 8192 PDM；无 upstream patch。
-  - 1.6：valid-aware ADE；独立 fingerprint；ego 验证；tie-aware 初版（后发现 optimistic overlap 错误）。
-  - **1.7**：修正 tie 统计（v3+单测）；NOC/TTC 方向性；hybrid 单车/LOO 归因；15.3 m 与碰撞几何诊断。
-  - **关键归因**：2658 NOC / 2316 TTC 单向 flip **全部由** `44df645d1b5b584b` 造成（IDM 近静止振荡 vs Replay 驶离）。
-  - **扩样技术门：工程通过**；仍不得用 `navtest_failures` 下研究结论。
-- 摘要：`reports/frozen_paired_compare_summary_v3.*`、`reports/frozen_disagreement_attribution_summary.*`；原始数组 Git 外 `data/frozen_paired/`。
-- 未改 upstream。BWM / SMART / Nexus / 10-scene 研究统计均未执行。
+- **阶段 1.5+1.6+1.7+1.8 frozen-state**：详见 `reports/FROZEN_STATE_PAIRED_SCORING.md`、`reports/FROZEN_DISAGREEMENT_ATTRIBUTION.md`、`reports/IDM_WARM_START_VALIDATION.md`。
+  - 1.5–1.7：cold-start sidecar 跑通；2658 NOC 归因到 `44df645d` 近静止振荡。
+  - **1.8 warm-start**：完整场景官方 IDM 从 step 0 滚动；cutoff 状态门控 **C**（step 1 起分叉）；**未**跑 warm 奖励。
+  - `44df645d`：cold 振荡 **未**在 warm 复现；warm 为完全停滞（净位移 0，卡在 scene 起点）。
+  - **判定：阶段 1.5–1.7 的 32% 翻转为冷启动伪影记录；不得作效应量；扩样禁止**，直至 warm/restore-physics 协议过门控 A/B。
+- 摘要：`reports/frozen_paired_compare_summary_v3.*`、`reports/frozen_disagreement_attribution_summary.*`、`reports/idm_warm_start_summary.*`；原始数组 Git 外 `data/frozen_paired/`。
+- 未改 upstream。BWM / SMART / Nexus / 10-scene 均未执行。
 
 ## 尚未解决的问题
 
@@ -112,12 +111,13 @@
 
 ## H20 下一步
 
-阶段 0+1+1.5+1.6+1.7 已暂停。下一步需用户明确批准后择一推进：
+阶段 0+1+1.5+1.6+1.7+1.8 已暂停。下一步需用户明确批准后择一推进：
 
-1. 将 frozen-state sidecar 扩展到 10-scene 工程子集（效应量分布 + IDM 振荡类伪影监测；仍非研究判定）；
-2. 阶段 2：下载最小 BWM augmented pkl 并审计能否冻结配对；
-3. 阶段 4/5：SMART / Nexus sidecar；
-4. 正式假设验证改用 train-side 长尾场景；288 rare navtest 保留最终测试。
+1. **优先**：实现「保留 warm navigation + cutoff 恢复冻结物理」协作层方案（若需 upstream 则先设计再停）；过门控 A/B 后重做奖励配对；
+2. 通过后再考虑 10-scene 工程子集（不得沿用 cold-start 32%）；
+3. 阶段 2：下载最小 BWM augmented pkl 并审计能否冻结配对；
+4. 阶段 4/5：SMART / Nexus sidecar；
+5. 正式假设验证改用 train-side 长尾场景；288 rare navtest 保留最终测试。
 
 ## 同步协议
 
