@@ -1,0 +1,35 @@
+{
+  "artifact": "bwm_offline_hf_provenance",
+  "note": "Lightweight provenance for the already-downloaded augmented pickle. No re-download was performed in the evidence-chain closing round.",
+  "hf_repo": "OpenDriveLab/WorldEngine",
+  "hf_repo_type": "dataset",
+  "license": "CC-BY-NC-SA-4.0",
+  "hf_revision": "8728616abaf090d195b3bdc7af6aacde40271145",
+  "relative_path": "data/sim_engine/scenarios/augmented/navtrain_50pct_collision/all_scenarios.pkl",
+  "remote_api_verification": {
+    "performed_before_download": true,
+    "performed_this_round": false,
+    "revision_sha_matched": true,
+    "path_existed": true,
+    "size_matched": true,
+    "lfs_oid_matched": true,
+    "size_bytes": 3130339854,
+    "lfs_sha256": "55328d2aefe231eee36ae82521223b2bb0e9061952682db06ea5bc0a02120d1a",
+    "git_blob_oid": "df5d7bf055f784aeb9c41a053594e79e16486019"
+  },
+  "local_file_verification": {
+    "path": "/mnt/cpfs/prediction/lyyy/myself/WE/data/bwm_offline_audit/hf/data/sim_engine/scenarios/augmented/navtrain_50pct_collision/all_scenarios.pkl",
+    "size_bytes": 3130339854,
+    "sha256": "55328d2aefe231eee36ae82521223b2bb0e9061952682db06ea5bc0a02120d1a",
+    "size_match": true,
+    "sha256_match": true,
+    "redownloaded_this_round": false
+  },
+  "original_collision_remote_meta_not_downloaded": {
+    "path": "data/sim_engine/scenarios/original/navtrain_50pct_collision/all_scenarios.pkl",
+    "size_bytes": 19078046784,
+    "lfs_sha256": "bf7f08da0f76e9d45f46cd9ed8c68b5001f468eda7e29f582a1d910d6de4dca7",
+    "size_source": "HF remote file metadata only",
+    "downloaded": false
+  }
+}

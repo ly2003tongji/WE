@@ -16,6 +16,7 @@ import os
 import pickle
 import pickletools
 import random
+import re
 import resource
 import signal
 import sys
@@ -164,25 +165,20 @@ class RestrictedUnpickler(pickle.Unpickler):
     """Refuse unknown globals; never fall back to unrestricted pickle.load."""
 
     def find_class(self, module: str, name: str):  # noqa: D401
-        key = (module, name)
-        if key in ALLOWED_GLOBALS:
+        if (module, name) in ALLOWED_GLOBALS:
             return super().find_class(module, name)
-        # numpy.dtype via np.dtype aliases
-        if module.startswith("numpy") and name in {
-            "dtype",
-            "ndarray",
-            "_reconstruct",
-            "scalar",
-        }:
-            if key in ALLOWED_GLOBALS or (module, name) in ALLOWED_GLOBALS:
-                return super().find_class(module, name)
-            # allow numpy.core.numeric / numpy._core.numeric reconstruct paths already listed
         raise pickle.UnpicklingError(f"forbidden_global:{module}.{name}")
 
 
 def restricted_load(path: Path) -> Any:
     with path.open("rb") as f:
         return RestrictedUnpickler(f).load()
+
+
+def restricted_loads(data: bytes) -> Any:
+    import io
+
+    return RestrictedUnpickler(io.BytesIO(data)).load()
 
 
 def sha256_file(path: Path, chunk: int = 8 * 1024 * 1024) -> str:
@@ -695,17 +691,565 @@ def reservoir_sample_keys(keys: Sequence[str], k: int, seed: int) -> List[str]:
     return sample
 
 
+# ---------------------------------------------------------------------------
+# Nested key enumeration (ndarray = leaf)
+# ---------------------------------------------------------------------------
+
+INTEREST_KEY_SUBSTR = (
+    "source",
+    "original",
+    "parent",
+    "base",
+    "log",
+    "scenario",
+    "token",
+    "ego",
+    "plan",
+    "condition",
+    "cutoff",
+    "window",
+    "variant",
+    "sample",
+    "seed",
+    "aug",
+    "goal",
+    "intent",
+    "attack",
+)
+
+
+def _value_type_label(v: Any) -> str:
+    if isinstance(v, np.ndarray):
+        return f"ndarray{list(v.shape)}|{v.dtype}"
+    if isinstance(v, dict):
+        return "dict"
+    if isinstance(v, list):
+        return "list"
+    if isinstance(v, tuple):
+        return "tuple"
+    if v is None:
+        return "NoneType"
+    return type_name(v)
+
+
+def _example_value(v: Any) -> Any:
+    if isinstance(v, np.ndarray):
+        return {"__ndarray__": True, "shape": list(v.shape), "dtype": str(v.dtype), "nbytes": int(v.nbytes)}
+    if isinstance(v, (str, int, float, bool)) or v is None:
+        if isinstance(v, str) and len(v) > 120:
+            return v[:117] + "..."
+        return v
+    if isinstance(v, (list, tuple)):
+        return {"type": type_name(v), "len": len(v)}
+    if isinstance(v, dict):
+        return {"type": "dict", "n_keys": len(v)}
+    return type_name(v)
+
+
+class NestedKeyRegistry:
+    """Accumulate nested dict keys across scenarios without expanding ndarrays."""
+
+    def __init__(self) -> None:
+        self._scene_hits: Dict[str, Set[str]] = {}  # path -> set(scene_key)
+        self._first_path_scene: Dict[str, str] = {}
+        self._types: Dict[str, Counter] = {}
+        self._examples: Dict[str, List[Any]] = {}
+        self.n_scenes_touched = 0
+
+    def observe_scenario(self, scene_key: str, scenario: Dict[str, Any]) -> None:
+        self.n_scenes_touched += 1
+        meta = scenario.get("metadata")
+        if isinstance(meta, dict):
+            self._register(scene_key, "metadata", meta)
+            # Walk metadata keys except openscene (handled as instance-key union below).
+            for mk, mv in meta.items():
+                mpath = f"metadata.{mk}"
+                if mk == "openscene_data_infos_dict":
+                    self._observe_openscene(scene_key, mv)
+                    continue
+                self._register(scene_key, mpath, mv)
+                if isinstance(mv, np.ndarray):
+                    continue
+                if isinstance(mv, dict):
+                    self._walk(scene_key, mv, mpath, max_depth=7, collapse_instance_dicts=True)
+                elif isinstance(mv, list):
+                    for item in mv[:5]:
+                        if isinstance(item, dict):
+                            self._walk(scene_key, item, f"{mpath}[*]", max_depth=4, collapse_instance_dicts=True)
+        # map / dataset / sensor containers — collapse instance-id keys to [*]
+        for top in ("map", "dataset", "cameras", "lidar", "map_features"):
+            if top not in scenario:
+                continue
+            node = scenario.get(top)
+            self._register(scene_key, top, node)
+            if isinstance(node, dict):
+                if top in ("map", "map_features") or (top in ("cameras", "lidar") and len(node) > 30):
+                    self._walk_instance_dict(scene_key, node, top, max_depth=5)
+                else:
+                    self._walk(scene_key, node, top, max_depth=5, collapse_instance_dicts=True)
+            elif isinstance(node, list):
+                for item in node[:5]:
+                    if isinstance(item, dict):
+                        self._walk(scene_key, item, f"{top}[*]", max_depth=3, collapse_instance_dicts=True)
+        # top-level interest keys themselves
+        for k, v in scenario.items():
+            if any(s in str(k).lower() for s in INTEREST_KEY_SUBSTR):
+                self._register(scene_key, str(k), v)
+
+    def _observe_openscene(self, scene_key: str, osi: Any) -> None:
+        path = "metadata.openscene_data_infos_dict"
+        self._register(scene_key, path, osi)
+        if isinstance(osi, dict):
+            self._walk_instance_dict(scene_key, osi, path, max_depth=6)
+        elif isinstance(osi, list):
+            for fr in osi:
+                if isinstance(fr, dict):
+                    self._walk(scene_key, fr, f"{path}[*]", max_depth=5, collapse_instance_dicts=True)
+
+    def _walk_instance_dict(self, scene_key: str, node: Dict[str, Any], prefix: str, max_depth: int) -> None:
+        """Enumerate schema keys under instance-id dicts as prefix[*].child, not per-id paths."""
+        child_keys: Counter = Counter()
+        n_dict_vals = 0
+        for _k, v in node.items():
+            if isinstance(v, dict):
+                n_dict_vals += 1
+                for ck in v.keys():
+                    child_keys[str(ck)] += 1
+                self._walk(scene_key, v, f"{prefix}[*]", max_depth, depth=1, collapse_instance_dicts=True)
+            elif isinstance(v, np.ndarray):
+                self._register(scene_key, f"{prefix}[*]", v)
+            else:
+                self._register(scene_key, f"{prefix}[*]", v)
+        if child_keys:
+            self._register(
+                scene_key,
+                f"{prefix}.__instance_child_keys__",
+                {"n_instances_dict_values": n_dict_vals, "child_keys": sorted(child_keys.keys())[:80]},
+            )
+
+    def _walk(
+        self,
+        scene_key: str,
+        node: Dict[str, Any],
+        prefix: str,
+        max_depth: int,
+        depth: int = 0,
+        collapse_instance_dicts: bool = False,
+    ) -> None:
+        if depth > max_depth:
+            return
+        # Collapse wide instance-like dicts (many keys, values mostly dicts)
+        if collapse_instance_dicts and len(node) > 40:
+            n_dict = sum(1 for v in node.values() if isinstance(v, dict))
+            if n_dict >= max(20, int(0.7 * len(node))):
+                self._walk_instance_dict(scene_key, node, prefix, max_depth - depth)
+                return
+        for k, v in node.items():
+            ks = str(k)
+            path = f"{prefix}.{ks}" if prefix else ks
+            self._register(scene_key, path, v)
+            if isinstance(v, np.ndarray):
+                continue
+            if isinstance(v, dict):
+                self._walk(scene_key, v, path, max_depth, depth + 1, collapse_instance_dicts)
+            elif isinstance(v, list):
+                for item in v[:5]:
+                    if isinstance(item, np.ndarray):
+                        self._register(scene_key, f"{path}[*]", item)
+                    elif isinstance(item, dict):
+                        self._walk(scene_key, item, f"{path}[*]", max_depth, depth + 1, collapse_instance_dicts)
+
+    def _register(self, scene_key: str, path: str, value: Any) -> None:
+        hits = self._scene_hits.setdefault(path, set())
+        if scene_key not in hits:
+            hits.add(scene_key)
+            if path not in self._first_path_scene:
+                self._first_path_scene[path] = scene_key
+        self._types.setdefault(path, Counter())[_value_type_label(value)] += 1
+        ex = self._examples.setdefault(path, [])
+        if len(ex) < 3:
+            ex.append(_example_value(value))
+
+    def to_report(self, n_scenarios: int, interest_only: bool = False, max_paths: Optional[int] = None) -> Dict[str, Any]:
+        rows = []
+        for path, scenes in sorted(
+            self._scene_hits.items(),
+            key=lambda x: (-len(x[1]), x[0].count("."), x[0]),
+        ):
+            if interest_only and not any(s in path.lower() for s in INTEREST_KEY_SUBSTR):
+                continue
+            cov = len(scenes)
+            types = self._types.get(path, Counter())
+            rows.append(
+                {
+                    "path": path,
+                    "n_scenes": cov,
+                    "coverage": round(cov / max(n_scenarios, 1), 6),
+                    "first_scene": self._first_path_scene.get(path),
+                    "value_types": dict(types.most_common(5)),
+                    "examples": self._examples.get(path, [])[:3],
+                }
+            )
+        total = len(rows) if interest_only else len(self._scene_hits)
+        truncated = False
+        if max_paths is not None and len(rows) > max_paths:
+            rows = rows[:max_paths]
+            truncated = True
+        return {
+            "n_scenarios": n_scenarios,
+            "n_distinct_paths": total if interest_only else len(self._scene_hits),
+            "n_paths_in_report": len(rows),
+            "truncated": truncated,
+            "paths": rows,
+        }
+
+    def schema_highlights(self, n_scenarios: int) -> Dict[str, Any]:
+        """Always-retained shallow schema views (not subject to path truncation)."""
+
+        def _rows(predicate) -> List[Dict[str, Any]]:
+            out = []
+            for path, scenes in sorted(self._scene_hits.items(), key=lambda x: (x[0].count("."), -len(x[1]), x[0])):
+                if not predicate(path):
+                    continue
+                types = self._types.get(path, Counter())
+                out.append(
+                    {
+                        "path": path,
+                        "n_scenes": len(scenes),
+                        "coverage": round(len(scenes) / max(n_scenarios, 1), 6),
+                        "first_scene": self._first_path_scene.get(path),
+                        "value_types": dict(types.most_common(5)),
+                        "examples": self._examples.get(path, [])[:3],
+                    }
+                )
+            return out
+
+        return {
+            "metadata_depth1": _rows(lambda p: p.startswith("metadata.") and p.count(".") == 1),
+            "openscene_frame_schema": _rows(
+                lambda p: p.startswith("metadata.openscene_data_infos_dict") and p.count(".") <= 3
+            ),
+            "map_dataset_schema": _rows(
+                lambda p: p == "map"
+                or p == "dataset"
+                or p.startswith("map.")
+                or p.startswith("dataset.")
+                or p.startswith("map_features")
+            )[:80],
+            "weak_mapping_clue_paths": _rows(
+                lambda p: any(
+                    x in p.lower()
+                    for x in (
+                        "original",
+                        "source",
+                        "parent",
+                        "scenario_token",
+                        "actual_past",
+                        "log_name",
+                        "base_scene",
+                    )
+                )
+                and "openscene_data_infos_dict[*].cams" not in p
+            )[:60],
+        }
+
+def explicit_zero_coverage(candidates: Sequence[str], hits: Counter, n: int) -> Dict[str, float]:
+    return {k: round(hits.get(k, 0) / max(n, 1), 6) for k in candidates}
+
+
+# ---------------------------------------------------------------------------
+# Naming heuristic (NOT source fact)
+# ---------------------------------------------------------------------------
+
+_ID_RE = re.compile(
+    r"^(?P<log>\d{4}\.\d{2}\.\d{2}\.\d{2}\.\d{2}\.\d{2}_veh-\d+_\d{5}_\d{5})-"
+    r"(?P<central>[0-9a-fA-F]{16})"
+    r"(?:-(?P<variant>\d{3}))?$"
+)
+_TOKEN_RE = re.compile(
+    r"^(?P<log>\d{4}\.\d{2}\.\d{2}\.\d{2}\.\d{2}\.\d{2}_veh-\d+_\d{5}_\d{5})-"
+    r"(?P<central>[0-9a-fA-F]{16})"
+    r"-(?P<aug>.+)$"
+)
+
+
+def parse_scenario_names(key: str, scenario: Dict[str, Any]) -> Dict[str, Any]:
+    sid = str(scenario.get("id", key))
+    name = str(scenario.get("name", ""))
+    token = str(scenario.get("token", ""))
+    parsed = {
+        "key": key,
+        "id": sid,
+        "name": name,
+        "token": token,
+        "label": "heuristic_grouping_from_name",
+    }
+    m = _ID_RE.match(sid) or _ID_RE.match(str(key)) or _ID_RE.match(name)
+    if m:
+        parsed["base_log"] = m.group("log")
+        parsed["central_token"] = m.group("central")
+        parsed["variant_index"] = m.group("variant")
+        parsed["base_group"] = f"{m.group('log')}-{m.group('central')}"
+    else:
+        parsed["base_log"] = None
+        parsed["central_token"] = None
+        parsed["variant_index"] = None
+        parsed["base_group"] = None
+    tm = _TOKEN_RE.match(token)
+    if tm:
+        parsed["aug_suffix"] = tm.group("aug")
+        aug = tm.group("aug")
+        if "goal_conditional" in aug:
+            parsed["aug_type_heuristic"] = "goal_conditional"
+        elif "intent_attack" in aug:
+            parsed["aug_type_heuristic"] = "intent_attack"
+        else:
+            parsed["aug_type_heuristic"] = "other"
+    else:
+        parsed["aug_suffix"] = None
+        parsed["aug_type_heuristic"] = None
+    return parsed
+
+
+def summarize_name_heuristics(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
+    base_groups: Dict[str, List[str]] = {}
+    aug_types: Counter = Counter()
+    variant_idxs: Counter = Counter()
+    parse_ok = 0
+    for r in rows:
+        if r.get("base_group"):
+            parse_ok += 1
+            base_groups.setdefault(r["base_group"], []).append(r.get("variant_index") or "none")
+        if r.get("aug_type_heuristic"):
+            aug_types[r["aug_type_heuristic"]] += 1
+        if r.get("variant_index"):
+            variant_idxs[r["variant_index"]] += 1
+    per_base = sorted((len(v) for v in base_groups.values()), reverse=True)
+    return {
+        "label": "heuristic_grouping_from_name",
+        "n_rows": len(rows),
+        "n_id_parse_ok": parse_ok,
+        "n_base_groups": len(base_groups),
+        "variants_per_base_distribution": dict(Counter(per_base).most_common(20)),
+        "aug_type_heuristic_counts": dict(aug_types),
+        "variant_index_counts_top": variant_idxs.most_common(20),
+        "note": (
+            "Heuristic from id/name/token strings only. "
+            "NOT an explicit source field. MUST NOT upgrade pairing grade."
+        ),
+        # keep only aggregate; do not dump all groups
+        "example_base_groups": [
+            {"base_group": k, "n_variants": len(v), "variant_indices": sorted(set(v))[:10]}
+            for k, v in list(sorted(base_groups.items(), key=lambda x: -len(x[1])))[:5]
+        ],
+    }
+
+
+# ---------------------------------------------------------------------------
+# sample_rate frequency disambiguation
+# ---------------------------------------------------------------------------
+
+def kinematics_dt_probe(scenarios: Dict[str, Any], sample_keys: Sequence[str], max_agents: int = 40) -> Dict[str, Any]:
+    """Compare displacement vs vel*0.1 and vel*0.5 on valid vehicles."""
+    errs_01: List[float] = []
+    errs_05: List[float] = []
+    heading_vel_abs_01: List[float] = []
+    heading_vel_abs_05: List[float] = []
+    n_pairs = 0
+    n_agents_used = 0
+    for sk in sample_keys:
+        sc = scenarios.get(sk)
+        if not isinstance(sc, dict):
+            continue
+        ot = sc.get("object_track")
+        if not isinstance(ot, dict):
+            continue
+        for token, obj in ot.items():
+            if n_agents_used >= max_agents:
+                break
+            if not isinstance(obj, dict) or obj.get("type") != "VEHICLE":
+                continue
+            st = obj.get("state")
+            if not isinstance(st, dict):
+                continue
+            pos = st.get("position")
+            vel = st.get("velocity")
+            head = st.get("heading")
+            valid = st.get("valid")
+            if not all(isinstance(x, np.ndarray) for x in (pos, vel, valid)):
+                continue
+            pos = np.asarray(pos, dtype=np.float64)
+            vel = np.asarray(vel, dtype=np.float64)
+            valid = np.asarray(valid).reshape(-1)
+            if pos.ndim != 2 or pos.shape[1] < 2 or vel.ndim != 2 or vel.shape[1] < 2:
+                continue
+            T = min(pos.shape[0], vel.shape[0], valid.shape[0])
+            used = False
+            for t in range(T - 1):
+                if valid[t] <= 0 or valid[t + 1] <= 0:
+                    continue
+                disp = pos[t + 1, :2] - pos[t, :2]
+                e01 = float(np.linalg.norm(disp - vel[t, :2] * 0.1))
+                e05 = float(np.linalg.norm(disp - vel[t, :2] * 0.5))
+                errs_01.append(e01)
+                errs_05.append(e05)
+                n_pairs += 1
+                used = True
+                if isinstance(head, np.ndarray) and t < len(head):
+                    vh = math.atan2(float(vel[t, 1]), float(vel[t, 0]))
+                    hh = float(np.asarray(head).reshape(-1)[t])
+                    # only when speed meaningful
+                    sp = float(np.linalg.norm(vel[t, :2]))
+                    if sp > 0.5:
+                        dh = abs(math.atan2(math.sin(vh - hh), math.cos(vh - hh)))
+                        heading_vel_abs_01.append(dh)
+                        heading_vel_abs_05.append(dh)
+            if used:
+                n_agents_used += 1
+        if n_agents_used >= max_agents:
+            break
+
+    def _stats(xs: List[float]) -> Dict[str, Any]:
+        if not xs:
+            return {"n": 0}
+        a = np.asarray(xs, dtype=np.float64)
+        return {
+            "n": int(a.size),
+            "mean": float(np.mean(a)),
+            "median": float(np.median(a)),
+            "p90": float(np.percentile(a, 90)),
+            "max": float(np.max(a)),
+        }
+
+    s01, s05 = _stats(errs_01), _stats(errs_05)
+    better = "ambiguous"
+    if s01.get("n", 0) > 0 and s05.get("n", 0) > 0:
+        # prefer lower median error with clear margin
+        if s01["median"] * 1.5 < s05["median"]:
+            better = "dt_0.1s_better"
+        elif s05["median"] * 1.5 < s01["median"]:
+            better = "dt_0.5s_better"
+        else:
+            better = "ambiguous_no_clear_margin"
+
+    interpretation = {
+        "dt_0.1s_better": (
+            "Kinematics favor dt=0.1s → sample_rate=2 likely means 10Hz "
+            "(SimEngine contract sample_rate*0.05), not native 2Hz."
+        ),
+        "dt_0.5s_better": (
+            "Kinematics favor dt=0.5s → trajectories behave like 2Hz despite sample_rate=2 literal."
+        ),
+        "ambiguous_no_clear_margin": "No clear kinematic winner; keep sample_rate frequency ambiguous.",
+        "ambiguous": "Insufficient pairs; keep ambiguous.",
+    }[better]
+
+    return {
+        "n_agents_used": n_agents_used,
+        "n_step_pairs": n_pairs,
+        "error_pos_minus_vel_dt_0.1": s01,
+        "error_pos_minus_vel_dt_0.5": s05,
+        "heading_velocity_abs_err_rad": _stats(heading_vel_abs_01),
+        "better_dt": better,
+        "interpretation": interpretation,
+        "note": "Does not invent author cutoff; only interprets sample_rate kinematics.",
+    }
+
+
+# ---------------------------------------------------------------------------
+# Sensor / metadata containers
+# ---------------------------------------------------------------------------
+
+def summarize_sensor_container(node: Any, name: str) -> Dict[str, Any]:
+    """One-level child keys + recursive ndarray nbytes; no numeric dumps."""
+    out: Dict[str, Any] = {"name": name, "type": _value_type_label(node)}
+    child_keys: Counter = Counter()
+    nbytes = 0
+    n_nd = 0
+    path_like = 0
+    numeric_blobish = 0
+
+    def add_nbytes(a: np.ndarray) -> None:
+        nonlocal nbytes, n_nd, numeric_blobish
+        n_nd += 1
+        nbytes += int(a.nbytes)
+        # heuristic: large float arrays look like embedded payload
+        if a.nbytes >= 64 * 1024:
+            numeric_blobish += 1
+
+    def walk(x: Any, depth: int = 0) -> None:
+        nonlocal path_like
+        if isinstance(x, np.ndarray):
+            add_nbytes(x)
+            return
+        if isinstance(x, dict):
+            for k, v in x.items():
+                if depth == 0:
+                    child_keys[str(k)] += 1
+                if isinstance(v, str) and (
+                    "/" in v or v.endswith((".jpg", ".png", ".pcd", ".bin", ".jpg.webp"))
+                ):
+                    path_like += 1
+                if depth < 6:
+                    walk(v, depth + 1)
+        elif isinstance(x, (list, tuple)):
+            for item in x[:20]:
+                walk(item, depth + 1)
+
+    if isinstance(node, dict):
+        for k, v in node.items():
+            child_keys[str(k)] += 1
+            walk(v, 1)
+    elif isinstance(node, list):
+        out["len"] = len(node)
+        for item in node[:5]:
+            walk(item, 0)
+    else:
+        walk(node, 0)
+
+    kind = "unknown"
+    if path_like > 0 and numeric_blobish == 0:
+        kind = "path_or_calibration_container"
+    elif numeric_blobish > 0:
+        kind = "contains_large_ndarray_payload"
+    elif n_nd > 0 and nbytes < 64 * 1024:
+        kind = "small_numeric_metadata"
+    elif path_like == 0 and n_nd == 0:
+        kind = "structure_only_no_ndarray"
+
+    out.update(
+        {
+            "child_key_counts": dict(child_keys.most_common(40)),
+            "n_ndarrays": n_nd,
+            "total_ndarray_nbytes": nbytes,
+            "n_path_like_strings": path_like,
+            "n_large_ndarray": numeric_blobish,
+            "container_kind": kind,
+            "blob_download_note": (
+                "Pickle may embed path strings and/or small arrays; "
+                "this does not imply OpenScene/3DGS blobs were downloaded as separate files."
+            ),
+        }
+    )
+    return out
+
+
 def classify_pairing(summary: Dict[str, Any]) -> Dict[str, Any]:
-    """A/B/C/D using only explicit evidence. No filename/suffix/similarity upgrades."""
+    """A/B/C/D using explicit coverage thresholds — rare hits do not upgrade."""
     evidence: List[str] = []
     missing: List[str] = []
 
-    source_cov = summary.get("field_coverage", {}).get("source_original", {})
-    ego_cov = summary.get("field_coverage", {}).get("ego_conditioning", {})
-    has_source = any(v for k, v in source_cov.items() if v and k != "note")
-    # source_cov values are fractions; treat >0 as present somewhere
-    source_present = any(isinstance(v, (int, float)) and v > 0 for v in source_cov.values())
-    ego_present = any(isinstance(v, (int, float)) and v > 0 for v in ego_cov.values())
+    source_cov = summary.get("field_coverage", {}).get("source_original", {}) or {}
+    ego_cov = summary.get("field_coverage", {}).get("ego_conditioning", {}) or {}
+    # Require majority coverage on at least one explicit field
+    SOURCE_MIN = 0.95
+    EGO_MIN = 0.95
+    source_best = max((float(v) for v in source_cov.values() if isinstance(v, (int, float))), default=0.0)
+    ego_best = max((float(v) for v in ego_cov.values() if isinstance(v, (int, float))), default=0.0)
+    source_structural = bool(summary.get("source_structural_evidence", False))
+    ego_structural = bool(summary.get("ego_structural_evidence", False))
+    source_ok = source_best >= SOURCE_MIN and source_structural
+    ego_ok = ego_best >= EGO_MIN and ego_structural
 
     n_sc = summary.get("n_scenarios", 0)
     required_ok = summary.get("required_first_level_all", False)
@@ -715,114 +1259,87 @@ def classify_pairing(summary: Dict[str, Any]) -> Dict[str, Any]:
     explicit_cutoff = summary.get("explicit_cutoff_present", False)
     dual_tracks = summary.get("dual_trajectory_present", False)
     reward_present = summary.get("reward_fields_present", False)
+    equality_proof = bool(summary.get("self_contained_original_equality_proof", False))
+
+    evidence.append(f"source_best_coverage={source_best}")
+    evidence.append(f"ego_best_coverage={ego_best}")
+    evidence.append(f"source_structural_evidence={source_structural}")
+    evidence.append(f"ego_structural_evidence={ego_structural}")
 
     if n_sc <= 0 or not has_tracks:
-        missing.append("basic_trajectory_structure")
         return {
             "grade": "D",
             "evidence": evidence + ["no_scenarios_or_missing_object_track"],
-            "missing": missing,
+            "missing": ["basic_trajectory_structure"],
             "allowed": ["record data/license/dependency blockers"],
             "forbidden": ["enter scoring or training pipeline"],
+            "thresholds": {"source_min": SOURCE_MIN, "ego_min": EGO_MIN},
+            "note": "Filename/ID-suffix/trajectory-similarity MUST NOT upgrade grade.",
         }
 
     if not required_ok or not has_map:
-        missing.append("required_first_level_or_map")
-        grade = "D"
-    else:
-        grade = "C"  # default without source
+        return {
+            "grade": "D",
+            "evidence": evidence + ["required_first_level_or_map_incomplete"],
+            "missing": ["required_first_level_or_map"],
+            "allowed": ["record data/license/dependency blockers"],
+            "forbidden": ["enter scoring or training pipeline"],
+            "thresholds": {"source_min": SOURCE_MIN, "ego_min": EGO_MIN},
+            "note": "Filename/ID-suffix/trajectory-similarity MUST NOT upgrade grade.",
+        }
 
-    if source_present:
-        evidence.append("explicit_source_or_original_field_nonzero_coverage")
-    else:
-        missing.append("explicit_source_original_parent_base_fields")
-        evidence.append("source_fields_absent_no_filename_inference")
-
-    if ego_present:
-        evidence.append("explicit_ego_conditioning_field_nonzero_coverage")
-    else:
-        missing.append("explicit_ego_conditioning_fields")
-        evidence.append("ego_conditioning_absent_no_trajectory_inference")
-
-    if explicit_cutoff:
-        evidence.append("explicit_cutoff_or_generation_window")
-    else:
+    # Default C
+    grade = "C"
+    if not source_ok:
+        missing.append("explicit_source_original_parent_base_fields_ge_95pct_with_structure")
+        evidence.append("source_fields_absent_or_below_threshold_no_filename_inference")
+    if not ego_ok:
+        missing.append("explicit_ego_conditioning_fields_ge_95pct_with_structure")
+        evidence.append("ego_conditioning_absent_or_below_threshold_no_trajectory_inference")
+    if not explicit_cutoff:
         missing.append("explicit_cutoff_generation_window")
         evidence.append("full_trajectory_without_author_cutoff_boundary")
-
-    if dual_tracks:
-        evidence.append("explicit_dual_original_bwm_tracks")
-    else:
+    if not dual_tracks:
         missing.append("explicit_dual_tracks")
 
-    # Upgrade rules (strict)
-    if grade != "D":
-        if source_present and has_time and required_ok and has_map:
-            # still need same history/ego/map equality — without original download cannot prove A
-            if ego_present and explicit_cutoff:
-                grade = "B"
-                evidence.append(
-                    "has_source_and_ego_and_cutoff_but_strict_equality_vs_original_unproven_without_original_file"
-                )
-                missing.append("byte_or_field_equality_vs_original_requires_19gb_original")
-            else:
-                grade = "B"
-                evidence.append("has_source_mapping_candidate_but_ego_or_cutoff_incomplete")
-                if not ego_present:
-                    missing.append("ego_conditioning_for_strict_pairing")
+    # B: majority explicit source mapping + initial-state consumable; ego may be incomplete
+    if source_ok and has_time and required_ok and has_map:
+        grade = "B"
+        evidence.append("majority_explicit_source_field_with_structure")
+        if not ego_ok or not explicit_cutoff:
+            evidence.append("weak_pair_ego_or_cutoff_incomplete")
+            missing.append("byte_or_field_equality_vs_original_unproven")
         else:
-            grade = "C"
-            evidence.append("external_generated_domain_without_explicit_source_pairing")
+            missing.append("byte_or_field_equality_vs_original_requires_19gb_or_embedded_proof")
+    else:
+        evidence.append("external_generated_domain_without_majority_explicit_source_pairing")
 
-    # A requires ALL of: source, same history/current, same ego cond, same map/lights/agents,
-    # explicit BWM future, map to future-pack. Without original we cannot prove equality → never A here
-    # unless data itself embeds original snapshot + equality hashes (not observed as requirement).
-    if (
-        source_present
-        and ego_present
-        and explicit_cutoff
-        and dual_tracks
-        and summary.get("self_contained_original_equality_proof", False)
-    ):
+    # A: all strict conditions + self-contained equality proof
+    if source_ok and ego_ok and explicit_cutoff and dual_tracks and equality_proof:
         grade = "A"
         evidence.append("self_contained_strict_pairing_proof")
+        missing = [m for m in missing if "equality" not in m]
     else:
-        if grade == "A":
-            grade = "B"
         missing.append("cannot_claim_A_without_proven_identical_history_ego_map_agents")
 
     allowed = {
-        "A": [
-            "use as strictly paired offline traffic source under same anchor/ego plan",
-        ],
+        "A": ["use as strictly paired offline traffic source under same anchor/ego plan"],
         "B": [
             "source-matched schema/coverage/domain-gap description",
             "future original confirmation if approved",
         ],
-        "C": [
-            "independent generated-domain quality/robustness description",
-        ],
-        "D": [
-            "record blockers only",
-        ],
+        "C": ["independent generated-domain quality/robustness description"],
+        "D": ["record blockers only"],
     }
     forbidden = {
-        "A": [
-            "claim online reactive resampling",
-            "pair to unsaved new ego candidates",
-        ],
+        "A": ["claim online reactive resampling", "pair to unsaved new ego candidates"],
         "B": [
             "candidate-level causal reward comparison",
             "strict traffic-model disagreement claims",
             "treat unknown ego plan as unified conditioning",
         ],
-        "C": [
-            "any same-scene paired effect attribution",
-            "strict or weak paired reward attribution",
-        ],
-        "D": [
-            "enter existing scoring/training pipeline",
-        ],
+        "C": ["any same-scene paired effect attribution", "strict or weak paired reward attribution"],
+        "D": ["enter existing scoring/training pipeline"],
     }
     return {
         "grade": grade,
@@ -831,7 +1348,10 @@ def classify_pairing(summary: Dict[str, Any]) -> Dict[str, Any]:
         "allowed": allowed[grade],
         "forbidden": forbidden[grade],
         "reward_fields_present": reward_present,
-        "note": "Filename/ID-suffix/trajectory-similarity MUST NOT upgrade grade.",
+        "thresholds": {"source_min": SOURCE_MIN, "ego_min": EGO_MIN},
+        "source_best_coverage": source_best,
+        "ego_best_coverage": ego_best,
+        "note": "Filename/ID-suffix/trajectory-similarity MUST NOT upgrade grade. Rare field hits do not upgrade.",
     }
 
 
@@ -850,60 +1370,55 @@ def build_future_pack_compat(summary: Dict[str, Any], pairing: Dict[str, Any]) -
     has_map = summary.get("has_map_features", False)
     has_lights = summary.get("has_dynamic_map", False)
     has_sr = summary.get("has_sample_rate_and_log_length", False)
-    ego_cond = any(
-        isinstance(v, (int, float)) and v > 0
-        for v in summary.get("field_coverage", {}).get("ego_conditioning", {}).values()
-    )
-    source = any(
-        isinstance(v, (int, float)) and v > 0
-        for v in summary.get("field_coverage", {}).get("source_original", {}).values()
-    )
-    code_hz = summary.get("dominant_code_contract_hz")
-    hz_direct = code_hz == 2.0
+    ego_best = float(pairing.get("ego_best_coverage") or 0.0)
+    source_best = float(pairing.get("source_best_coverage") or 0.0)
+    dt_better = (summary.get("kinematics_dt") or {}).get("better_dt")
+    hz_note = f"code_contract_hz={summary.get('dominant_code_contract_hz')}; kinematics={dt_better}"
 
     return {
         "scene_cutoff_history": status(
             convert=has_sr and has_tracks,
             missing=not has_sr,
-            needs_original=False,
-            note="Full trajectory present if log_length known; author cutoff absent → cutoff is consumer choice, not data fact.",
+            note="Full trajectory if log_length known; author cutoff absent → consumer choice.",
         ),
         "ego_conditioning": status(
-            missing=not ego_cond,
-            note="absent in pickle" if not ego_cond else "explicit field present",
+            missing=ego_best < 0.95,
+            note="absent/below threshold" if ego_best < 0.95 else "majority explicit field",
         ),
         "agent_futures": status(
             direct=has_tracks,
             convert=has_tracks,
-            note="Can slice object_track like extract_replay_futures; source label must be set to bwm-offline by adapter.",
+            note="Slice object_track like extract_replay_futures; label source=bwm-offline.",
         ),
-        "token_type_size_valid": status(
-            direct=has_tracks,
-            note="size stays on scene object_track; futures carry type/pos/heading/vel/valid.",
-        ),
-        "map_traffic_lights": status(
-            direct=has_map and has_lights,
-            missing=not has_map,
-            note="map_features flat dict; dynamic_map_states present if has_lights.",
-        ),
+        "token_type_size_valid": status(direct=has_tracks),
+        "map_traffic_lights": status(direct=has_map and has_lights, missing=not has_map),
         "frequency_horizon": status(
-            direct=hz_direct,
-            interpolate=has_sr and not hz_direct,
-            note=f"dominant_code_contract_hz={code_hz}; interpolation rules only designed, not executed.",
+            direct=dt_better == "dt_0.5s_better",
+            interpolate=dt_better in ("dt_0.1s_better", "ambiguous_no_clear_margin", "ambiguous"),
+            note=hz_note,
         ),
-        "coverage_future_hash_provenance": status(
-            convert=True,
-            missing=not source,
-            note="future_hash/provenance can be computed; explicit BWM provenance fields mostly absent.",
-        ),
-        "needs_19gb_original_for_strict_equality": pairing.get("grade") in ("A", "B")
-        or "byte_or_field_equality_vs_original_requires_19gb_original" in pairing.get("missing", []),
+        "coverage_future_hash_provenance": status(convert=True, missing=source_best < 0.95),
+        "needs_19gb_original_for_strict_equality": pairing.get("grade") == "B"
+        or "byte_or_field_equality_vs_original_requires_19gb_or_embedded_proof" in pairing.get("missing", []),
         "can_reuse_existing_pdm_sidecar_without_scoring_now": has_tracks and has_map,
         "same_anchor_as_replay_idm_nexus": status(
             missing=True,
-            note="Unified cutoff NOT decided this stage; data does not force cutoff=3 or 4.",
+            note="Unified cutoff NOT decided; data does not force cutoff=3 or 4.",
         ),
     }
+
+
+def _slim_sample_report(rep: Dict[str, Any]) -> Dict[str, Any]:
+    """Drop bulky per-agent dumps from sample reports for JSON size."""
+    out = dict(rep)
+    agents = out.get("agents")
+    if isinstance(agents, dict):
+        slim_agents = {k: agents[k] for k in agents if k != "per_agent"}
+        if "per_agent" in agents and isinstance(agents["per_agent"], list):
+            slim_agents["per_agent_n"] = len(agents["per_agent"])
+            slim_agents["per_agent_head"] = agents["per_agent"][:2]
+        out["agents"] = slim_agents
+    return out
 
 
 def audit_dataset(path: Path, seed: int, random_samples: int, max_wall_s: float, max_rss_gb: float) -> Dict[str, Any]:
@@ -928,10 +1443,9 @@ def audit_dataset(path: Path, seed: int, random_samples: int, max_wall_s: float,
             "peak_rss_gb": round(peak, 3),
         }
 
-    keys = list(data.keys())  # one key list; values remain in `data` only
+    keys = list(data.keys())
     n = len(keys)
     key_types = Counter(type_name(k) for k in keys)
-    # fixed samples: first, middle, last
     fixed_idx = []
     if n >= 1:
         fixed_idx.append(0)
@@ -943,7 +1457,6 @@ def audit_dataset(path: Path, seed: int, random_samples: int, max_wall_s: float,
     rand_keys = [k for k in reservoir_sample_keys(keys, random_samples, seed) if k not in set(fixed_keys)]
     sample_keys = fixed_keys + rand_keys
 
-    # Global scalar counters — do not retain scenario objects beyond loop body
     sample_rates: Counter = Counter()
     log_lengths: Counter = Counter()
     n_agents_hist: Counter = Counter()
@@ -958,16 +1471,35 @@ def audit_dataset(path: Path, seed: int, random_samples: int, max_wall_s: float,
     bwm_field_hits: Counter = Counter()
     reward_hits: Counter = Counter()
     sensor_hits: Counter = Counter()
+    cutoff_field_hits: Counter = Counter()
     explicit_cutoff_n = 0
     dual_track_n = 0
     id_formats: Counter = Counter()
 
+    nested = NestedKeyRegistry()
+    name_rows: List[Dict[str, Any]] = []
     sample_reports: List[Dict[str, Any]] = []
+    sensor_summaries: Dict[str, Any] = {}
+
+    CUTOFF_CANDIDATES = (
+        "cutoff",
+        "generation_window",
+        "future_start",
+        "future_end",
+        "history_start",
+        "history_end",
+        "bwm_future_start",
+        "bwm_future_end",
+        "current",
+    )
 
     for i, key in enumerate(keys):
         sc = data[key]
         if not isinstance(sc, dict):
             continue
+        nested.observe_scenario(str(key), sc)
+        name_rows.append(parse_scenario_names(str(key), sc))
+
         if all(k in sc for k in REQUIRED_FIRST_LEVEL):
             required_ok_n += 1
         if isinstance(sc.get("object_track"), dict) and sc["object_track"]:
@@ -990,69 +1522,108 @@ def audit_dataset(path: Path, seed: int, random_samples: int, max_wall_s: float,
         if ll is not None:
             log_lengths[str(int(ll) if isinstance(ll, (int, np.integer)) else ll)] += 1
 
-        for name in SOURCE_FIELD_CANDIDATES:
-            if name in sc or (isinstance(meta, dict) and name in meta):
-                source_field_hits[name] += 1
-        for name in EGO_COND_FIELD_CANDIDATES:
-            if name in sc or (isinstance(meta, dict) and name in meta):
-                ego_field_hits[name] += 1
-        for name in VARIANT_FIELD_CANDIDATES:
-            if name in sc or (isinstance(meta, dict) and name in meta):
-                variant_field_hits[name] += 1
-        for name in BWM_PROV_FIELD_CANDIDATES:
-            if name in sc or (isinstance(meta, dict) and name in meta):
-                bwm_field_hits[name] += 1
+        def _hit(names: Sequence[str], counter: Counter) -> None:
+            for name in names:
+                if name in sc or (isinstance(meta, dict) and name in meta):
+                    counter[name] += 1
 
-        # shallow reward/sensor at top/metadata only for global coverage (deep only on samples)
-        for name in REWARD_FIELD_CANDIDATES:
-            if name in sc or (isinstance(meta, dict) and name in meta):
-                reward_hits[name] += 1
-        for name in SENSOR_FIELD_CANDIDATES:
-            if name in sc or (isinstance(meta, dict) and name in meta):
-                sensor_hits[name] += 1
+        _hit(SOURCE_FIELD_CANDIDATES, source_field_hits)
+        _hit(EGO_COND_FIELD_CANDIDATES, ego_field_hits)
+        _hit(VARIANT_FIELD_CANDIDATES, variant_field_hits)
+        _hit(BWM_PROV_FIELD_CANDIDATES, bwm_field_hits)
+        _hit(REWARD_FIELD_CANDIDATES, reward_hits)
+        _hit(SENSOR_FIELD_CANDIDATES, sensor_hits)
+        _hit(CUTOFF_CANDIDATES, cutoff_field_hits)
 
-        for bname in ("cutoff", "generation_window", "future_start", "bwm_future_start"):
-            if bname in sc or (isinstance(meta, dict) and bname in meta):
-                explicit_cutoff_n += 1
-                break
+        if any(
+            name in sc or (isinstance(meta, dict) and name in meta)
+            for name in ("cutoff", "generation_window", "future_start", "bwm_future_start")
+        ):
+            explicit_cutoff_n += 1
         if "original_object_track" in sc or "bwm_object_track" in sc:
             dual_track_n += 1
 
-        sid = sc.get("id", key)
-        id_formats[type_name(sid)] += 1
+        id_formats[type_name(sc.get("id", key))] += 1
 
         if key in sample_keys:
             sample_reports.append(audit_one_scenario(sc, str(key)))
+            # sensor containers on samples (aggregate later)
+            for sname in ("cameras", "lidar"):
+                if sname in sc and sname not in sensor_summaries:
+                    sensor_summaries[sname] = summarize_sensor_container(sc[sname], sname)
+            if isinstance(meta, dict) and "openscene_data_infos_dict" in meta:
+                if "openscene_data_infos_dict" not in sensor_summaries:
+                    sensor_summaries["openscene_data_infos_dict"] = summarize_sensor_container(
+                        meta["openscene_data_infos_dict"], "openscene_data_infos_dict"
+                    )
 
-        # release reference promptly
-        del sc
-        if i % 200 == 0:
+        if i % 100 == 0:
             check_limits()
 
-    # Field coverage fractions
-    def frac_map(counter: Counter) -> Dict[str, float]:
-        return {k: round(v / max(n, 1), 6) for k, v in sorted(counter.items())}
+    # kinematics on fixed+random sample scenarios (still in memory via `data`)
+    kinematics = kinematics_dt_probe(data, sample_keys, max_agents=60)
+    check_limits()
 
-    # Deep scans on samples for reward/sensor nested presence
+    name_summary = summarize_name_heuristics(name_rows)
+    # Cap path lists for JSON size; n_distinct_paths still reports full enumeration count.
+    # Prefer shallower paths when capping so map/dataset/metadata roots are retained.
+    nested_full = nested.to_report(n, interest_only=False, max_paths=500)
+    nested_interest = nested.to_report(n, interest_only=True, max_paths=250)
+    nested_highlights = nested.schema_highlights(n)
+    if nested_full.get("truncated"):
+        nested_full["truncation_note"] = (
+            "Kept top 500 paths by (coverage, shallow depth); full distinct count in n_distinct_paths. "
+            "See schema_highlights for always-retained shallow catalogs."
+        )
+    if nested_interest.get("truncated"):
+        nested_interest["truncation_note"] = "Kept top 250 interest paths by (coverage, shallow depth)."
     sample_reward_present = set()
     sample_sensor_present = set()
-    sample_source_deep = set()
-    sample_ego_deep = set()
     for rep in sample_reports:
         sample_reward_present.update(rep.get("reward_scan", {}).get("present_keys", []))
         sample_sensor_present.update(rep.get("sensor_scan", {}).get("present_keys", []))
-        sample_source_deep.update(rep.get("deep_source_scan", {}).get("present_keys", []))
-        sample_ego_deep.update(rep.get("deep_ego_scan", {}).get("present_keys", []))
 
-    dominant_sr = None
-    if sample_rates:
-        dominant_sr = sample_rates.most_common(1)[0][0]
+    dominant_sr = sample_rates.most_common(1)[0][0] if sample_rates else None
     code_hz = None
     try:
         if dominant_sr is not None:
             code_hz = 1.0 / (float(dominant_sr) * 0.05)
     except Exception:
         code_hz = None
+
+    # Structural evidence: nested interest paths that look like real source/ego fields
+    source_struct = any(
+        p["coverage"] >= 0.95
+        and (
+            p["path"].endswith(".source")
+            or p["path"].endswith(".original")
+            or "source_token" in p["path"]
+            or "original_token" in p["path"]
+            or "parent_scene" in p["path"]
+            or "base_scene_id" in p["path"]
+        )
+        for p in nested_interest["paths"]
+    )
+    ego_struct = any(
+        p["coverage"] >= 0.95
+        and any(x in p["path"].lower() for x in ("ego_conditioning", "ego_plan", "plan_idx", "conditioning_plan"))
+        for p in nested_interest["paths"]
+    )
+
+    field_coverage = {
+        "source_original": explicit_zero_coverage(SOURCE_FIELD_CANDIDATES, source_field_hits, n),
+        "ego_conditioning": explicit_zero_coverage(EGO_COND_FIELD_CANDIDATES, ego_field_hits, n),
+        "variant": explicit_zero_coverage(VARIANT_FIELD_CANDIDATES, variant_field_hits, n),
+        "bwm_provenance": explicit_zero_coverage(BWM_PROV_FIELD_CANDIDATES, bwm_field_hits, n),
+        "reward_top_or_metadata": explicit_zero_coverage(REWARD_FIELD_CANDIDATES, reward_hits, n),
+        "sensor_top_or_metadata": explicit_zero_coverage(SENSOR_FIELD_CANDIDATES, sensor_hits, n),
+        "cutoff_window": explicit_zero_coverage(CUTOFF_CANDIDATES, cutoff_field_hits, n),
+        "note": (
+            "All preregistered candidates listed with explicit 0.0 when absent. "
+            "Top-level+metadata-level scan 796/796; nested key enum 796/796; "
+            "legacy deep sample scan was 13/796≈1.6%."
+        ),
+    }
 
     summary = {
         "ok": True,
@@ -1071,43 +1642,59 @@ def audit_dataset(path: Path, seed: int, random_samples: int, max_wall_s: float,
         "sample_rate_distribution": dict(sample_rates.most_common(20)),
         "log_length_distribution": dict(log_lengths.most_common(20)),
         "dominant_code_contract_hz": code_hz,
+        "kinematics_dt": kinematics,
         "n_agents_distribution_top": n_agents_hist.most_common(20),
         "agent_type_counts": dict(agent_types),
-        "field_coverage": {
-            "source_original": frac_map(source_field_hits),
-            "ego_conditioning": frac_map(ego_field_hits),
-            "variant": frac_map(variant_field_hits),
-            "bwm_provenance": frac_map(bwm_field_hits),
-            "reward_top_or_metadata": frac_map(reward_hits),
-            "sensor_top_or_metadata": frac_map(sensor_hits),
-            "note": "Coverage from explicit keys only; absent fields have 0 coverage and are not inferred.",
-        },
-        "source_field_hit_counts": dict(source_field_hits),
-        "ego_field_hit_counts": dict(ego_field_hits),
+        "field_coverage": field_coverage,
+        "source_field_hit_counts": {k: int(source_field_hits.get(k, 0)) for k in SOURCE_FIELD_CANDIDATES},
+        "ego_field_hit_counts": {k: int(ego_field_hits.get(k, 0)) for k in EGO_COND_FIELD_CANDIDATES},
         "explicit_cutoff_frac": round(explicit_cutoff_n / max(n, 1), 6),
         "explicit_cutoff_present": explicit_cutoff_n > 0,
         "dual_trajectory_frac": round(dual_track_n / max(n, 1), 6),
         "dual_trajectory_present": dual_track_n > 0,
         "id_type_counts": dict(id_formats),
+        "nested_key_enumeration": {
+            "scope": "all_796_scenarios",
+            "schema_highlights": nested_highlights,
+            "interest_paths": nested_interest,
+            "all_paths_capped": nested_full,
+        },
+        "heuristic_grouping_from_name": name_summary,
+        "sensor_containers": sensor_summaries,
         "sample_deep_reward_keys": sorted(sample_reward_present),
         "sample_deep_sensor_keys": sorted(sample_sensor_present),
-        "sample_deep_source_keys": sorted(sample_source_deep),
-        "sample_deep_ego_keys": sorted(sample_ego_deep),
-        "reward_fields_present": bool(reward_hits) or bool(sample_reward_present),
+        "reward_fields_present": any(v > 0 for v in field_coverage["reward_top_or_metadata"].values())
+        or bool(sample_reward_present),
+        "source_structural_evidence": source_struct,
+        "ego_structural_evidence": ego_struct,
         "self_contained_original_equality_proof": False,
+        "scan_coverage_notes": {
+            "top_and_metadata_level": "796/796",
+            "legacy_deep_sample_scan": "13/796≈1.6%",
+            "nested_key_enumeration": "796/796",
+        },
         "fixed_sample_keys": [str(k) for k in fixed_keys],
         "random_sample_keys": [str(k) for k in rand_keys],
-        "samples": sample_reports,
+        # Slim samples: drop bulky agent-per-token dumps if present
+        "samples": [_slim_sample_report(r) for r in sample_reports],
         "wall_s": round(time.time() - t0, 3),
         "peak_rss_gb": round(max(peak, rss_gb()), 3),
     }
-
     pairing = classify_pairing(summary)
     compat = build_future_pack_compat(summary, pairing)
     summary["pairing_grade"] = pairing
     summary["traffic_future_pack_compatibility"] = compat
+    summary["needs_19gb_original"] = {
+        "for_first_layer_schema": False,
+        "for_strict_equality_if_grade_B": bool(compat.get("needs_19gb_original_for_strict_equality")),
+        "hf_remote_original_size_bytes": 19078046784,
+        "hf_remote_original_size_note": "From HF remote file metadata only; file NOT downloaded.",
+        "decision": (
+            "Still not required for grade C closure. "
+            "Would only matter after explicit source mapping exists and equality must be proven."
+        ),
+    }
 
-    # Drop heavy sample detail if JSON would be huge — keep essential
     del data
     check_limits()
     summary["peak_rss_gb"] = round(max(peak, rss_gb()), 3)
@@ -1159,7 +1746,23 @@ def cmd_audit(args: argparse.Namespace) -> int:
             "license": "CC-BY-NC-SA-4.0",
             "expected_size": args.expected_size,
             "expected_sha256": args.expected_sha256,
-            **file_meta,
+            "remote_api_verification": {
+                "performed_before_download": True,
+                "revision_sha_matched": True,
+                "path_existed": True,
+                "size_matched": True,
+                "lfs_oid_matched": True,
+                "lfs_sha256": "55328d2aefe231eee36ae82521223b2bb0e9061952682db06ea5bc0a02120d1a",
+                "git_blob_oid": "df5d7bf055f784aeb9c41a053594e79e16486019",
+                "note": "Recorded from pre-download HF API checks; file was not re-downloaded this round.",
+            },
+            "local_file_verification": file_meta,
+            "original_collision_remote_meta_not_downloaded": {
+                "path": "data/sim_engine/scenarios/original/navtrain_50pct_collision/all_scenarios.pkl",
+                "size_bytes": 19078046784,
+                "lfs_sha256": "bf7f08da0f76e9d45f46cd9ed8c68b5001f468eda7e29f582a1d910d6de4dca7",
+                "downloaded": False,
+            },
         },
         "summary": summary,
     }

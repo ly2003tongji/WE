@@ -4,18 +4,24 @@
 
 ## 结论
 
-**配对等级：C（仅外部生成域）。**
+**配对等级：C（仅外部生成域）。** 证据链收尾后仍为 C。
 
-公开 `navtrain_50pct_collision` augmented pickle 可安全加载，顶层为标准 WorldEngine scenario dict（796 条），具备 `object_track` / `map_features` / `log_length` 等可消费轨迹结构，可设计映射到现有 `TrafficFuturePack`。但：
+公开 `navtrain_50pct_collision` augmented pickle 可安全加载，顶层为标准 WorldEngine scenario dict（**796** 条），具备可消费轨迹/地图结构。但：
 
-- 显式 `source/original/parent/base` 字段：**absent**
-- 显式 ego conditioning / plan_idx / plan hash：**absent**
-- 显式 cutoff / generation window / 双轨轨迹：**absent**
-- 候选级 PDM 奖励：**absent**
+- 预注册 `source/original/parent/base_*` 候选字段：覆盖率全部 **显式 0.0**
+- 预注册 ego conditioning / plan_idx / plan hash：全部 **0.0**
+- 显式 cutoff / generation window / 双轨轨迹 / 候选级奖励：全部 **absent / 0.0**
+- 命名启发式与弱 metadata 线索**不得**升级等级
 
-因此**不能**主张与 original 严格/弱配对，也**不能**把 `token`/`id` 字符串后缀或 `goal_conditional_*` 字样当作配对证据。
+本阶段**仍不需要**下载 19GB original 即可闭合第一层 schema 与等级判定。
 
-本阶段**不需要**下载 19GB original 即可完成第一层 schema 与等级判定。
+## 扫描覆盖口径（本轮明确）
+
+| 口径 | 覆盖 |
+|---|---|
+| 顶层 + metadata 一级字段扫描 | **796/796** |
+| 旧版深扫（固定+随机 sample） | **13/796 ≈ 1.6%** |
+| 本轮嵌套键枚举（ndarray 为叶） | **796/796** |
 
 ## 文件与版本门
 
@@ -29,16 +35,18 @@
 | license | `CC-BY-NC-SA-4.0` |
 | 落盘 | `/mnt/cpfs/prediction/lyyy/myself/WE/data/bwm_offline_audit/hf/.../all_scenarios.pkl` |
 
-未下载：另外两个 augmented split、original collision（19GB）、OpenScene blobs、3DGS assets。
+**远端 API 验证**（下载前已执行；本轮未重下）：revision/path/size/LFS oid 一致。
+**本地验证**：size + SHA256 与期望一致。
+详见 `reports/hf_bwm_offline_provenance.json`。
+
+未下载：另外两个 augmented split、original collision（**19GB 体量来自 HF 远端文件元数据，未下载**）、OpenScene/3DGS blob 实体。
 
 ## Pickle 安全与资源
 
 | 阶段 | wall | peak RSS | 结果 |
 |---|---|---|---|
-| scan（pickletools 流式） | 90.1 s | 0.038 GB | ok；protocol 4；仅见 numpy reconstruct/ndarray；**不能代替 schema** |
-| load（RestrictedUnpickler） | 18.3 s（脚本）/ 22.8 s（controller） | ≈5.0–5.2 GB | ok；未知 global 会停止，未改用普通 `pickle.load` |
-
-宿主无 `/usr/bin/time`，使用等价 controller（`/proc` RSS + `resource.RUSAGE_CHILDREN`）记录。
+| scan（pickletools 流式） | ~90 s | ~0.04 GB | ok；protocol 4；仅见 numpy reconstruct/ndarray |
+| audit（RestrictedUnpickler + 全量嵌套枚举） | ~39 s | ~5.0 GB | ok；未知 global 拒绝；未回退普通 `pickle.load` |
 
 ## 顶层 schema
 
@@ -46,122 +54,136 @@
 |---|---|
 | 顶层类型 | `dict` |
 | scenario 数量 | **796** |
-| key 类型 | `str` |
-| 单 scenario | `dict` |
-| 必填键覆盖 | `object_track/id/dynamic_map_states/map_features/log_length` = **100%** |
-| 另见键 | `sample_rate`, `sdc_id`, `base_timestamp`, `name`, `token`, `cameras`, `lidar`, `metadata`, `map`, `dataset` |
+| 必填键 | `object_track/id/dynamic_map_states/map_features/log_length` = **100%** |
+| 另见键 | `sample_rate`, `sdc_id`, `base_timestamp`, `name`, `token`, `cameras`, `lidar`, `metadata`, `map`(**str**), `dataset`(**str**) |
 
-### source / original / variant
+### 显式零覆盖（field_coverage）
 
-对候选字段名的全局与抽样深扫描结果均为 **absent**（覆盖率 0）：
+所有预注册候选均写入摘要；未命中为 **0.0**（不用空 dict 表示“检查过但不存在”）。
 
-`source`, `source_token`, `original*`, `parent*`, `base_scene_id`, `variant*`, `sample_id`, `seed`, `augmentation_type`, `goal`, `intent`, `attack`（作为**字典键**）。
+- `source_original`：12 项全部 **0.0**
+- `ego_conditioning`：9 项全部 **0.0**
+- `variant` / `bwm_provenance` / `reward_*` / `cutoff_window`：全部 **0.0**
+- `sensor_top_or_metadata`：`cameras`/`lidar`/`openscene_data_infos_dict` = **1.0**；其余传感器候选 **0.0**
 
-**观察（不得用于提升等级）**：部分 `token` 字符串含 `goal_conditional_copy_with_noise` 或 `intent_attack_with_goal_selection`；部分 `id`/`name` 带 `-NNN` 后缀。这只是字符串内容，不是结构化 source/variant 字段。
+分类器要求：source/ego 需 **覆盖率 ≥ 0.95 且结构证据**；极少数命中不会自动升 B。本轮无结构证据 → 保持 C。
 
-## 时间锚点（最高优先级）
+## 全量嵌套键枚举（796/796）
 
-| 字段 | pickle 事实 |
+ndarray 始终为叶节点（只记 shape/dtype/nbytes），实例 ID 字典折叠为 `[*]` schema。
+
+### metadata 一级（100%）
+
+| 键 | 类型/示例 |
 |---|---|
-| `sample_rate` | 全部 **2**（796/796） |
-| `log_length` | **21**（769）、19（17）、15（10） |
-| 显式 history/current/cutoff/future/generation_window | **全部 absent** |
-| 完整轨迹 vs 仅 BWM future | **无法区分**；只能记为完整轨迹数组，无作者 future 边界 |
+| `actual_past_timesteps` | int，示例 **4** |
+| `original_log_length` | int，示例 **21** |
+| `total_frames` | int，示例 **21** |
+| `log_name` | str，nuPlan log 前缀 |
+| `scenario_token` | str，16-hex |
+| `openscene_data_infos_dict` | dict，约 21 帧 token 键 |
+| `nuplan_lidar_pc_tokens` | list[len≈21] |
+| `old_origin_in_current_coordinate` | ndarray[2] |
+| `digitaltwin_ego2globals` | list |
+| `ego_agent_angle_stats` | dict |
 
-SimEngine 代码契约 `dt = sample_rate * 0.05` 在 `sample_rate=2` 时给出 **0.1 s / 10 Hz**。同时 `log_length≈21` 与常见 2 Hz×约 10 s 窗口同形。  
-**本阶段不裁决真实频率**；只记录：pickle 字面 `sample_rate=2`，代码契约暗示 10 Hz，帧数分布与 2 Hz×21 帧亦相容。统一 cutoff **未决定**。
+### openscene 帧 schema（`[*]` 键并集）
 
-若把整段轨迹视为可切片历史：
+含 `token/log_name/log_token/scene_token/timestamp/frame_idx`、`cams`(8 路)、`anns`、`can_bus`、`ego2global*`、`lidar_*`、以及 `lidar_path` / `*_path` 等**路径字符串**。判定为 **path/calibration 容器**，不是已下载的传感器 blob 实体。
 
-- cutoff=4：可取出 5 帧（索引 0..4）——**长度上可行**，非作者锚点；
-- cutoff=3：只有 4 帧历史，**不满足**“5 帧历史”长度定义。
+### map / dataset
 
-未发现 ego plan 帧数/频率/坐标系的显式 conditioning 记录；**不能**证明 BWM future 条件于某条 ego plan。
+| 键 | 事实 |
+|---|---|
+| `map` | **str**（如 `us-nv-las-vegas-strip`），非嵌套 dict |
+| `dataset` | **str**（如 `scenegen.nuplan`） |
+| `map_features` | 实例 dict；schema：`type/polyline/polygon/entry_lanes/...` |
 
-## Ego / agents
+完整路径表见 `reports/bwm_offline_schema_summary.json` → `nested_key_enumeration`（含 `schema_highlights`）。
+
+## 命名结构（仅 heuristic）
+
+标签：**`heuristic_grouping_from_name`**
 
 | 项 | 结果 |
 |---|---|
-| `sdc_id` | `ego` |
-| agent 类型 | 仅 **VEHICLE**（抽样与全局计数一致） |
-| state | `position/heading/velocity/valid/length/width/height` 齐全；`angular_velocity` 多数 absent |
-| shape（典型） | position `(T,3)`，heading/valid `(T,)`，velocity `(T,2)`，T=`log_length` |
-| 双轨 original/BWM | **absent** |
-| per-agent source 标签 | **absent** |
-| 能否只替换 BWM agents | **无字段支持** |
+| id 解析成功 | **796/796** |
+| 基础分组数 | **102** |
+| variant/base 分布 | 多为 10 variants（57 组）；亦有 1–9 |
+| token 增广类型 | `goal_conditional` **574**；`intent_attack` **222** |
 
-## 地图 / 灯 / 坐标
+允许用于数据构成与 variant 分层描述。
+**禁止**据此提升配对等级或做奖励归因。命名分组 ≠ source 事实。
 
-| 项 | 结果 |
+## sample_rate 频率消歧
+
+字面：`sample_rate=2`（796/796）。代码契约：`dt=sample_rate*0.05` → 0.1 s / 10 Hz。
+
+运动学探针（valid VEHICLE；60 agents / 986 step pairs）：
+
+| 假设 | 位移 vs 速度×dt 误差 median | p90 |
+|---|---|---|
+| dt=0.1 s | 0.158 | 3.26 |
+| dt=0.5 s | **0.064** | **0.25** |
+
+结论：**dt=0.5 s 明显更一致**（median 约 2.5× 更低，且过 1.5× 边际）。
+heading↔velocity 方向一致性较好（median abs err ≈ 0.005 rad），支持速度向量可信，但不单独裁决 dt。
+
+解释倾向：轨迹行为更像 **2 Hz**（间隔 0.5 s），而非把 `sample_rate=2` 直接读成“10 Hz 采样间隔 2”。
+**不把作者 cutoff 发明出来**；`metadata.actual_past_timesteps=4` 只记为弱时间线索，不升格为显式 cutoff 字段。
+
+## 传感器 / metadata 容器
+
+| 容器 | 判定 |
 |---|---|
-| `map_features` | 100% 场景非空；flat dict |
-| LANE / CROSSWALK | 有（抽样见数百 lane、数十 crosswalk） |
-| LANE_CONNECTOR / STOP_LINE / ROADBLOCK | 抽样 interest 计数为 0（类型名未命中） |
-| `dynamic_map_states` | 约 **49.5%** 场景非空；灯态多为 `traffic_light_state: list` |
-| `old_origin_in_current_coordinate` | metadata 中有（ndarray shape `[2]`） |
-| `digitaltwin_ego2globals` | metadata 中有（list） |
-| 显式 `coordinate` | absent |
+| `cameras` | 8 路标定/小数组；`small_numeric_metadata` |
+| `lidar` | 标定小数组；同上 |
+| `openscene_data_infos_dict` | 路径字符串 + 标定/标注数组；`path_or_calibration_container` |
 
-足以作为现有 PDM scene 输入的**字段骨架**存在；本阶段未跑 PDM。
+**修正表述**：pickle 内嵌路径/小数组 ≠ 已下载 OpenScene/3DGS blob；本轮未下载任何新 blob。
 
-## Ego conditioning / 泄漏
+## 弱映射线索（不升级等级）
 
-| 检查 | 结果 |
-|---|---|
-| 生成时 ego future / plan_idx / hash | **absent** |
-| 真实 future / BWM future 分轨 | **absent** |
-| 能否证明同 history 只改 traffic future | **不能** → `leakage_unproven` |
-| 与新 ego candidate 重配对 | **禁止**（conditioning 未知） |
+1. `metadata.scenario_token` / `log_name` / openscene `scene_token`（谱系 token，非 `source_token` 字段）
+2. `metadata.original_log_length`（长度元数据，非 original scene 指针）
+3. `metadata.actual_past_timesteps=4`（弱 past 线索，非显式 cutoff）
+4. id/token 命名启发式（102 基础组 × variants）
 
-## 奖励 / 传感器
-
-| 项 | 结果 |
-|---|---|
-| 8192 候选 PDM 子奖励 / pdms_pkl / overall score | **absent** |
-| reward provenance | **absent** |
-| `cameras` / `lidar` | 顶层键存在（路径/元数据容器，**未**跟随下载 blob） |
-| `metadata.openscene_data_infos_dict` | 100% |
-| 3DGS asset 实体 | **未下载**；未把引用当本地资产存在 |
-
-不得把 scene-level 任何东西误认为候选级奖励（本文件中奖励字段本就缺失）。
+以上均可描述数据构成；**均不足以**满足 B 的“≥95% 显式 source + 结构证据”。
 
 ## TrafficFuturePack 兼容性（只设计，不评分）
 
 | 字段 | 状态 |
 |---|---|
-| agent futures | **direct/convert**：可按 `extract_replay_futures` 切片；`source` 需 adapter 标为 `bwm-offline` |
-| token/type/size/valid | **direct**（size 留在 scene） |
-| map / lights | **direct**（灯覆盖不全） |
-| ego conditioning | **missing** |
-| frequency / horizon | **需澄清/可能插值**（`sample_rate=2` vs 现网 2 Hz 锚点）；本阶段不执行插值 |
-| provenance / fingerprint | **convert**（可计算 hash；缺 BWM/model/ego 显式 provenance） |
-| 是否需要 19GB original（本阶段） | **否**（第一层 schema/等级已闭合） |
-| 与 Replay/IDM/Nexus 同一锚点 | **未定**；数据未给出作者 cutoff |
+| agent futures | direct/convert；adapter 标 `bwm-offline` |
+| map / lights | map_features direct；灯覆盖约半 |
+| ego conditioning | missing |
+| frequency | 运动学倾向 2 Hz；与现网锚点对齐仍需消费侧约定 |
+| 是否需要 19GB original | **否**（等级 C 闭合）；仅当未来出现显式 source 且要证 equality 时再议 |
+| 统一 cutoff | **未定** |
 
 ## A/B/C/D
 
 **C — 仅外部生成域**
 
-证据：
+1. source/original 预注册字段全 0.0；无升 B 结构证据
+2. ego conditioning 全 0.0
+3. 无显式 cutoff/双轨/候选奖励
+4. 轨迹+地图可消费 → 不是 D
+5. 命名启发式 / 弱 metadata **不得**升 B/A
 
-1. source/original 字段 absent（禁止文件名/后缀推断升级）
-2. ego conditioning absent（禁止轨迹相似度推断）
-3. 无显式 cutoff / BWM future 边界
-4. 轨迹/地图结构可被现有 scene 管线消费，故不是 D
-
-允许：独立生成域的数据质量/鲁棒性描述。  
+允许：独立生成域质量/鲁棒性描述。
 禁止：同场景配对效应、严格/弱配对奖励归因。
-
-若未来出现显式 source + 可证明同 history/ego/map，才可复议 B/A；**不得**用本次 `token` 字符串启发式提前升级。
 
 ## 产物
 
-- 脚本：`scripts/audit_bwm_augmented_schema.py`
-- 测试：`tests/test_bwm_offline_schema_audit.py`（synthetic + integration skip）
-- 报告：`reports/BWM_OFFLINE_DATA_AUDIT.md`
-- 摘要：`reports/bwm_offline_schema_summary.json`
-- 原始 pickle/cache/time 日志：Git 外 `data/bwm_offline_audit/`
+- `scripts/audit_bwm_augmented_schema.py`
+- `tests/test_bwm_offline_schema_audit.py`（A/B/C/D + e2e synthetic + numpy RestrictedUnpickler）
+- `reports/BWM_OFFLINE_DATA_AUDIT.md`
+- `reports/bwm_offline_schema_summary.json`
+- `reports/hf_bwm_offline_provenance.json`
+- 原始 pickle/cache/time：Git 外 `data/bwm_offline_audit/`
 
 ## 暂停点
 
-本阶段结束。不下载 original，不进入 PDM/统一实验/分歧评分。
+证据链收尾完成。不下载 original，不进入 PDM/评分/下一阶段。

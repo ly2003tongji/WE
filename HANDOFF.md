@@ -1,6 +1,6 @@
 # WorldEngine 双 Agent 交接
 
-最后更新：2026-07-16（阶段 0+1+1.5–1.9 + Nexus sidecar **可用** + **BWM-Offline 数据审计：等级 C**；暂停）
+最后更新：2026-07-16（阶段 0+1+1.5–1.9 + Nexus sidecar **可用** + **BWM-Offline 证据链收尾：等级 C**；暂停）
 
 ## 共同目标
 
@@ -96,12 +96,14 @@
   - `7cd47126` acc 超阈来自模型速度通道；`803cff56` 近零速 ≈179° heading 疑似 π 等价；均未放宽门。
   - CROSSWALK polygon 回退已修（编码 8）；LANE_CONNECTOR/STOP_LINE 为上游缺失。
   - conditioning 行 plan_idx=710：DAC=1、Comfort=1、score≈0.77；噪声仍近确定性（非可用必要条件）。
-- **BWM-Offline 增强场景审计（本阶段）**：配对等级 **C（仅外部生成域）**。详见 `reports/BWM_OFFLINE_DATA_AUDIT.md`。
-  - 仅下载固定 revision 的 `augmented/navtrain_50pct_collision/all_scenarios.pkl`（3,130,339,854 B，SHA256 `55328d2a…`）；未下 original/其他 split/sensor/3DGS。
-  - RestrictedUnpickler + pickletools 预扫通过；796 scenarios；必填键 100%；可消费 `object_track`/`map_features`。
-  - 显式 source/original/ego-conditioning/cutoff/双轨/候选级奖励均为 **absent**；`token` 字符串中的 goal/intent 字样**不得**升级配对等级。
-  - `sample_rate=2`、`log_length` 多为 21；作者 cutoff 未给出；统一锚点**未决定**。
-  - 第一层 schema **不需要** 19GB original；禁止同场景配对奖励归因，直至出现显式配对字段。
+- **BWM-Offline 增强场景审计（证据链收尾）**：配对等级仍为 **C（仅外部生成域）**。详见 `reports/BWM_OFFLINE_DATA_AUDIT.md`、`reports/hf_bwm_offline_provenance.json`。
+  - 仅使用已下载的 `augmented/navtrain_50pct_collision/all_scenarios.pkl`（3.13GB）；本轮**未**重下任何数据。
+  - 覆盖口径：顶层+metadata 一级 **796/796**；旧深扫 **13/796≈1.6%**；嵌套键枚举 **796/796**。
+  - 预注册 source/ego/cutoff/reward 候选均为显式 **0.0**；命名分组仅 `heuristic_grouping_from_name`（102 基础组；goal_conditional 574 / intent_attack 222），**不得**升级等级。
+  - 运动学倾向 **dt=0.5s（≈2Hz）** 优于 0.1s；`sample_rate=2` 频率解释仍带契约歧义，但不升格配对。
+  - 弱线索：`metadata.scenario_token` / `original_log_length` / `actual_past_timesteps=4`；不足以升 B。
+  - 19GB original 体量来自 HF 远端元数据，**未下载**；等级 C 闭合**不需要**。
+  - 禁止同场景配对奖励归因，直至出现显式配对字段。
 
 ## 尚未解决的问题
 
@@ -129,7 +131,7 @@
 
 ## H20 下一步
 
-阶段 0+1+1.5–1.9、Nexus sidecar（可用）与 **BWM-Offline schema 审计（等级 C）** 已完成并暂停。下一步需用户明确批准后择一推进：
+阶段 0+1+1.5–1.9、Nexus sidecar（可用）与 **BWM-Offline 证据链收尾（等级 C）** 已完成并暂停。下一步需用户明确批准后择一推进：
 
 1. 用 restore-physics 协议扩到 10-scene 工程子集（仍非研究结论）；
 2. 评估 Nexus 闭环 wrapper，或在更多场景复核物理门/噪声近确定性；
