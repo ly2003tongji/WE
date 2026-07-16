@@ -1,6 +1,6 @@
 # WorldEngine 双 Agent 交接
 
-最后更新：2026-07-16（阶段 0+1+1.5–1.9 + **Nexus sidecar 可行性收尾：可用**；暂停）
+最后更新：2026-07-16（阶段 0+1+1.5–1.9 + Nexus sidecar **可用** + **BWM-Offline 数据审计：等级 C**；暂停）
 
 ## 共同目标
 
@@ -96,6 +96,12 @@
   - `7cd47126` acc 超阈来自模型速度通道；`803cff56` 近零速 ≈179° heading 疑似 π 等价；均未放宽门。
   - CROSSWALK polygon 回退已修（编码 8）；LANE_CONNECTOR/STOP_LINE 为上游缺失。
   - conditioning 行 plan_idx=710：DAC=1、Comfort=1、score≈0.77；噪声仍近确定性（非可用必要条件）。
+- **BWM-Offline 增强场景审计（本阶段）**：配对等级 **C（仅外部生成域）**。详见 `reports/BWM_OFFLINE_DATA_AUDIT.md`。
+  - 仅下载固定 revision 的 `augmented/navtrain_50pct_collision/all_scenarios.pkl`（3,130,339,854 B，SHA256 `55328d2a…`）；未下 original/其他 split/sensor/3DGS。
+  - RestrictedUnpickler + pickletools 预扫通过；796 scenarios；必填键 100%；可消费 `object_track`/`map_features`。
+  - 显式 source/original/ego-conditioning/cutoff/双轨/候选级奖励均为 **absent**；`token` 字符串中的 goal/intent 字样**不得**升级配对等级。
+  - `sample_rate=2`、`log_length` 多为 21；作者 cutoff 未给出；统一锚点**未决定**。
+  - 第一层 schema **不需要** 19GB original；禁止同场景配对奖励归因，直至出现显式配对字段。
 
 ## 尚未解决的问题
 
@@ -104,10 +110,11 @@
 - 288 scenes 的实际解压体积、运行耗时、输出体积和 quick-start “5–10 分钟”说法仍需运行验证。
 - 论文 full WorldEngine 所用 BWM/checkpoint/训练开关与当前默认开源配置的精确对应关系仍未交代。
 - 冻结态 Replay/IDM 在 1-scene smoke 上已见 NOC/TTC/排序分歧，但这 **不是** 研究假设成立的证据；需 train-side 长尾与 held-out 协议。
-- BWM augmented scenarios 是否包含 original source token、是否能严格配对、是否针对特定 ego plan 生成，尚未核验。
+- BWM augmented `navtrain_50pct_collision` 已审计为 **等级 C**：无显式 source/original/ego-conditioning/cutoff；不可严格/弱配对。详见 `reports/BWM_OFFLINE_DATA_AUDIT.md`。
 - SMART 的公开 nuPlan drop-in 实现是否实际可获取、checkpoint 是否可复现，尚未核验。
 - Nexus 旁路在本 1-scene 上判定可用；仍缺可直接替换 IDM 的闭环 wrapper；噪声近确定性与两台物理失败车需在后续场景复核。
 - 交通模型分歧是否大于同模型随机波动、是否能预测 held-out failure，尚无实验结论；且不得用 `navtest_failures` 工程 smoke 代替研究判定。
+- 最终统一 cutoff 仍未决定（Replay/IDM 工程样本曾用 3，Nexus 用 4，BWM 无作者锚点）。
 
 ## 新研究假设与阶段门
 
@@ -122,11 +129,11 @@
 
 ## H20 下一步
 
-阶段 0+1+1.5–1.9 与 Nexus sidecar 可行性（**可用**，已收尾）已完成并暂停。下一步需用户明确批准后择一推进：
+阶段 0+1+1.5–1.9、Nexus sidecar（可用）与 **BWM-Offline schema 审计（等级 C）** 已完成并暂停。下一步需用户明确批准后择一推进：
 
 1. 用 restore-physics 协议扩到 10-scene 工程子集（仍非研究结论）；
 2. 评估 Nexus 闭环 wrapper，或在更多场景复核物理门/噪声近确定性；
-3. 阶段 2：BWM-Offline 审计（仍为暂缓项，除非另行批准）；
+3. BWM：仅当出现显式配对字段或用户批准启发式映射研究时再议；**当前不得做配对奖励**；
 4. SMART 公开性/可用性复核；
 5. 正式假设验证改用 train-side 长尾场景；288 rare navtest 保留最终测试。
 

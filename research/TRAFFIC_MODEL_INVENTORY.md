@@ -53,6 +53,13 @@ data/sim_engine/scenarios/augmented/
 - 不可假设为8192条候选分别生成了动作条件反应；
 - 必须核验 original scene 映射、频率、trajectory schema 和筛选偏差。
 
+**2026-07-16 审计结论（`navtrain_50pct_collision` only）**：
+
+- 配对等级 **C（仅外部生成域）**；详见 `reports/BWM_OFFLINE_DATA_AUDIT.md`。
+- 796 scenarios；显式 source/original/ego-conditioning/cutoff/双轨/候选级奖励均为 absent。
+- `token`/`id` 字符串启发式不得升级为严格/弱配对。
+- 第一层 schema 不依赖 19GB original；当前禁止同场景配对奖励归因。
+
 推荐论文名称：
 
 - `BWM-generated frozen trajectories`

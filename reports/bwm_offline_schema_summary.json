@@ -1,0 +1,5557 @@
+{
+  "phase": "audit",
+  "provenance": {
+    "hf_repo": "OpenDriveLab/WorldEngine",
+    "hf_revision": "8728616abaf090d195b3bdc7af6aacde40271145",
+    "relative_path": "data/sim_engine/scenarios/augmented/navtrain_50pct_collision/all_scenarios.pkl",
+    "license": "CC-BY-NC-SA-4.0",
+    "expected_size": 3130339854,
+    "expected_sha256": "55328d2aefe231eee36ae82521223b2bb0e9061952682db06ea5bc0a02120d1a",
+    "path": "/mnt/cpfs/prediction/lyyy/myself/WE/data/bwm_offline_audit/hf/data/sim_engine/scenarios/augmented/navtrain_50pct_collision/all_scenarios.pkl",
+    "size": 3130339854,
+    "sha256": "55328d2aefe231eee36ae82521223b2bb0e9061952682db06ea5bc0a02120d1a"
+  },
+  "summary": {
+    "ok": true,
+    "n_scenarios": 796,
+    "top_level_type": "dict",
+    "key_type_counts": {
+      "str": 796
+    },
+    "required_first_level_all": true,
+    "required_ok_frac": 1.0,
+    "has_basic_tracks": true,
+    "tracks_frac": 1.0,
+    "has_map_features": true,
+    "map_frac": 1.0,
+    "has_dynamic_map": true,
+    "dynamic_map_frac": 0.494975,
+    "has_sample_rate_and_log_length": true,
+    "sample_rate_distribution": {
+      "2": 796
+    },
+    "log_length_distribution": {
+      "21": 769,
+      "19": 17,
+      "15": 10
+    },
+    "dominant_code_contract_hz": 10.0,
+    "n_agents_distribution_top": [
+      [
+        23,
+        50
+      ],
+      [
+        32,
+        48
+      ],
+      [
+        30,
+        45
+      ],
+      [
+        26,
+        37
+      ],
+      [
+        21,
+        33
+      ],
+      [
+        39,
+        32
+      ],
+      [
+        28,
+        30
+      ],
+      [
+        45,
+        30
+      ],
+      [
+        38,
+        23
+      ],
+      [
+        50,
+        22
+      ],
+      [
+        25,
+        21
+      ],
+      [
+        29,
+        21
+      ],
+      [
+        36,
+        20
+      ],
+      [
+        24,
+        20
+      ],
+      [
+        47,
+        20
+      ],
+      [
+        33,
+        20
+      ],
+      [
+        16,
+        19
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        65,
+        14
+      ],
+      [
+        51,
+        13
+      ]
+    ],
+    "agent_type_counts": {
+      "VEHICLE": 28965
+    },
+    "field_coverage": {
+      "source_original": {},
+      "ego_conditioning": {},
+      "variant": {},
+      "bwm_provenance": {},
+      "reward_top_or_metadata": {},
+      "sensor_top_or_metadata": {
+        "cameras": 1.0,
+        "lidar": 1.0,
+        "openscene_data_infos_dict": 1.0
+      },
+      "note": "Coverage from explicit keys only; absent fields have 0 coverage and are not inferred."
+    },
+    "source_field_hit_counts": {},
+    "ego_field_hit_counts": {},
+    "explicit_cutoff_frac": 0.0,
+    "explicit_cutoff_present": false,
+    "dual_trajectory_frac": 0.0,
+    "dual_trajectory_present": false,
+    "id_type_counts": {
+      "str": 796
+    },
+    "sample_deep_reward_keys": [],
+    "sample_deep_sensor_keys": [
+      "cameras",
+      "lidar",
+      "openscene_data_infos_dict"
+    ],
+    "sample_deep_source_keys": [],
+    "sample_deep_ego_keys": [],
+    "reward_fields_present": false,
+    "self_contained_original_equality_proof": false,
+    "fixed_sample_keys": [
+      "2021.05.12.23.36.44_veh-35_00785_01041-6c61fae57b175318-000",
+      "2021.07.16.02.53.40_veh-17_00016_01588-710df88912ee52c0-005",
+      "2021.06.23.18.23.38_veh-26_00069_00642-f666fe3a5a4254f6-009"
+    ],
+    "random_sample_keys": [
+      "2021.07.24.20.37.45_veh-17_00015_00375-abc76c28fe805f25-008",
+      "2021.07.16.01.22.41_veh-14_02626_04289-c0bc4ebea1315544-004",
+      "2021.06.14.18.42.45_veh-12_03445_03902-c5d0464eadce551f-002",
+      "2021.09.15.13.16.40_veh-28_00366_00631-25bbcc1c0da6540f-001",
+      "2021.07.09.20.26.06_veh-35_03898_05974-e1f1695cf0c9556b-005",
+      "2021.06.14.19.22.11_veh-38_00040_00464-8beca3bc79c65cfc-009",
+      "2021.07.16.00.51.05_veh-17_03264_05261-8d7f0e3b938359fa-005",
+      "2021.07.16.18.19.22_veh-35_00440_00858-dbd3a7e3a6645d57-003",
+      "2021.09.15.13.16.40_veh-28_00642_01267-5db3c91853c4587d-001",
+      "2021.07.09.17.06.37_veh-35_00769_00907-e434d04b816a55c6-002"
+    ],
+    "samples": [
+      {
+        "scenario_key": "2021.05.12.23.36.44_veh-35_00785_01041-6c61fae57b175318-000",
+        "scenario_type": "dict",
+        "top_keys": [
+          "base_timestamp",
+          "cameras",
+          "dataset",
+          "dynamic_map_states",
+          "id",
+          "lidar",
+          "log_length",
+          "map",
+          "map_features",
+          "metadata",
+          "name",
+          "object_track",
+          "sample_rate",
+          "sdc_id",
+          "token"
+        ],
+        "required_first_level": {
+          "object_track": true,
+          "id": true,
+          "dynamic_map_states": true,
+          "map_features": true,
+          "log_length": true
+        },
+        "id_field": "2021.05.12.23.36.44_veh-35_00785_01041-6c61fae57b175318-000",
+        "name_field": "2021.05.12.23.36.44_veh-35_00785_01041-6c61fae57b175318-000",
+        "token_field": "2021.05.12.23.36.44_veh-35_00785_01041-6c61fae57b175318-goal_conditional_copy_with_noise",
+        "source_fields": {
+          "source": "absent",
+          "source_token": "absent",
+          "source_scene_id": "absent",
+          "original": "absent",
+          "original_token": "absent",
+          "original_scene_id": "absent",
+          "original_id": "absent",
+          "parent": "absent",
+          "parent_token": "absent",
+          "parent_scene_id": "absent",
+          "base_scene_id": "absent",
+          "base_token": "absent"
+        },
+        "variant_fields": {
+          "variant": "absent",
+          "variant_id": "absent",
+          "sample_id": "absent",
+          "seed": "absent",
+          "augmentation_type": "absent",
+          "aug_type": "absent",
+          "goal": "absent",
+          "intent": "absent",
+          "attack": "absent"
+        },
+        "ego_conditioning_fields": {
+          "ego_conditioning": "absent",
+          "ego_plan": "absent",
+          "ego_future": "absent",
+          "plan_idx": "absent",
+          "plan_index": "absent",
+          "requested_ego_conditioning_hash": "absent",
+          "ego_traj_hash": "absent",
+          "conditioning_plan": "absent",
+          "bwm_ego_plan": "absent"
+        },
+        "bwm_provenance_fields": {
+          "bwm_provenance": "absent",
+          "bwm_model": "absent",
+          "bwm_revision": "absent",
+          "generation_window": "absent",
+          "generation_seed": "absent",
+          "model_revision": "absent",
+          "bwm_future": "absent",
+          "traffic_future_source": "absent"
+        },
+        "deep_source_scan": {
+          "absent": [
+            "base_scene_id",
+            "base_token",
+            "original",
+            "original_id",
+            "original_scene_id",
+            "original_token",
+            "parent",
+            "parent_scene_id",
+            "parent_token",
+            "source",
+            "source_scene_id",
+            "source_token"
+          ],
+          "present_keys": []
+        },
+        "deep_ego_scan": {
+          "absent": [
+            "bwm_ego_plan",
+            "conditioning_plan",
+            "ego_conditioning",
+            "ego_future",
+            "ego_plan",
+            "ego_traj_hash",
+            "plan_idx",
+            "plan_index",
+            "requested_ego_conditioning_hash"
+          ],
+          "present_keys": []
+        },
+        "time_anchor": {
+          "sample_rate": 2,
+          "log_length": 21,
+          "base_timestamp": 1620863472500589,
+          "explicit_time_bounds": {
+            "history_start": "absent",
+            "history_end": "absent",
+            "current": "absent",
+            "cutoff": "absent",
+            "future_start": "absent",
+            "future_end": "absent",
+            "generation_window": "absent",
+            "bwm_future_start": "absent",
+            "bwm_future_end": "absent"
+          },
+          "simengine_code_contract_dt_s": 0.1,
+          "simengine_code_contract_hz": 10.0,
+          "cutoff_support_if_full_trajectory": {
+            "cutoff_3_has_ge_5_history_frames": false,
+            "cutoff_3_in_range": true,
+            "cutoff_4_has_ge_5_history_frames": true,
+            "cutoff_4_in_range": true
+          },
+          "note": "No author cutoff is invented. If explicit bounds absent, scenario is treated as full trajectory without BWM-future boundary fact."
+        },
+        "ego": {
+          "sdc_id": "ego",
+          "ego_token_resolved": "ego",
+          "ego_state_shapes": {
+            "position": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                3
+              ],
+              "dtype": "float64",
+              "nbytes": 504,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 63
+            },
+            "heading": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "velocity": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                2
+              ],
+              "dtype": "float64",
+              "nbytes": 336,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 42
+            },
+            "valid": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float32",
+              "nbytes": 84,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "length": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "width": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "height": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            }
+          }
+        },
+        "agents": {
+          "n_agents": 39,
+          "type_counts": {
+            "VEHICLE": 39
+          },
+          "state_key_present_counts": {
+            "position": 39,
+            "heading": 39,
+            "velocity": 39,
+            "valid": 39,
+            "length": 39,
+            "width": 39,
+            "height": 39
+          },
+          "state_shape_dtype_top": {
+            "position": [
+              [
+                "(21, 3)|float64",
+                39
+              ]
+            ],
+            "heading": [
+              [
+                "(21,)|float64",
+                39
+              ]
+            ],
+            "velocity": [
+              [
+                "(21, 2)|float64",
+                39
+              ]
+            ],
+            "valid": [
+              [
+                "(21,)|float32",
+                39
+              ]
+            ],
+            "length": [
+              [
+                "(21, 1)|float64",
+                39
+              ]
+            ],
+            "width": [
+              [
+                "(21, 1)|float64",
+                39
+              ]
+            ],
+            "height": [
+              [
+                "(21, 1)|float64",
+                39
+              ]
+            ]
+          },
+          "spawn_despawn": {
+            "n_with_valid_switch": 17,
+            "n_checked": 39
+          },
+          "log_length_declared": 21
+        },
+        "map": {
+          "n_features": 1448,
+          "type_counts": {
+            "LANE_SURFACE_STREET": 414,
+            "ROAD_LINE_BROKEN_SINGLE_WHITE": 411,
+            "LANE_SURFACE_UNSTRUCTURE": 496,
+            "ROAD_EDGE_SIDEWALK": 52,
+            "CROSSWALK": 43,
+            "ROAD_LINE_SOLID_SINGLE_WHITE": 32
+          },
+          "geometry": {
+            "polyline": 1353,
+            "polygon": 95,
+            "neither": 0
+          },
+          "interest_counts": {
+            "LANE": 910,
+            "LANE_CONNECTOR": 0,
+            "ROADBLOCK": 0,
+            "CROSSWALK": 43,
+            "STOP_LINE": 0
+          }
+        },
+        "dynamic_map": {
+          "n_lights_or_dynamic": 16,
+          "state_shape_samples": [
+            [
+              "traffic_light_state:list",
+              16
+            ]
+          ]
+        },
+        "coordinate_transforms": {
+          "old_origin_in_current_coordinate": {
+            "kind": "ndarray",
+            "shape": [
+              2
+            ],
+            "dtype": "float64",
+            "nbytes": 16,
+            "ndim": 1,
+            "finite_frac": 1.0,
+            "nan_count_sample": 0,
+            "inf_count_sample": 0,
+            "sample_n": 2
+          },
+          "digitaltwin_ego2globals": {
+            "type": "list",
+            "repr": "list"
+          },
+          "coordinate": "absent"
+        },
+        "coordinate_declared": "absent",
+        "reward_scan": {
+          "present_keys": [],
+          "absent": [
+            "comfort",
+            "drivable_area_compliance",
+            "driving_direction_compliance",
+            "ego_progress",
+            "lane_keeping",
+            "no_at_fault_collisions",
+            "pdms",
+            "pdms_pkl",
+            "reward",
+            "rewards",
+            "score",
+            "scores",
+            "time_to_collision_within_bound"
+          ]
+        },
+        "sensor_scan": {
+          "present_keys": [
+            "cameras",
+            "lidar",
+            "openscene_data_infos_dict"
+          ],
+          "absent": [
+            "digitaltwin_asset_id",
+            "sensor_blobs",
+            "sensor_path",
+            "synthetic_scene_info"
+          ],
+          "present_detail": {
+            "cameras": [
+              {
+                "path": "cameras",
+                "value_type": "dict"
+              }
+            ],
+            "lidar": [
+              {
+                "path": "lidar",
+                "value_type": "dict"
+              }
+            ],
+            "openscene_data_infos_dict": [
+              {
+                "path": "metadata.openscene_data_infos_dict",
+                "value_type": "dict"
+              }
+            ]
+          }
+        },
+        "dual_trajectory_tracks": {
+          "original_track_key": "absent",
+          "bwm_track_key": "absent",
+          "note": "Only explicit dual-track keys counted; no trajectory-similarity inference."
+        }
+      },
+      {
+        "scenario_key": "2021.07.09.20.26.06_veh-35_03898_05974-e1f1695cf0c9556b-005",
+        "scenario_type": "dict",
+        "top_keys": [
+          "base_timestamp",
+          "cameras",
+          "dataset",
+          "dynamic_map_states",
+          "id",
+          "lidar",
+          "log_length",
+          "map",
+          "map_features",
+          "metadata",
+          "name",
+          "object_track",
+          "sample_rate",
+          "sdc_id",
+          "token"
+        ],
+        "required_first_level": {
+          "object_track": true,
+          "id": true,
+          "dynamic_map_states": true,
+          "map_features": true,
+          "log_length": true
+        },
+        "id_field": "2021.07.09.20.26.06_veh-35_03898_05974-e1f1695cf0c9556b-005",
+        "name_field": "2021.07.09.20.26.06_veh-35_03898_05974-e1f1695cf0c9556b-005",
+        "token_field": "2021.07.09.20.26.06_veh-35_03898_05974-e1f1695cf0c9556b-goal_conditional_copy_with_noise",
+        "source_fields": {
+          "source": "absent",
+          "source_token": "absent",
+          "source_scene_id": "absent",
+          "original": "absent",
+          "original_token": "absent",
+          "original_scene_id": "absent",
+          "original_id": "absent",
+          "parent": "absent",
+          "parent_token": "absent",
+          "parent_scene_id": "absent",
+          "base_scene_id": "absent",
+          "base_token": "absent"
+        },
+        "variant_fields": {
+          "variant": "absent",
+          "variant_id": "absent",
+          "sample_id": "absent",
+          "seed": "absent",
+          "augmentation_type": "absent",
+          "aug_type": "absent",
+          "goal": "absent",
+          "intent": "absent",
+          "attack": "absent"
+        },
+        "ego_conditioning_fields": {
+          "ego_conditioning": "absent",
+          "ego_plan": "absent",
+          "ego_future": "absent",
+          "plan_idx": "absent",
+          "plan_index": "absent",
+          "requested_ego_conditioning_hash": "absent",
+          "ego_traj_hash": "absent",
+          "conditioning_plan": "absent",
+          "bwm_ego_plan": "absent"
+        },
+        "bwm_provenance_fields": {
+          "bwm_provenance": "absent",
+          "bwm_model": "absent",
+          "bwm_revision": "absent",
+          "generation_window": "absent",
+          "generation_seed": "absent",
+          "model_revision": "absent",
+          "bwm_future": "absent",
+          "traffic_future_source": "absent"
+        },
+        "deep_source_scan": {
+          "absent": [
+            "base_scene_id",
+            "base_token",
+            "original",
+            "original_id",
+            "original_scene_id",
+            "original_token",
+            "parent",
+            "parent_scene_id",
+            "parent_token",
+            "source",
+            "source_scene_id",
+            "source_token"
+          ],
+          "present_keys": []
+        },
+        "deep_ego_scan": {
+          "absent": [
+            "bwm_ego_plan",
+            "conditioning_plan",
+            "ego_conditioning",
+            "ego_future",
+            "ego_plan",
+            "ego_traj_hash",
+            "plan_idx",
+            "plan_index",
+            "requested_ego_conditioning_hash"
+          ],
+          "present_keys": []
+        },
+        "time_anchor": {
+          "sample_rate": 2,
+          "log_length": 21,
+          "base_timestamp": 1625866860601000,
+          "explicit_time_bounds": {
+            "history_start": "absent",
+            "history_end": "absent",
+            "current": "absent",
+            "cutoff": "absent",
+            "future_start": "absent",
+            "future_end": "absent",
+            "generation_window": "absent",
+            "bwm_future_start": "absent",
+            "bwm_future_end": "absent"
+          },
+          "simengine_code_contract_dt_s": 0.1,
+          "simengine_code_contract_hz": 10.0,
+          "cutoff_support_if_full_trajectory": {
+            "cutoff_3_has_ge_5_history_frames": false,
+            "cutoff_3_in_range": true,
+            "cutoff_4_has_ge_5_history_frames": true,
+            "cutoff_4_in_range": true
+          },
+          "note": "No author cutoff is invented. If explicit bounds absent, scenario is treated as full trajectory without BWM-future boundary fact."
+        },
+        "ego": {
+          "sdc_id": "ego",
+          "ego_token_resolved": "ego",
+          "ego_state_shapes": {
+            "position": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                3
+              ],
+              "dtype": "float64",
+              "nbytes": 504,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 63
+            },
+            "heading": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "velocity": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                2
+              ],
+              "dtype": "float64",
+              "nbytes": 336,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 42
+            },
+            "valid": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float32",
+              "nbytes": 84,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "length": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "width": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "height": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            }
+          }
+        },
+        "agents": {
+          "n_agents": 30,
+          "type_counts": {
+            "VEHICLE": 30
+          },
+          "state_key_present_counts": {
+            "position": 30,
+            "heading": 30,
+            "velocity": 30,
+            "valid": 30,
+            "length": 30,
+            "width": 30,
+            "height": 30
+          },
+          "state_shape_dtype_top": {
+            "position": [
+              [
+                "(21, 3)|float64",
+                30
+              ]
+            ],
+            "heading": [
+              [
+                "(21,)|float64",
+                30
+              ]
+            ],
+            "velocity": [
+              [
+                "(21, 2)|float64",
+                30
+              ]
+            ],
+            "valid": [
+              [
+                "(21,)|float32",
+                30
+              ]
+            ],
+            "length": [
+              [
+                "(21, 1)|float64",
+                30
+              ]
+            ],
+            "width": [
+              [
+                "(21, 1)|float64",
+                30
+              ]
+            ],
+            "height": [
+              [
+                "(21, 1)|float64",
+                30
+              ]
+            ]
+          },
+          "spawn_despawn": {
+            "n_with_valid_switch": 9,
+            "n_checked": 30
+          },
+          "log_length_declared": 21
+        },
+        "map": {
+          "n_features": 1012,
+          "type_counts": {
+            "LANE_SURFACE_STREET": 303,
+            "ROAD_LINE_BROKEN_SINGLE_WHITE": 297,
+            "LANE_SURFACE_UNSTRUCTURE": 355,
+            "ROAD_EDGE_SIDEWALK": 23,
+            "CROSSWALK": 16,
+            "ROAD_LINE_SOLID_SINGLE_WHITE": 18
+          },
+          "geometry": {
+            "polyline": 973,
+            "polygon": 39,
+            "neither": 0
+          },
+          "interest_counts": {
+            "LANE": 658,
+            "LANE_CONNECTOR": 0,
+            "ROADBLOCK": 0,
+            "CROSSWALK": 16,
+            "STOP_LINE": 0
+          }
+        },
+        "dynamic_map": {
+          "absent": true
+        },
+        "coordinate_transforms": {
+          "old_origin_in_current_coordinate": {
+            "kind": "ndarray",
+            "shape": [
+              2
+            ],
+            "dtype": "float64",
+            "nbytes": 16,
+            "ndim": 1,
+            "finite_frac": 1.0,
+            "nan_count_sample": 0,
+            "inf_count_sample": 0,
+            "sample_n": 2
+          },
+          "digitaltwin_ego2globals": {
+            "type": "list",
+            "repr": "list"
+          },
+          "coordinate": "absent"
+        },
+        "coordinate_declared": "absent",
+        "reward_scan": {
+          "present_keys": [],
+          "absent": [
+            "comfort",
+            "drivable_area_compliance",
+            "driving_direction_compliance",
+            "ego_progress",
+            "lane_keeping",
+            "no_at_fault_collisions",
+            "pdms",
+            "pdms_pkl",
+            "reward",
+            "rewards",
+            "score",
+            "scores",
+            "time_to_collision_within_bound"
+          ]
+        },
+        "sensor_scan": {
+          "present_keys": [
+            "cameras",
+            "lidar",
+            "openscene_data_infos_dict"
+          ],
+          "absent": [
+            "digitaltwin_asset_id",
+            "sensor_blobs",
+            "sensor_path",
+            "synthetic_scene_info"
+          ],
+          "present_detail": {
+            "cameras": [
+              {
+                "path": "cameras",
+                "value_type": "dict"
+              }
+            ],
+            "lidar": [
+              {
+                "path": "lidar",
+                "value_type": "dict"
+              }
+            ],
+            "openscene_data_infos_dict": [
+              {
+                "path": "metadata.openscene_data_infos_dict",
+                "value_type": "dict"
+              }
+            ]
+          }
+        },
+        "dual_trajectory_tracks": {
+          "original_track_key": "absent",
+          "bwm_track_key": "absent",
+          "note": "Only explicit dual-track keys counted; no trajectory-similarity inference."
+        }
+      },
+      {
+        "scenario_key": "2021.06.14.19.22.11_veh-38_00040_00464-8beca3bc79c65cfc-009",
+        "scenario_type": "dict",
+        "top_keys": [
+          "base_timestamp",
+          "cameras",
+          "dataset",
+          "dynamic_map_states",
+          "id",
+          "lidar",
+          "log_length",
+          "map",
+          "map_features",
+          "metadata",
+          "name",
+          "object_track",
+          "sample_rate",
+          "sdc_id",
+          "token"
+        ],
+        "required_first_level": {
+          "object_track": true,
+          "id": true,
+          "dynamic_map_states": true,
+          "map_features": true,
+          "log_length": true
+        },
+        "id_field": "2021.06.14.19.22.11_veh-38_00040_00464-8beca3bc79c65cfc-009",
+        "name_field": "2021.06.14.19.22.11_veh-38_00040_00464-8beca3bc79c65cfc-009",
+        "token_field": "2021.06.14.19.22.11_veh-38_00040_00464-8beca3bc79c65cfc-intent_attack_with_goal_selection",
+        "source_fields": {
+          "source": "absent",
+          "source_token": "absent",
+          "source_scene_id": "absent",
+          "original": "absent",
+          "original_token": "absent",
+          "original_scene_id": "absent",
+          "original_id": "absent",
+          "parent": "absent",
+          "parent_token": "absent",
+          "parent_scene_id": "absent",
+          "base_scene_id": "absent",
+          "base_token": "absent"
+        },
+        "variant_fields": {
+          "variant": "absent",
+          "variant_id": "absent",
+          "sample_id": "absent",
+          "seed": "absent",
+          "augmentation_type": "absent",
+          "aug_type": "absent",
+          "goal": "absent",
+          "intent": "absent",
+          "attack": "absent"
+        },
+        "ego_conditioning_fields": {
+          "ego_conditioning": "absent",
+          "ego_plan": "absent",
+          "ego_future": "absent",
+          "plan_idx": "absent",
+          "plan_index": "absent",
+          "requested_ego_conditioning_hash": "absent",
+          "ego_traj_hash": "absent",
+          "conditioning_plan": "absent",
+          "bwm_ego_plan": "absent"
+        },
+        "bwm_provenance_fields": {
+          "bwm_provenance": "absent",
+          "bwm_model": "absent",
+          "bwm_revision": "absent",
+          "generation_window": "absent",
+          "generation_seed": "absent",
+          "model_revision": "absent",
+          "bwm_future": "absent",
+          "traffic_future_source": "absent"
+        },
+        "deep_source_scan": {
+          "absent": [
+            "base_scene_id",
+            "base_token",
+            "original",
+            "original_id",
+            "original_scene_id",
+            "original_token",
+            "parent",
+            "parent_scene_id",
+            "parent_token",
+            "source",
+            "source_scene_id",
+            "source_token"
+          ],
+          "present_keys": []
+        },
+        "deep_ego_scan": {
+          "absent": [
+            "bwm_ego_plan",
+            "conditioning_plan",
+            "ego_conditioning",
+            "ego_future",
+            "ego_plan",
+            "ego_traj_hash",
+            "plan_idx",
+            "plan_index",
+            "requested_ego_conditioning_hash"
+          ],
+          "present_keys": []
+        },
+        "time_anchor": {
+          "sample_rate": 2,
+          "log_length": 21,
+          "base_timestamp": 1623713109000394,
+          "explicit_time_bounds": {
+            "history_start": "absent",
+            "history_end": "absent",
+            "current": "absent",
+            "cutoff": "absent",
+            "future_start": "absent",
+            "future_end": "absent",
+            "generation_window": "absent",
+            "bwm_future_start": "absent",
+            "bwm_future_end": "absent"
+          },
+          "simengine_code_contract_dt_s": 0.1,
+          "simengine_code_contract_hz": 10.0,
+          "cutoff_support_if_full_trajectory": {
+            "cutoff_3_has_ge_5_history_frames": false,
+            "cutoff_3_in_range": true,
+            "cutoff_4_has_ge_5_history_frames": true,
+            "cutoff_4_in_range": true
+          },
+          "note": "No author cutoff is invented. If explicit bounds absent, scenario is treated as full trajectory without BWM-future boundary fact."
+        },
+        "ego": {
+          "sdc_id": "ego",
+          "ego_token_resolved": "ego",
+          "ego_state_shapes": {
+            "position": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                3
+              ],
+              "dtype": "float64",
+              "nbytes": 504,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 63
+            },
+            "heading": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "velocity": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                2
+              ],
+              "dtype": "float64",
+              "nbytes": 336,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 42
+            },
+            "valid": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float32",
+              "nbytes": 84,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "length": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "width": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "height": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            }
+          }
+        },
+        "agents": {
+          "n_agents": 62,
+          "type_counts": {
+            "VEHICLE": 62
+          },
+          "state_key_present_counts": {
+            "position": 62,
+            "heading": 62,
+            "velocity": 62,
+            "valid": 62,
+            "length": 62,
+            "width": 62,
+            "height": 62
+          },
+          "state_shape_dtype_top": {
+            "position": [
+              [
+                "(21, 3)|float64",
+                62
+              ]
+            ],
+            "heading": [
+              [
+                "(21,)|float64",
+                62
+              ]
+            ],
+            "velocity": [
+              [
+                "(21, 2)|float64",
+                62
+              ]
+            ],
+            "valid": [
+              [
+                "(21,)|float32",
+                62
+              ]
+            ],
+            "length": [
+              [
+                "(21, 1)|float64",
+                62
+              ]
+            ],
+            "width": [
+              [
+                "(21, 1)|float64",
+                62
+              ]
+            ],
+            "height": [
+              [
+                "(21, 1)|float64",
+                62
+              ]
+            ]
+          },
+          "spawn_despawn": {
+            "n_with_valid_switch": 44,
+            "n_checked": 62
+          },
+          "log_length_declared": 21
+        },
+        "map": {
+          "n_features": 1316,
+          "type_counts": {
+            "LANE_SURFACE_STREET": 381,
+            "ROAD_LINE_BROKEN_SINGLE_WHITE": 352,
+            "LANE_SURFACE_UNSTRUCTURE": 468,
+            "ROAD_EDGE_SIDEWALK": 49,
+            "CROSSWALK": 41,
+            "ROAD_LINE_SOLID_SINGLE_WHITE": 25
+          },
+          "geometry": {
+            "polyline": 1226,
+            "polygon": 90,
+            "neither": 0
+          },
+          "interest_counts": {
+            "LANE": 849,
+            "LANE_CONNECTOR": 0,
+            "ROADBLOCK": 0,
+            "CROSSWALK": 41,
+            "STOP_LINE": 0
+          }
+        },
+        "dynamic_map": {
+          "n_lights_or_dynamic": 24,
+          "state_shape_samples": [
+            [
+              "traffic_light_state:list",
+              24
+            ]
+          ]
+        },
+        "coordinate_transforms": {
+          "old_origin_in_current_coordinate": {
+            "kind": "ndarray",
+            "shape": [
+              2
+            ],
+            "dtype": "float64",
+            "nbytes": 16,
+            "ndim": 1,
+            "finite_frac": 1.0,
+            "nan_count_sample": 0,
+            "inf_count_sample": 0,
+            "sample_n": 2
+          },
+          "digitaltwin_ego2globals": {
+            "type": "list",
+            "repr": "list"
+          },
+          "coordinate": "absent"
+        },
+        "coordinate_declared": "absent",
+        "reward_scan": {
+          "present_keys": [],
+          "absent": [
+            "comfort",
+            "drivable_area_compliance",
+            "driving_direction_compliance",
+            "ego_progress",
+            "lane_keeping",
+            "no_at_fault_collisions",
+            "pdms",
+            "pdms_pkl",
+            "reward",
+            "rewards",
+            "score",
+            "scores",
+            "time_to_collision_within_bound"
+          ]
+        },
+        "sensor_scan": {
+          "present_keys": [
+            "cameras",
+            "lidar",
+            "openscene_data_infos_dict"
+          ],
+          "absent": [
+            "digitaltwin_asset_id",
+            "sensor_blobs",
+            "sensor_path",
+            "synthetic_scene_info"
+          ],
+          "present_detail": {
+            "cameras": [
+              {
+                "path": "cameras",
+                "value_type": "dict"
+              }
+            ],
+            "lidar": [
+              {
+                "path": "lidar",
+                "value_type": "dict"
+              }
+            ],
+            "openscene_data_infos_dict": [
+              {
+                "path": "metadata.openscene_data_infos_dict",
+                "value_type": "dict"
+              }
+            ]
+          }
+        },
+        "dual_trajectory_tracks": {
+          "original_track_key": "absent",
+          "bwm_track_key": "absent",
+          "note": "Only explicit dual-track keys counted; no trajectory-similarity inference."
+        }
+      },
+      {
+        "scenario_key": "2021.07.24.20.37.45_veh-17_00015_00375-abc76c28fe805f25-008",
+        "scenario_type": "dict",
+        "top_keys": [
+          "base_timestamp",
+          "cameras",
+          "dataset",
+          "dynamic_map_states",
+          "id",
+          "lidar",
+          "log_length",
+          "map",
+          "map_features",
+          "metadata",
+          "name",
+          "object_track",
+          "sample_rate",
+          "sdc_id",
+          "token"
+        ],
+        "required_first_level": {
+          "object_track": true,
+          "id": true,
+          "dynamic_map_states": true,
+          "map_features": true,
+          "log_length": true
+        },
+        "id_field": "2021.07.24.20.37.45_veh-17_00015_00375-abc76c28fe805f25-008",
+        "name_field": "2021.07.24.20.37.45_veh-17_00015_00375-abc76c28fe805f25-008",
+        "token_field": "2021.07.24.20.37.45_veh-17_00015_00375-abc76c28fe805f25-intent_attack_with_goal_selection",
+        "source_fields": {
+          "source": "absent",
+          "source_token": "absent",
+          "source_scene_id": "absent",
+          "original": "absent",
+          "original_token": "absent",
+          "original_scene_id": "absent",
+          "original_id": "absent",
+          "parent": "absent",
+          "parent_token": "absent",
+          "parent_scene_id": "absent",
+          "base_scene_id": "absent",
+          "base_token": "absent"
+        },
+        "variant_fields": {
+          "variant": "absent",
+          "variant_id": "absent",
+          "sample_id": "absent",
+          "seed": "absent",
+          "augmentation_type": "absent",
+          "aug_type": "absent",
+          "goal": "absent",
+          "intent": "absent",
+          "attack": "absent"
+        },
+        "ego_conditioning_fields": {
+          "ego_conditioning": "absent",
+          "ego_plan": "absent",
+          "ego_future": "absent",
+          "plan_idx": "absent",
+          "plan_index": "absent",
+          "requested_ego_conditioning_hash": "absent",
+          "ego_traj_hash": "absent",
+          "conditioning_plan": "absent",
+          "bwm_ego_plan": "absent"
+        },
+        "bwm_provenance_fields": {
+          "bwm_provenance": "absent",
+          "bwm_model": "absent",
+          "bwm_revision": "absent",
+          "generation_window": "absent",
+          "generation_seed": "absent",
+          "model_revision": "absent",
+          "bwm_future": "absent",
+          "traffic_future_source": "absent"
+        },
+        "deep_source_scan": {
+          "absent": [
+            "base_scene_id",
+            "base_token",
+            "original",
+            "original_id",
+            "original_scene_id",
+            "original_token",
+            "parent",
+            "parent_scene_id",
+            "parent_token",
+            "source",
+            "source_scene_id",
+            "source_token"
+          ],
+          "present_keys": []
+        },
+        "deep_ego_scan": {
+          "absent": [
+            "bwm_ego_plan",
+            "conditioning_plan",
+            "ego_conditioning",
+            "ego_future",
+            "ego_plan",
+            "ego_traj_hash",
+            "plan_idx",
+            "plan_index",
+            "requested_ego_conditioning_hash"
+          ],
+          "present_keys": []
+        },
+        "time_anchor": {
+          "sample_rate": 2,
+          "log_length": 21,
+          "base_timestamp": 1627159364699734,
+          "explicit_time_bounds": {
+            "history_start": "absent",
+            "history_end": "absent",
+            "current": "absent",
+            "cutoff": "absent",
+            "future_start": "absent",
+            "future_end": "absent",
+            "generation_window": "absent",
+            "bwm_future_start": "absent",
+            "bwm_future_end": "absent"
+          },
+          "simengine_code_contract_dt_s": 0.1,
+          "simengine_code_contract_hz": 10.0,
+          "cutoff_support_if_full_trajectory": {
+            "cutoff_3_has_ge_5_history_frames": false,
+            "cutoff_3_in_range": true,
+            "cutoff_4_has_ge_5_history_frames": true,
+            "cutoff_4_in_range": true
+          },
+          "note": "No author cutoff is invented. If explicit bounds absent, scenario is treated as full trajectory without BWM-future boundary fact."
+        },
+        "ego": {
+          "sdc_id": "ego",
+          "ego_token_resolved": "ego",
+          "ego_state_shapes": {
+            "position": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                3
+              ],
+              "dtype": "float64",
+              "nbytes": 504,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 63
+            },
+            "heading": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "velocity": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                2
+              ],
+              "dtype": "float64",
+              "nbytes": 336,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 42
+            },
+            "valid": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float32",
+              "nbytes": 84,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "length": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "width": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "height": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            }
+          }
+        },
+        "agents": {
+          "n_agents": 67,
+          "type_counts": {
+            "VEHICLE": 67
+          },
+          "state_key_present_counts": {
+            "position": 67,
+            "heading": 67,
+            "velocity": 67,
+            "valid": 67,
+            "length": 67,
+            "width": 67,
+            "height": 67
+          },
+          "state_shape_dtype_top": {
+            "position": [
+              [
+                "(21, 3)|float64",
+                67
+              ]
+            ],
+            "heading": [
+              [
+                "(21,)|float64",
+                67
+              ]
+            ],
+            "velocity": [
+              [
+                "(21, 2)|float64",
+                67
+              ]
+            ],
+            "valid": [
+              [
+                "(21,)|float32",
+                67
+              ]
+            ],
+            "length": [
+              [
+                "(21, 1)|float64",
+                67
+              ]
+            ],
+            "width": [
+              [
+                "(21, 1)|float64",
+                67
+              ]
+            ],
+            "height": [
+              [
+                "(21, 1)|float64",
+                67
+              ]
+            ]
+          },
+          "spawn_despawn": {
+            "n_with_valid_switch": 42,
+            "n_checked": 67
+          },
+          "log_length_declared": 21
+        },
+        "map": {
+          "n_features": 1352,
+          "type_counts": {
+            "LANE_SURFACE_STREET": 389,
+            "ROAD_LINE_BROKEN_SINGLE_WHITE": 386,
+            "LANE_SURFACE_UNSTRUCTURE": 463,
+            "ROAD_EDGE_SIDEWALK": 45,
+            "CROSSWALK": 38,
+            "ROAD_LINE_SOLID_SINGLE_WHITE": 31
+          },
+          "geometry": {
+            "polyline": 1269,
+            "polygon": 83,
+            "neither": 0
+          },
+          "interest_counts": {
+            "LANE": 852,
+            "LANE_CONNECTOR": 0,
+            "ROADBLOCK": 0,
+            "CROSSWALK": 38,
+            "STOP_LINE": 0
+          }
+        },
+        "dynamic_map": {
+          "n_lights_or_dynamic": 26,
+          "state_shape_samples": [
+            [
+              "traffic_light_state:list",
+              26
+            ]
+          ]
+        },
+        "coordinate_transforms": {
+          "old_origin_in_current_coordinate": {
+            "kind": "ndarray",
+            "shape": [
+              2
+            ],
+            "dtype": "float64",
+            "nbytes": 16,
+            "ndim": 1,
+            "finite_frac": 1.0,
+            "nan_count_sample": 0,
+            "inf_count_sample": 0,
+            "sample_n": 2
+          },
+          "digitaltwin_ego2globals": {
+            "type": "list",
+            "repr": "list"
+          },
+          "coordinate": "absent"
+        },
+        "coordinate_declared": "absent",
+        "reward_scan": {
+          "present_keys": [],
+          "absent": [
+            "comfort",
+            "drivable_area_compliance",
+            "driving_direction_compliance",
+            "ego_progress",
+            "lane_keeping",
+            "no_at_fault_collisions",
+            "pdms",
+            "pdms_pkl",
+            "reward",
+            "rewards",
+            "score",
+            "scores",
+            "time_to_collision_within_bound"
+          ]
+        },
+        "sensor_scan": {
+          "present_keys": [
+            "cameras",
+            "lidar",
+            "openscene_data_infos_dict"
+          ],
+          "absent": [
+            "digitaltwin_asset_id",
+            "sensor_blobs",
+            "sensor_path",
+            "synthetic_scene_info"
+          ],
+          "present_detail": {
+            "cameras": [
+              {
+                "path": "cameras",
+                "value_type": "dict"
+              }
+            ],
+            "lidar": [
+              {
+                "path": "lidar",
+                "value_type": "dict"
+              }
+            ],
+            "openscene_data_infos_dict": [
+              {
+                "path": "metadata.openscene_data_infos_dict",
+                "value_type": "dict"
+              }
+            ]
+          }
+        },
+        "dual_trajectory_tracks": {
+          "original_track_key": "absent",
+          "bwm_track_key": "absent",
+          "note": "Only explicit dual-track keys counted; no trajectory-similarity inference."
+        }
+      },
+      {
+        "scenario_key": "2021.07.16.02.53.40_veh-17_00016_01588-710df88912ee52c0-005",
+        "scenario_type": "dict",
+        "top_keys": [
+          "base_timestamp",
+          "cameras",
+          "dataset",
+          "dynamic_map_states",
+          "id",
+          "lidar",
+          "log_length",
+          "map",
+          "map_features",
+          "metadata",
+          "name",
+          "object_track",
+          "sample_rate",
+          "sdc_id",
+          "token"
+        ],
+        "required_first_level": {
+          "object_track": true,
+          "id": true,
+          "dynamic_map_states": true,
+          "map_features": true,
+          "log_length": true
+        },
+        "id_field": "2021.07.16.02.53.40_veh-17_00016_01588-710df88912ee52c0-005",
+        "name_field": "2021.07.16.02.53.40_veh-17_00016_01588-710df88912ee52c0-005",
+        "token_field": "2021.07.16.02.53.40_veh-17_00016_01588-710df88912ee52c0-goal_conditional_copy_with_noise",
+        "source_fields": {
+          "source": "absent",
+          "source_token": "absent",
+          "source_scene_id": "absent",
+          "original": "absent",
+          "original_token": "absent",
+          "original_scene_id": "absent",
+          "original_id": "absent",
+          "parent": "absent",
+          "parent_token": "absent",
+          "parent_scene_id": "absent",
+          "base_scene_id": "absent",
+          "base_token": "absent"
+        },
+        "variant_fields": {
+          "variant": "absent",
+          "variant_id": "absent",
+          "sample_id": "absent",
+          "seed": "absent",
+          "augmentation_type": "absent",
+          "aug_type": "absent",
+          "goal": "absent",
+          "intent": "absent",
+          "attack": "absent"
+        },
+        "ego_conditioning_fields": {
+          "ego_conditioning": "absent",
+          "ego_plan": "absent",
+          "ego_future": "absent",
+          "plan_idx": "absent",
+          "plan_index": "absent",
+          "requested_ego_conditioning_hash": "absent",
+          "ego_traj_hash": "absent",
+          "conditioning_plan": "absent",
+          "bwm_ego_plan": "absent"
+        },
+        "bwm_provenance_fields": {
+          "bwm_provenance": "absent",
+          "bwm_model": "absent",
+          "bwm_revision": "absent",
+          "generation_window": "absent",
+          "generation_seed": "absent",
+          "model_revision": "absent",
+          "bwm_future": "absent",
+          "traffic_future_source": "absent"
+        },
+        "deep_source_scan": {
+          "absent": [
+            "base_scene_id",
+            "base_token",
+            "original",
+            "original_id",
+            "original_scene_id",
+            "original_token",
+            "parent",
+            "parent_scene_id",
+            "parent_token",
+            "source",
+            "source_scene_id",
+            "source_token"
+          ],
+          "present_keys": []
+        },
+        "deep_ego_scan": {
+          "absent": [
+            "bwm_ego_plan",
+            "conditioning_plan",
+            "ego_conditioning",
+            "ego_future",
+            "ego_plan",
+            "ego_traj_hash",
+            "plan_idx",
+            "plan_index",
+            "requested_ego_conditioning_hash"
+          ],
+          "present_keys": []
+        },
+        "time_anchor": {
+          "sample_rate": 2,
+          "log_length": 21,
+          "base_timestamp": 1626404134099922,
+          "explicit_time_bounds": {
+            "history_start": "absent",
+            "history_end": "absent",
+            "current": "absent",
+            "cutoff": "absent",
+            "future_start": "absent",
+            "future_end": "absent",
+            "generation_window": "absent",
+            "bwm_future_start": "absent",
+            "bwm_future_end": "absent"
+          },
+          "simengine_code_contract_dt_s": 0.1,
+          "simengine_code_contract_hz": 10.0,
+          "cutoff_support_if_full_trajectory": {
+            "cutoff_3_has_ge_5_history_frames": false,
+            "cutoff_3_in_range": true,
+            "cutoff_4_has_ge_5_history_frames": true,
+            "cutoff_4_in_range": true
+          },
+          "note": "No author cutoff is invented. If explicit bounds absent, scenario is treated as full trajectory without BWM-future boundary fact."
+        },
+        "ego": {
+          "sdc_id": "ego",
+          "ego_token_resolved": "ego",
+          "ego_state_shapes": {
+            "position": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                3
+              ],
+              "dtype": "float64",
+              "nbytes": 504,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 63
+            },
+            "heading": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "velocity": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                2
+              ],
+              "dtype": "float64",
+              "nbytes": 336,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 42
+            },
+            "valid": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float32",
+              "nbytes": 84,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "length": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "width": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "height": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            }
+          }
+        },
+        "agents": {
+          "n_agents": 18,
+          "type_counts": {
+            "VEHICLE": 18
+          },
+          "state_key_present_counts": {
+            "position": 18,
+            "heading": 18,
+            "velocity": 18,
+            "valid": 18,
+            "length": 18,
+            "width": 18,
+            "height": 18
+          },
+          "state_shape_dtype_top": {
+            "position": [
+              [
+                "(21, 3)|float64",
+                18
+              ]
+            ],
+            "heading": [
+              [
+                "(21,)|float64",
+                18
+              ]
+            ],
+            "velocity": [
+              [
+                "(21, 2)|float64",
+                18
+              ]
+            ],
+            "valid": [
+              [
+                "(21,)|float32",
+                18
+              ]
+            ],
+            "length": [
+              [
+                "(21, 1)|float64",
+                18
+              ]
+            ],
+            "width": [
+              [
+                "(21, 1)|float64",
+                18
+              ]
+            ],
+            "height": [
+              [
+                "(21, 1)|float64",
+                18
+              ]
+            ]
+          },
+          "spawn_despawn": {
+            "n_with_valid_switch": 5,
+            "n_checked": 18
+          },
+          "log_length_declared": 21
+        },
+        "map": {
+          "n_features": 905,
+          "type_counts": {
+            "LANE_SURFACE_STREET": 263,
+            "ROAD_LINE_BROKEN_SINGLE_WHITE": 260,
+            "LANE_SURFACE_UNSTRUCTURE": 328,
+            "ROAD_EDGE_SIDEWALK": 21,
+            "CROSSWALK": 16,
+            "ROAD_LINE_SOLID_SINGLE_WHITE": 17
+          },
+          "geometry": {
+            "polyline": 868,
+            "polygon": 37,
+            "neither": 0
+          },
+          "interest_counts": {
+            "LANE": 591,
+            "LANE_CONNECTOR": 0,
+            "ROADBLOCK": 0,
+            "CROSSWALK": 16,
+            "STOP_LINE": 0
+          }
+        },
+        "dynamic_map": {
+          "absent": true
+        },
+        "coordinate_transforms": {
+          "old_origin_in_current_coordinate": {
+            "kind": "ndarray",
+            "shape": [
+              2
+            ],
+            "dtype": "float64",
+            "nbytes": 16,
+            "ndim": 1,
+            "finite_frac": 1.0,
+            "nan_count_sample": 0,
+            "inf_count_sample": 0,
+            "sample_n": 2
+          },
+          "digitaltwin_ego2globals": {
+            "type": "list",
+            "repr": "list"
+          },
+          "coordinate": "absent"
+        },
+        "coordinate_declared": "absent",
+        "reward_scan": {
+          "present_keys": [],
+          "absent": [
+            "comfort",
+            "drivable_area_compliance",
+            "driving_direction_compliance",
+            "ego_progress",
+            "lane_keeping",
+            "no_at_fault_collisions",
+            "pdms",
+            "pdms_pkl",
+            "reward",
+            "rewards",
+            "score",
+            "scores",
+            "time_to_collision_within_bound"
+          ]
+        },
+        "sensor_scan": {
+          "present_keys": [
+            "cameras",
+            "lidar",
+            "openscene_data_infos_dict"
+          ],
+          "absent": [
+            "digitaltwin_asset_id",
+            "sensor_blobs",
+            "sensor_path",
+            "synthetic_scene_info"
+          ],
+          "present_detail": {
+            "cameras": [
+              {
+                "path": "cameras",
+                "value_type": "dict"
+              }
+            ],
+            "lidar": [
+              {
+                "path": "lidar",
+                "value_type": "dict"
+              }
+            ],
+            "openscene_data_infos_dict": [
+              {
+                "path": "metadata.openscene_data_infos_dict",
+                "value_type": "dict"
+              }
+            ]
+          }
+        },
+        "dual_trajectory_tracks": {
+          "original_track_key": "absent",
+          "bwm_track_key": "absent",
+          "note": "Only explicit dual-track keys counted; no trajectory-similarity inference."
+        }
+      },
+      {
+        "scenario_key": "2021.07.16.01.22.41_veh-14_02626_04289-c0bc4ebea1315544-004",
+        "scenario_type": "dict",
+        "top_keys": [
+          "base_timestamp",
+          "cameras",
+          "dataset",
+          "dynamic_map_states",
+          "id",
+          "lidar",
+          "log_length",
+          "map",
+          "map_features",
+          "metadata",
+          "name",
+          "object_track",
+          "sample_rate",
+          "sdc_id",
+          "token"
+        ],
+        "required_first_level": {
+          "object_track": true,
+          "id": true,
+          "dynamic_map_states": true,
+          "map_features": true,
+          "log_length": true
+        },
+        "id_field": "2021.07.16.01.22.41_veh-14_02626_04289-c0bc4ebea1315544-004",
+        "name_field": "2021.07.16.01.22.41_veh-14_02626_04289-c0bc4ebea1315544-004",
+        "token_field": "2021.07.16.01.22.41_veh-14_02626_04289-c0bc4ebea1315544-goal_conditional_copy_with_noise",
+        "source_fields": {
+          "source": "absent",
+          "source_token": "absent",
+          "source_scene_id": "absent",
+          "original": "absent",
+          "original_token": "absent",
+          "original_scene_id": "absent",
+          "original_id": "absent",
+          "parent": "absent",
+          "parent_token": "absent",
+          "parent_scene_id": "absent",
+          "base_scene_id": "absent",
+          "base_token": "absent"
+        },
+        "variant_fields": {
+          "variant": "absent",
+          "variant_id": "absent",
+          "sample_id": "absent",
+          "seed": "absent",
+          "augmentation_type": "absent",
+          "aug_type": "absent",
+          "goal": "absent",
+          "intent": "absent",
+          "attack": "absent"
+        },
+        "ego_conditioning_fields": {
+          "ego_conditioning": "absent",
+          "ego_plan": "absent",
+          "ego_future": "absent",
+          "plan_idx": "absent",
+          "plan_index": "absent",
+          "requested_ego_conditioning_hash": "absent",
+          "ego_traj_hash": "absent",
+          "conditioning_plan": "absent",
+          "bwm_ego_plan": "absent"
+        },
+        "bwm_provenance_fields": {
+          "bwm_provenance": "absent",
+          "bwm_model": "absent",
+          "bwm_revision": "absent",
+          "generation_window": "absent",
+          "generation_seed": "absent",
+          "model_revision": "absent",
+          "bwm_future": "absent",
+          "traffic_future_source": "absent"
+        },
+        "deep_source_scan": {
+          "absent": [
+            "base_scene_id",
+            "base_token",
+            "original",
+            "original_id",
+            "original_scene_id",
+            "original_token",
+            "parent",
+            "parent_scene_id",
+            "parent_token",
+            "source",
+            "source_scene_id",
+            "source_token"
+          ],
+          "present_keys": []
+        },
+        "deep_ego_scan": {
+          "absent": [
+            "bwm_ego_plan",
+            "conditioning_plan",
+            "ego_conditioning",
+            "ego_future",
+            "ego_plan",
+            "ego_traj_hash",
+            "plan_idx",
+            "plan_index",
+            "requested_ego_conditioning_hash"
+          ],
+          "present_keys": []
+        },
+        "time_anchor": {
+          "sample_rate": 2,
+          "log_length": 21,
+          "base_timestamp": 1626402471100240,
+          "explicit_time_bounds": {
+            "history_start": "absent",
+            "history_end": "absent",
+            "current": "absent",
+            "cutoff": "absent",
+            "future_start": "absent",
+            "future_end": "absent",
+            "generation_window": "absent",
+            "bwm_future_start": "absent",
+            "bwm_future_end": "absent"
+          },
+          "simengine_code_contract_dt_s": 0.1,
+          "simengine_code_contract_hz": 10.0,
+          "cutoff_support_if_full_trajectory": {
+            "cutoff_3_has_ge_5_history_frames": false,
+            "cutoff_3_in_range": true,
+            "cutoff_4_has_ge_5_history_frames": true,
+            "cutoff_4_in_range": true
+          },
+          "note": "No author cutoff is invented. If explicit bounds absent, scenario is treated as full trajectory without BWM-future boundary fact."
+        },
+        "ego": {
+          "sdc_id": "ego",
+          "ego_token_resolved": "ego",
+          "ego_state_shapes": {
+            "position": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                3
+              ],
+              "dtype": "float64",
+              "nbytes": 504,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 63
+            },
+            "heading": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "velocity": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                2
+              ],
+              "dtype": "float64",
+              "nbytes": 336,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 42
+            },
+            "valid": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float32",
+              "nbytes": 84,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "length": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "width": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "height": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            }
+          }
+        },
+        "agents": {
+          "n_agents": 23,
+          "type_counts": {
+            "VEHICLE": 23
+          },
+          "state_key_present_counts": {
+            "position": 23,
+            "heading": 23,
+            "velocity": 23,
+            "valid": 23,
+            "length": 23,
+            "width": 23,
+            "height": 23
+          },
+          "state_shape_dtype_top": {
+            "position": [
+              [
+                "(21, 3)|float64",
+                23
+              ]
+            ],
+            "heading": [
+              [
+                "(21,)|float64",
+                23
+              ]
+            ],
+            "velocity": [
+              [
+                "(21, 2)|float64",
+                23
+              ]
+            ],
+            "valid": [
+              [
+                "(21,)|float32",
+                23
+              ]
+            ],
+            "length": [
+              [
+                "(21, 1)|float64",
+                23
+              ]
+            ],
+            "width": [
+              [
+                "(21, 1)|float64",
+                23
+              ]
+            ],
+            "height": [
+              [
+                "(21, 1)|float64",
+                23
+              ]
+            ]
+          },
+          "spawn_despawn": {
+            "n_with_valid_switch": 10,
+            "n_checked": 23
+          },
+          "log_length_declared": 21
+        },
+        "map": {
+          "n_features": 1317,
+          "type_counts": {
+            "LANE_SURFACE_STREET": 378,
+            "ROAD_LINE_BROKEN_SINGLE_WHITE": 350,
+            "LANE_SURFACE_UNSTRUCTURE": 475,
+            "ROAD_EDGE_SIDEWALK": 49,
+            "CROSSWALK": 40,
+            "ROAD_LINE_SOLID_SINGLE_WHITE": 25
+          },
+          "geometry": {
+            "polyline": 1228,
+            "polygon": 89,
+            "neither": 0
+          },
+          "interest_counts": {
+            "LANE": 853,
+            "LANE_CONNECTOR": 0,
+            "ROADBLOCK": 0,
+            "CROSSWALK": 40,
+            "STOP_LINE": 0
+          }
+        },
+        "dynamic_map": {
+          "n_lights_or_dynamic": 20,
+          "state_shape_samples": [
+            [
+              "traffic_light_state:list",
+              20
+            ]
+          ]
+        },
+        "coordinate_transforms": {
+          "old_origin_in_current_coordinate": {
+            "kind": "ndarray",
+            "shape": [
+              2
+            ],
+            "dtype": "float64",
+            "nbytes": 16,
+            "ndim": 1,
+            "finite_frac": 1.0,
+            "nan_count_sample": 0,
+            "inf_count_sample": 0,
+            "sample_n": 2
+          },
+          "digitaltwin_ego2globals": {
+            "type": "list",
+            "repr": "list"
+          },
+          "coordinate": "absent"
+        },
+        "coordinate_declared": "absent",
+        "reward_scan": {
+          "present_keys": [],
+          "absent": [
+            "comfort",
+            "drivable_area_compliance",
+            "driving_direction_compliance",
+            "ego_progress",
+            "lane_keeping",
+            "no_at_fault_collisions",
+            "pdms",
+            "pdms_pkl",
+            "reward",
+            "rewards",
+            "score",
+            "scores",
+            "time_to_collision_within_bound"
+          ]
+        },
+        "sensor_scan": {
+          "present_keys": [
+            "cameras",
+            "lidar",
+            "openscene_data_infos_dict"
+          ],
+          "absent": [
+            "digitaltwin_asset_id",
+            "sensor_blobs",
+            "sensor_path",
+            "synthetic_scene_info"
+          ],
+          "present_detail": {
+            "cameras": [
+              {
+                "path": "cameras",
+                "value_type": "dict"
+              }
+            ],
+            "lidar": [
+              {
+                "path": "lidar",
+                "value_type": "dict"
+              }
+            ],
+            "openscene_data_infos_dict": [
+              {
+                "path": "metadata.openscene_data_infos_dict",
+                "value_type": "dict"
+              }
+            ]
+          }
+        },
+        "dual_trajectory_tracks": {
+          "original_track_key": "absent",
+          "bwm_track_key": "absent",
+          "note": "Only explicit dual-track keys counted; no trajectory-similarity inference."
+        }
+      },
+      {
+        "scenario_key": "2021.07.16.18.19.22_veh-35_00440_00858-dbd3a7e3a6645d57-003",
+        "scenario_type": "dict",
+        "top_keys": [
+          "base_timestamp",
+          "cameras",
+          "dataset",
+          "dynamic_map_states",
+          "id",
+          "lidar",
+          "log_length",
+          "map",
+          "map_features",
+          "metadata",
+          "name",
+          "object_track",
+          "sample_rate",
+          "sdc_id",
+          "token"
+        ],
+        "required_first_level": {
+          "object_track": true,
+          "id": true,
+          "dynamic_map_states": true,
+          "map_features": true,
+          "log_length": true
+        },
+        "id_field": "2021.07.16.18.19.22_veh-35_00440_00858-dbd3a7e3a6645d57-003",
+        "name_field": "2021.07.16.18.19.22_veh-35_00440_00858-dbd3a7e3a6645d57-003",
+        "token_field": "2021.07.16.18.19.22_veh-35_00440_00858-dbd3a7e3a6645d57-goal_conditional_copy_with_noise",
+        "source_fields": {
+          "source": "absent",
+          "source_token": "absent",
+          "source_scene_id": "absent",
+          "original": "absent",
+          "original_token": "absent",
+          "original_scene_id": "absent",
+          "original_id": "absent",
+          "parent": "absent",
+          "parent_token": "absent",
+          "parent_scene_id": "absent",
+          "base_scene_id": "absent",
+          "base_token": "absent"
+        },
+        "variant_fields": {
+          "variant": "absent",
+          "variant_id": "absent",
+          "sample_id": "absent",
+          "seed": "absent",
+          "augmentation_type": "absent",
+          "aug_type": "absent",
+          "goal": "absent",
+          "intent": "absent",
+          "attack": "absent"
+        },
+        "ego_conditioning_fields": {
+          "ego_conditioning": "absent",
+          "ego_plan": "absent",
+          "ego_future": "absent",
+          "plan_idx": "absent",
+          "plan_index": "absent",
+          "requested_ego_conditioning_hash": "absent",
+          "ego_traj_hash": "absent",
+          "conditioning_plan": "absent",
+          "bwm_ego_plan": "absent"
+        },
+        "bwm_provenance_fields": {
+          "bwm_provenance": "absent",
+          "bwm_model": "absent",
+          "bwm_revision": "absent",
+          "generation_window": "absent",
+          "generation_seed": "absent",
+          "model_revision": "absent",
+          "bwm_future": "absent",
+          "traffic_future_source": "absent"
+        },
+        "deep_source_scan": {
+          "absent": [
+            "base_scene_id",
+            "base_token",
+            "original",
+            "original_id",
+            "original_scene_id",
+            "original_token",
+            "parent",
+            "parent_scene_id",
+            "parent_token",
+            "source",
+            "source_scene_id",
+            "source_token"
+          ],
+          "present_keys": []
+        },
+        "deep_ego_scan": {
+          "absent": [
+            "bwm_ego_plan",
+            "conditioning_plan",
+            "ego_conditioning",
+            "ego_future",
+            "ego_plan",
+            "ego_traj_hash",
+            "plan_idx",
+            "plan_index",
+            "requested_ego_conditioning_hash"
+          ],
+          "present_keys": []
+        },
+        "time_anchor": {
+          "sample_rate": 2,
+          "log_length": 21,
+          "base_timestamp": 1626460413501058,
+          "explicit_time_bounds": {
+            "history_start": "absent",
+            "history_end": "absent",
+            "current": "absent",
+            "cutoff": "absent",
+            "future_start": "absent",
+            "future_end": "absent",
+            "generation_window": "absent",
+            "bwm_future_start": "absent",
+            "bwm_future_end": "absent"
+          },
+          "simengine_code_contract_dt_s": 0.1,
+          "simengine_code_contract_hz": 10.0,
+          "cutoff_support_if_full_trajectory": {
+            "cutoff_3_has_ge_5_history_frames": false,
+            "cutoff_3_in_range": true,
+            "cutoff_4_has_ge_5_history_frames": true,
+            "cutoff_4_in_range": true
+          },
+          "note": "No author cutoff is invented. If explicit bounds absent, scenario is treated as full trajectory without BWM-future boundary fact."
+        },
+        "ego": {
+          "sdc_id": "ego",
+          "ego_token_resolved": "ego",
+          "ego_state_shapes": {
+            "position": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                3
+              ],
+              "dtype": "float64",
+              "nbytes": 504,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 63
+            },
+            "heading": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "velocity": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                2
+              ],
+              "dtype": "float64",
+              "nbytes": 336,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 42
+            },
+            "valid": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float32",
+              "nbytes": 84,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "length": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "width": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "height": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            }
+          }
+        },
+        "agents": {
+          "n_agents": 33,
+          "type_counts": {
+            "VEHICLE": 33
+          },
+          "state_key_present_counts": {
+            "position": 33,
+            "heading": 33,
+            "velocity": 33,
+            "valid": 33,
+            "length": 33,
+            "width": 33,
+            "height": 33
+          },
+          "state_shape_dtype_top": {
+            "position": [
+              [
+                "(21, 3)|float64",
+                33
+              ]
+            ],
+            "heading": [
+              [
+                "(21,)|float64",
+                33
+              ]
+            ],
+            "velocity": [
+              [
+                "(21, 2)|float64",
+                33
+              ]
+            ],
+            "valid": [
+              [
+                "(21,)|float32",
+                33
+              ]
+            ],
+            "length": [
+              [
+                "(21, 1)|float64",
+                33
+              ]
+            ],
+            "width": [
+              [
+                "(21, 1)|float64",
+                33
+              ]
+            ],
+            "height": [
+              [
+                "(21, 1)|float64",
+                33
+              ]
+            ]
+          },
+          "spawn_despawn": {
+            "n_with_valid_switch": 11,
+            "n_checked": 33
+          },
+          "log_length_declared": 21
+        },
+        "map": {
+          "n_features": 1200,
+          "type_counts": {
+            "LANE_SURFACE_STREET": 363,
+            "ROAD_LINE_BROKEN_SINGLE_WHITE": 355,
+            "LANE_SURFACE_UNSTRUCTURE": 417,
+            "ROAD_EDGE_SIDEWALK": 24,
+            "CROSSWALK": 16,
+            "ROAD_LINE_SOLID_SINGLE_WHITE": 25
+          },
+          "geometry": {
+            "polyline": 1160,
+            "polygon": 40,
+            "neither": 0
+          },
+          "interest_counts": {
+            "LANE": 780,
+            "LANE_CONNECTOR": 0,
+            "ROADBLOCK": 0,
+            "CROSSWALK": 16,
+            "STOP_LINE": 0
+          }
+        },
+        "dynamic_map": {
+          "n_lights_or_dynamic": 33,
+          "state_shape_samples": [
+            [
+              "traffic_light_state:list",
+              33
+            ]
+          ]
+        },
+        "coordinate_transforms": {
+          "old_origin_in_current_coordinate": {
+            "kind": "ndarray",
+            "shape": [
+              2
+            ],
+            "dtype": "float64",
+            "nbytes": 16,
+            "ndim": 1,
+            "finite_frac": 1.0,
+            "nan_count_sample": 0,
+            "inf_count_sample": 0,
+            "sample_n": 2
+          },
+          "digitaltwin_ego2globals": {
+            "type": "list",
+            "repr": "list"
+          },
+          "coordinate": "absent"
+        },
+        "coordinate_declared": "absent",
+        "reward_scan": {
+          "present_keys": [],
+          "absent": [
+            "comfort",
+            "drivable_area_compliance",
+            "driving_direction_compliance",
+            "ego_progress",
+            "lane_keeping",
+            "no_at_fault_collisions",
+            "pdms",
+            "pdms_pkl",
+            "reward",
+            "rewards",
+            "score",
+            "scores",
+            "time_to_collision_within_bound"
+          ]
+        },
+        "sensor_scan": {
+          "present_keys": [
+            "cameras",
+            "lidar",
+            "openscene_data_infos_dict"
+          ],
+          "absent": [
+            "digitaltwin_asset_id",
+            "sensor_blobs",
+            "sensor_path",
+            "synthetic_scene_info"
+          ],
+          "present_detail": {
+            "cameras": [
+              {
+                "path": "cameras",
+                "value_type": "dict"
+              }
+            ],
+            "lidar": [
+              {
+                "path": "lidar",
+                "value_type": "dict"
+              }
+            ],
+            "openscene_data_infos_dict": [
+              {
+                "path": "metadata.openscene_data_infos_dict",
+                "value_type": "dict"
+              }
+            ]
+          }
+        },
+        "dual_trajectory_tracks": {
+          "original_track_key": "absent",
+          "bwm_track_key": "absent",
+          "note": "Only explicit dual-track keys counted; no trajectory-similarity inference."
+        }
+      },
+      {
+        "scenario_key": "2021.09.15.13.16.40_veh-28_00642_01267-5db3c91853c4587d-001",
+        "scenario_type": "dict",
+        "top_keys": [
+          "base_timestamp",
+          "cameras",
+          "dataset",
+          "dynamic_map_states",
+          "id",
+          "lidar",
+          "log_length",
+          "map",
+          "map_features",
+          "metadata",
+          "name",
+          "object_track",
+          "sample_rate",
+          "sdc_id",
+          "token"
+        ],
+        "required_first_level": {
+          "object_track": true,
+          "id": true,
+          "dynamic_map_states": true,
+          "map_features": true,
+          "log_length": true
+        },
+        "id_field": "2021.09.15.13.16.40_veh-28_00642_01267-5db3c91853c4587d-001",
+        "name_field": "2021.09.15.13.16.40_veh-28_00642_01267-5db3c91853c4587d-001",
+        "token_field": "2021.09.15.13.16.40_veh-28_00642_01267-5db3c91853c4587d-goal_conditional_copy_with_noise",
+        "source_fields": {
+          "source": "absent",
+          "source_token": "absent",
+          "source_scene_id": "absent",
+          "original": "absent",
+          "original_token": "absent",
+          "original_scene_id": "absent",
+          "original_id": "absent",
+          "parent": "absent",
+          "parent_token": "absent",
+          "parent_scene_id": "absent",
+          "base_scene_id": "absent",
+          "base_token": "absent"
+        },
+        "variant_fields": {
+          "variant": "absent",
+          "variant_id": "absent",
+          "sample_id": "absent",
+          "seed": "absent",
+          "augmentation_type": "absent",
+          "aug_type": "absent",
+          "goal": "absent",
+          "intent": "absent",
+          "attack": "absent"
+        },
+        "ego_conditioning_fields": {
+          "ego_conditioning": "absent",
+          "ego_plan": "absent",
+          "ego_future": "absent",
+          "plan_idx": "absent",
+          "plan_index": "absent",
+          "requested_ego_conditioning_hash": "absent",
+          "ego_traj_hash": "absent",
+          "conditioning_plan": "absent",
+          "bwm_ego_plan": "absent"
+        },
+        "bwm_provenance_fields": {
+          "bwm_provenance": "absent",
+          "bwm_model": "absent",
+          "bwm_revision": "absent",
+          "generation_window": "absent",
+          "generation_seed": "absent",
+          "model_revision": "absent",
+          "bwm_future": "absent",
+          "traffic_future_source": "absent"
+        },
+        "deep_source_scan": {
+          "absent": [
+            "base_scene_id",
+            "base_token",
+            "original",
+            "original_id",
+            "original_scene_id",
+            "original_token",
+            "parent",
+            "parent_scene_id",
+            "parent_token",
+            "source",
+            "source_scene_id",
+            "source_token"
+          ],
+          "present_keys": []
+        },
+        "deep_ego_scan": {
+          "absent": [
+            "bwm_ego_plan",
+            "conditioning_plan",
+            "ego_conditioning",
+            "ego_future",
+            "ego_plan",
+            "ego_traj_hash",
+            "plan_idx",
+            "plan_index",
+            "requested_ego_conditioning_hash"
+          ],
+          "present_keys": []
+        },
+        "time_anchor": {
+          "sample_rate": 2,
+          "log_length": 21,
+          "base_timestamp": 1631712825299718,
+          "explicit_time_bounds": {
+            "history_start": "absent",
+            "history_end": "absent",
+            "current": "absent",
+            "cutoff": "absent",
+            "future_start": "absent",
+            "future_end": "absent",
+            "generation_window": "absent",
+            "bwm_future_start": "absent",
+            "bwm_future_end": "absent"
+          },
+          "simengine_code_contract_dt_s": 0.1,
+          "simengine_code_contract_hz": 10.0,
+          "cutoff_support_if_full_trajectory": {
+            "cutoff_3_has_ge_5_history_frames": false,
+            "cutoff_3_in_range": true,
+            "cutoff_4_has_ge_5_history_frames": true,
+            "cutoff_4_in_range": true
+          },
+          "note": "No author cutoff is invented. If explicit bounds absent, scenario is treated as full trajectory without BWM-future boundary fact."
+        },
+        "ego": {
+          "sdc_id": "ego",
+          "ego_token_resolved": "ego",
+          "ego_state_shapes": {
+            "position": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                3
+              ],
+              "dtype": "float64",
+              "nbytes": 504,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 63
+            },
+            "heading": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "velocity": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                2
+              ],
+              "dtype": "float64",
+              "nbytes": 336,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 42
+            },
+            "valid": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float32",
+              "nbytes": 84,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "length": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "width": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "height": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            }
+          }
+        },
+        "agents": {
+          "n_agents": 32,
+          "type_counts": {
+            "VEHICLE": 32
+          },
+          "state_key_present_counts": {
+            "position": 32,
+            "heading": 32,
+            "velocity": 32,
+            "valid": 32,
+            "length": 32,
+            "width": 32,
+            "height": 32
+          },
+          "state_shape_dtype_top": {
+            "position": [
+              [
+                "(21, 3)|float64",
+                32
+              ]
+            ],
+            "heading": [
+              [
+                "(21,)|float64",
+                32
+              ]
+            ],
+            "velocity": [
+              [
+                "(21, 2)|float64",
+                32
+              ]
+            ],
+            "valid": [
+              [
+                "(21,)|float32",
+                32
+              ]
+            ],
+            "length": [
+              [
+                "(21, 1)|float64",
+                32
+              ]
+            ],
+            "width": [
+              [
+                "(21, 1)|float64",
+                32
+              ]
+            ],
+            "height": [
+              [
+                "(21, 1)|float64",
+                32
+              ]
+            ]
+          },
+          "spawn_despawn": {
+            "n_with_valid_switch": 16,
+            "n_checked": 32
+          },
+          "log_length_declared": 21
+        },
+        "map": {
+          "n_features": 1539,
+          "type_counts": {
+            "LANE_SURFACE_STREET": 403,
+            "ROAD_LINE_BROKEN_SINGLE_WHITE": 309,
+            "LANE_SURFACE_UNSTRUCTURE": 586,
+            "ROAD_EDGE_SIDEWALK": 105,
+            "CROSSWALK": 114,
+            "ROAD_LINE_SOLID_SINGLE_WHITE": 22
+          },
+          "geometry": {
+            "polyline": 1320,
+            "polygon": 219,
+            "neither": 0
+          },
+          "interest_counts": {
+            "LANE": 989,
+            "LANE_CONNECTOR": 0,
+            "ROADBLOCK": 0,
+            "CROSSWALK": 114,
+            "STOP_LINE": 0
+          }
+        },
+        "dynamic_map": {
+          "n_lights_or_dynamic": 7,
+          "state_shape_samples": [
+            [
+              "traffic_light_state:list",
+              7
+            ]
+          ]
+        },
+        "coordinate_transforms": {
+          "old_origin_in_current_coordinate": {
+            "kind": "ndarray",
+            "shape": [
+              2
+            ],
+            "dtype": "float64",
+            "nbytes": 16,
+            "ndim": 1,
+            "finite_frac": 1.0,
+            "nan_count_sample": 0,
+            "inf_count_sample": 0,
+            "sample_n": 2
+          },
+          "digitaltwin_ego2globals": {
+            "type": "list",
+            "repr": "list"
+          },
+          "coordinate": "absent"
+        },
+        "coordinate_declared": "absent",
+        "reward_scan": {
+          "present_keys": [],
+          "absent": [
+            "comfort",
+            "drivable_area_compliance",
+            "driving_direction_compliance",
+            "ego_progress",
+            "lane_keeping",
+            "no_at_fault_collisions",
+            "pdms",
+            "pdms_pkl",
+            "reward",
+            "rewards",
+            "score",
+            "scores",
+            "time_to_collision_within_bound"
+          ]
+        },
+        "sensor_scan": {
+          "present_keys": [
+            "cameras",
+            "lidar",
+            "openscene_data_infos_dict"
+          ],
+          "absent": [
+            "digitaltwin_asset_id",
+            "sensor_blobs",
+            "sensor_path",
+            "synthetic_scene_info"
+          ],
+          "present_detail": {
+            "cameras": [
+              {
+                "path": "cameras",
+                "value_type": "dict"
+              }
+            ],
+            "lidar": [
+              {
+                "path": "lidar",
+                "value_type": "dict"
+              }
+            ],
+            "openscene_data_infos_dict": [
+              {
+                "path": "metadata.openscene_data_infos_dict",
+                "value_type": "dict"
+              }
+            ]
+          }
+        },
+        "dual_trajectory_tracks": {
+          "original_track_key": "absent",
+          "bwm_track_key": "absent",
+          "note": "Only explicit dual-track keys counted; no trajectory-similarity inference."
+        }
+      },
+      {
+        "scenario_key": "2021.07.16.00.51.05_veh-17_03264_05261-8d7f0e3b938359fa-005",
+        "scenario_type": "dict",
+        "top_keys": [
+          "base_timestamp",
+          "cameras",
+          "dataset",
+          "dynamic_map_states",
+          "id",
+          "lidar",
+          "log_length",
+          "map",
+          "map_features",
+          "metadata",
+          "name",
+          "object_track",
+          "sample_rate",
+          "sdc_id",
+          "token"
+        ],
+        "required_first_level": {
+          "object_track": true,
+          "id": true,
+          "dynamic_map_states": true,
+          "map_features": true,
+          "log_length": true
+        },
+        "id_field": "2021.07.16.00.51.05_veh-17_03264_05261-8d7f0e3b938359fa-005",
+        "name_field": "2021.07.16.00.51.05_veh-17_03264_05261-8d7f0e3b938359fa-005",
+        "token_field": "2021.07.16.00.51.05_veh-17_03264_05261-8d7f0e3b938359fa-intent_attack_with_goal_selection",
+        "source_fields": {
+          "source": "absent",
+          "source_token": "absent",
+          "source_scene_id": "absent",
+          "original": "absent",
+          "original_token": "absent",
+          "original_scene_id": "absent",
+          "original_id": "absent",
+          "parent": "absent",
+          "parent_token": "absent",
+          "parent_scene_id": "absent",
+          "base_scene_id": "absent",
+          "base_token": "absent"
+        },
+        "variant_fields": {
+          "variant": "absent",
+          "variant_id": "absent",
+          "sample_id": "absent",
+          "seed": "absent",
+          "augmentation_type": "absent",
+          "aug_type": "absent",
+          "goal": "absent",
+          "intent": "absent",
+          "attack": "absent"
+        },
+        "ego_conditioning_fields": {
+          "ego_conditioning": "absent",
+          "ego_plan": "absent",
+          "ego_future": "absent",
+          "plan_idx": "absent",
+          "plan_index": "absent",
+          "requested_ego_conditioning_hash": "absent",
+          "ego_traj_hash": "absent",
+          "conditioning_plan": "absent",
+          "bwm_ego_plan": "absent"
+        },
+        "bwm_provenance_fields": {
+          "bwm_provenance": "absent",
+          "bwm_model": "absent",
+          "bwm_revision": "absent",
+          "generation_window": "absent",
+          "generation_seed": "absent",
+          "model_revision": "absent",
+          "bwm_future": "absent",
+          "traffic_future_source": "absent"
+        },
+        "deep_source_scan": {
+          "absent": [
+            "base_scene_id",
+            "base_token",
+            "original",
+            "original_id",
+            "original_scene_id",
+            "original_token",
+            "parent",
+            "parent_scene_id",
+            "parent_token",
+            "source",
+            "source_scene_id",
+            "source_token"
+          ],
+          "present_keys": []
+        },
+        "deep_ego_scan": {
+          "absent": [
+            "bwm_ego_plan",
+            "conditioning_plan",
+            "ego_conditioning",
+            "ego_future",
+            "ego_plan",
+            "ego_traj_hash",
+            "plan_idx",
+            "plan_index",
+            "requested_ego_conditioning_hash"
+          ],
+          "present_keys": []
+        },
+        "time_anchor": {
+          "sample_rate": 2,
+          "log_length": 21,
+          "base_timestamp": 1626400889500606,
+          "explicit_time_bounds": {
+            "history_start": "absent",
+            "history_end": "absent",
+            "current": "absent",
+            "cutoff": "absent",
+            "future_start": "absent",
+            "future_end": "absent",
+            "generation_window": "absent",
+            "bwm_future_start": "absent",
+            "bwm_future_end": "absent"
+          },
+          "simengine_code_contract_dt_s": 0.1,
+          "simengine_code_contract_hz": 10.0,
+          "cutoff_support_if_full_trajectory": {
+            "cutoff_3_has_ge_5_history_frames": false,
+            "cutoff_3_in_range": true,
+            "cutoff_4_has_ge_5_history_frames": true,
+            "cutoff_4_in_range": true
+          },
+          "note": "No author cutoff is invented. If explicit bounds absent, scenario is treated as full trajectory without BWM-future boundary fact."
+        },
+        "ego": {
+          "sdc_id": "ego",
+          "ego_token_resolved": "ego",
+          "ego_state_shapes": {
+            "position": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                3
+              ],
+              "dtype": "float64",
+              "nbytes": 504,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 63
+            },
+            "heading": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "velocity": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                2
+              ],
+              "dtype": "float64",
+              "nbytes": 336,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 42
+            },
+            "valid": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float32",
+              "nbytes": 84,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "length": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "width": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "height": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            }
+          }
+        },
+        "agents": {
+          "n_agents": 49,
+          "type_counts": {
+            "VEHICLE": 49
+          },
+          "state_key_present_counts": {
+            "position": 49,
+            "heading": 49,
+            "velocity": 49,
+            "valid": 49,
+            "length": 49,
+            "width": 49,
+            "height": 49
+          },
+          "state_shape_dtype_top": {
+            "position": [
+              [
+                "(21, 3)|float64",
+                49
+              ]
+            ],
+            "heading": [
+              [
+                "(21,)|float64",
+                49
+              ]
+            ],
+            "velocity": [
+              [
+                "(21, 2)|float64",
+                49
+              ]
+            ],
+            "valid": [
+              [
+                "(21,)|float32",
+                49
+              ]
+            ],
+            "length": [
+              [
+                "(21, 1)|float64",
+                49
+              ]
+            ],
+            "width": [
+              [
+                "(21, 1)|float64",
+                49
+              ]
+            ],
+            "height": [
+              [
+                "(21, 1)|float64",
+                49
+              ]
+            ]
+          },
+          "spawn_despawn": {
+            "n_with_valid_switch": 14,
+            "n_checked": 49
+          },
+          "log_length_declared": 21
+        },
+        "map": {
+          "n_features": 860,
+          "type_counts": {
+            "LANE_SURFACE_STREET": 253,
+            "ROAD_LINE_BROKEN_SINGLE_WHITE": 250,
+            "LANE_SURFACE_UNSTRUCTURE": 301,
+            "ROAD_EDGE_SIDEWALK": 21,
+            "CROSSWALK": 17,
+            "ROAD_LINE_SOLID_SINGLE_WHITE": 18
+          },
+          "geometry": {
+            "polyline": 822,
+            "polygon": 38,
+            "neither": 0
+          },
+          "interest_counts": {
+            "LANE": 554,
+            "LANE_CONNECTOR": 0,
+            "ROADBLOCK": 0,
+            "CROSSWALK": 17,
+            "STOP_LINE": 0
+          }
+        },
+        "dynamic_map": {
+          "n_lights_or_dynamic": 5,
+          "state_shape_samples": [
+            [
+              "traffic_light_state:list",
+              5
+            ]
+          ]
+        },
+        "coordinate_transforms": {
+          "old_origin_in_current_coordinate": {
+            "kind": "ndarray",
+            "shape": [
+              2
+            ],
+            "dtype": "float64",
+            "nbytes": 16,
+            "ndim": 1,
+            "finite_frac": 1.0,
+            "nan_count_sample": 0,
+            "inf_count_sample": 0,
+            "sample_n": 2
+          },
+          "digitaltwin_ego2globals": {
+            "type": "list",
+            "repr": "list"
+          },
+          "coordinate": "absent"
+        },
+        "coordinate_declared": "absent",
+        "reward_scan": {
+          "present_keys": [],
+          "absent": [
+            "comfort",
+            "drivable_area_compliance",
+            "driving_direction_compliance",
+            "ego_progress",
+            "lane_keeping",
+            "no_at_fault_collisions",
+            "pdms",
+            "pdms_pkl",
+            "reward",
+            "rewards",
+            "score",
+            "scores",
+            "time_to_collision_within_bound"
+          ]
+        },
+        "sensor_scan": {
+          "present_keys": [
+            "cameras",
+            "lidar",
+            "openscene_data_infos_dict"
+          ],
+          "absent": [
+            "digitaltwin_asset_id",
+            "sensor_blobs",
+            "sensor_path",
+            "synthetic_scene_info"
+          ],
+          "present_detail": {
+            "cameras": [
+              {
+                "path": "cameras",
+                "value_type": "dict"
+              }
+            ],
+            "lidar": [
+              {
+                "path": "lidar",
+                "value_type": "dict"
+              }
+            ],
+            "openscene_data_infos_dict": [
+              {
+                "path": "metadata.openscene_data_infos_dict",
+                "value_type": "dict"
+              }
+            ]
+          }
+        },
+        "dual_trajectory_tracks": {
+          "original_track_key": "absent",
+          "bwm_track_key": "absent",
+          "note": "Only explicit dual-track keys counted; no trajectory-similarity inference."
+        }
+      },
+      {
+        "scenario_key": "2021.09.15.13.16.40_veh-28_00366_00631-25bbcc1c0da6540f-001",
+        "scenario_type": "dict",
+        "top_keys": [
+          "base_timestamp",
+          "cameras",
+          "dataset",
+          "dynamic_map_states",
+          "id",
+          "lidar",
+          "log_length",
+          "map",
+          "map_features",
+          "metadata",
+          "name",
+          "object_track",
+          "sample_rate",
+          "sdc_id",
+          "token"
+        ],
+        "required_first_level": {
+          "object_track": true,
+          "id": true,
+          "dynamic_map_states": true,
+          "map_features": true,
+          "log_length": true
+        },
+        "id_field": "2021.09.15.13.16.40_veh-28_00366_00631-25bbcc1c0da6540f-001",
+        "name_field": "2021.09.15.13.16.40_veh-28_00366_00631-25bbcc1c0da6540f-001",
+        "token_field": "2021.09.15.13.16.40_veh-28_00366_00631-25bbcc1c0da6540f-goal_conditional_copy_with_noise",
+        "source_fields": {
+          "source": "absent",
+          "source_token": "absent",
+          "source_scene_id": "absent",
+          "original": "absent",
+          "original_token": "absent",
+          "original_scene_id": "absent",
+          "original_id": "absent",
+          "parent": "absent",
+          "parent_token": "absent",
+          "parent_scene_id": "absent",
+          "base_scene_id": "absent",
+          "base_token": "absent"
+        },
+        "variant_fields": {
+          "variant": "absent",
+          "variant_id": "absent",
+          "sample_id": "absent",
+          "seed": "absent",
+          "augmentation_type": "absent",
+          "aug_type": "absent",
+          "goal": "absent",
+          "intent": "absent",
+          "attack": "absent"
+        },
+        "ego_conditioning_fields": {
+          "ego_conditioning": "absent",
+          "ego_plan": "absent",
+          "ego_future": "absent",
+          "plan_idx": "absent",
+          "plan_index": "absent",
+          "requested_ego_conditioning_hash": "absent",
+          "ego_traj_hash": "absent",
+          "conditioning_plan": "absent",
+          "bwm_ego_plan": "absent"
+        },
+        "bwm_provenance_fields": {
+          "bwm_provenance": "absent",
+          "bwm_model": "absent",
+          "bwm_revision": "absent",
+          "generation_window": "absent",
+          "generation_seed": "absent",
+          "model_revision": "absent",
+          "bwm_future": "absent",
+          "traffic_future_source": "absent"
+        },
+        "deep_source_scan": {
+          "absent": [
+            "base_scene_id",
+            "base_token",
+            "original",
+            "original_id",
+            "original_scene_id",
+            "original_token",
+            "parent",
+            "parent_scene_id",
+            "parent_token",
+            "source",
+            "source_scene_id",
+            "source_token"
+          ],
+          "present_keys": []
+        },
+        "deep_ego_scan": {
+          "absent": [
+            "bwm_ego_plan",
+            "conditioning_plan",
+            "ego_conditioning",
+            "ego_future",
+            "ego_plan",
+            "ego_traj_hash",
+            "plan_idx",
+            "plan_index",
+            "requested_ego_conditioning_hash"
+          ],
+          "present_keys": []
+        },
+        "time_anchor": {
+          "sample_rate": 2,
+          "log_length": 21,
+          "base_timestamp": 1631712460799952,
+          "explicit_time_bounds": {
+            "history_start": "absent",
+            "history_end": "absent",
+            "current": "absent",
+            "cutoff": "absent",
+            "future_start": "absent",
+            "future_end": "absent",
+            "generation_window": "absent",
+            "bwm_future_start": "absent",
+            "bwm_future_end": "absent"
+          },
+          "simengine_code_contract_dt_s": 0.1,
+          "simengine_code_contract_hz": 10.0,
+          "cutoff_support_if_full_trajectory": {
+            "cutoff_3_has_ge_5_history_frames": false,
+            "cutoff_3_in_range": true,
+            "cutoff_4_has_ge_5_history_frames": true,
+            "cutoff_4_in_range": true
+          },
+          "note": "No author cutoff is invented. If explicit bounds absent, scenario is treated as full trajectory without BWM-future boundary fact."
+        },
+        "ego": {
+          "sdc_id": "ego",
+          "ego_token_resolved": "ego",
+          "ego_state_shapes": {
+            "position": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                3
+              ],
+              "dtype": "float64",
+              "nbytes": 504,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 63
+            },
+            "heading": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "velocity": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                2
+              ],
+              "dtype": "float64",
+              "nbytes": 336,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 42
+            },
+            "valid": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float32",
+              "nbytes": 84,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "length": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "width": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "height": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            }
+          }
+        },
+        "agents": {
+          "n_agents": 43,
+          "type_counts": {
+            "VEHICLE": 43
+          },
+          "state_key_present_counts": {
+            "position": 43,
+            "heading": 43,
+            "velocity": 43,
+            "valid": 43,
+            "length": 43,
+            "width": 43,
+            "height": 43
+          },
+          "state_shape_dtype_top": {
+            "position": [
+              [
+                "(21, 3)|float64",
+                43
+              ]
+            ],
+            "heading": [
+              [
+                "(21,)|float64",
+                43
+              ]
+            ],
+            "velocity": [
+              [
+                "(21, 2)|float64",
+                43
+              ]
+            ],
+            "valid": [
+              [
+                "(21,)|float32",
+                43
+              ]
+            ],
+            "length": [
+              [
+                "(21, 1)|float64",
+                43
+              ]
+            ],
+            "width": [
+              [
+                "(21, 1)|float64",
+                43
+              ]
+            ],
+            "height": [
+              [
+                "(21, 1)|float64",
+                43
+              ]
+            ]
+          },
+          "spawn_despawn": {
+            "n_with_valid_switch": 15,
+            "n_checked": 43
+          },
+          "log_length_declared": 21
+        },
+        "map": {
+          "n_features": 1463,
+          "type_counts": {
+            "LANE_SURFACE_STREET": 384,
+            "ROAD_LINE_BROKEN_SINGLE_WHITE": 297,
+            "LANE_SURFACE_UNSTRUCTURE": 538,
+            "ROAD_EDGE_SIDEWALK": 104,
+            "CROSSWALK": 115,
+            "ROAD_LINE_SOLID_SINGLE_WHITE": 25
+          },
+          "geometry": {
+            "polyline": 1244,
+            "polygon": 219,
+            "neither": 0
+          },
+          "interest_counts": {
+            "LANE": 922,
+            "LANE_CONNECTOR": 0,
+            "ROADBLOCK": 0,
+            "CROSSWALK": 115,
+            "STOP_LINE": 0
+          }
+        },
+        "dynamic_map": {
+          "absent": true
+        },
+        "coordinate_transforms": {
+          "old_origin_in_current_coordinate": {
+            "kind": "ndarray",
+            "shape": [
+              2
+            ],
+            "dtype": "float64",
+            "nbytes": 16,
+            "ndim": 1,
+            "finite_frac": 1.0,
+            "nan_count_sample": 0,
+            "inf_count_sample": 0,
+            "sample_n": 2
+          },
+          "digitaltwin_ego2globals": {
+            "type": "list",
+            "repr": "list"
+          },
+          "coordinate": "absent"
+        },
+        "coordinate_declared": "absent",
+        "reward_scan": {
+          "present_keys": [],
+          "absent": [
+            "comfort",
+            "drivable_area_compliance",
+            "driving_direction_compliance",
+            "ego_progress",
+            "lane_keeping",
+            "no_at_fault_collisions",
+            "pdms",
+            "pdms_pkl",
+            "reward",
+            "rewards",
+            "score",
+            "scores",
+            "time_to_collision_within_bound"
+          ]
+        },
+        "sensor_scan": {
+          "present_keys": [
+            "cameras",
+            "lidar",
+            "openscene_data_infos_dict"
+          ],
+          "absent": [
+            "digitaltwin_asset_id",
+            "sensor_blobs",
+            "sensor_path",
+            "synthetic_scene_info"
+          ],
+          "present_detail": {
+            "cameras": [
+              {
+                "path": "cameras",
+                "value_type": "dict"
+              }
+            ],
+            "lidar": [
+              {
+                "path": "lidar",
+                "value_type": "dict"
+              }
+            ],
+            "openscene_data_infos_dict": [
+              {
+                "path": "metadata.openscene_data_infos_dict",
+                "value_type": "dict"
+              }
+            ]
+          }
+        },
+        "dual_trajectory_tracks": {
+          "original_track_key": "absent",
+          "bwm_track_key": "absent",
+          "note": "Only explicit dual-track keys counted; no trajectory-similarity inference."
+        }
+      },
+      {
+        "scenario_key": "2021.07.09.17.06.37_veh-35_00769_00907-e434d04b816a55c6-002",
+        "scenario_type": "dict",
+        "top_keys": [
+          "base_timestamp",
+          "cameras",
+          "dataset",
+          "dynamic_map_states",
+          "id",
+          "lidar",
+          "log_length",
+          "map",
+          "map_features",
+          "metadata",
+          "name",
+          "object_track",
+          "sample_rate",
+          "sdc_id",
+          "token"
+        ],
+        "required_first_level": {
+          "object_track": true,
+          "id": true,
+          "dynamic_map_states": true,
+          "map_features": true,
+          "log_length": true
+        },
+        "id_field": "2021.07.09.17.06.37_veh-35_00769_00907-e434d04b816a55c6-002",
+        "name_field": "2021.07.09.17.06.37_veh-35_00769_00907-e434d04b816a55c6-002",
+        "token_field": "2021.07.09.17.06.37_veh-35_00769_00907-e434d04b816a55c6-goal_conditional_copy_with_noise",
+        "source_fields": {
+          "source": "absent",
+          "source_token": "absent",
+          "source_scene_id": "absent",
+          "original": "absent",
+          "original_token": "absent",
+          "original_scene_id": "absent",
+          "original_id": "absent",
+          "parent": "absent",
+          "parent_token": "absent",
+          "parent_scene_id": "absent",
+          "base_scene_id": "absent",
+          "base_token": "absent"
+        },
+        "variant_fields": {
+          "variant": "absent",
+          "variant_id": "absent",
+          "sample_id": "absent",
+          "seed": "absent",
+          "augmentation_type": "absent",
+          "aug_type": "absent",
+          "goal": "absent",
+          "intent": "absent",
+          "attack": "absent"
+        },
+        "ego_conditioning_fields": {
+          "ego_conditioning": "absent",
+          "ego_plan": "absent",
+          "ego_future": "absent",
+          "plan_idx": "absent",
+          "plan_index": "absent",
+          "requested_ego_conditioning_hash": "absent",
+          "ego_traj_hash": "absent",
+          "conditioning_plan": "absent",
+          "bwm_ego_plan": "absent"
+        },
+        "bwm_provenance_fields": {
+          "bwm_provenance": "absent",
+          "bwm_model": "absent",
+          "bwm_revision": "absent",
+          "generation_window": "absent",
+          "generation_seed": "absent",
+          "model_revision": "absent",
+          "bwm_future": "absent",
+          "traffic_future_source": "absent"
+        },
+        "deep_source_scan": {
+          "absent": [
+            "base_scene_id",
+            "base_token",
+            "original",
+            "original_id",
+            "original_scene_id",
+            "original_token",
+            "parent",
+            "parent_scene_id",
+            "parent_token",
+            "source",
+            "source_scene_id",
+            "source_token"
+          ],
+          "present_keys": []
+        },
+        "deep_ego_scan": {
+          "absent": [
+            "bwm_ego_plan",
+            "conditioning_plan",
+            "ego_conditioning",
+            "ego_future",
+            "ego_plan",
+            "ego_traj_hash",
+            "plan_idx",
+            "plan_index",
+            "requested_ego_conditioning_hash"
+          ],
+          "present_keys": []
+        },
+        "time_anchor": {
+          "sample_rate": 2,
+          "log_length": 21,
+          "base_timestamp": 1625851343000460,
+          "explicit_time_bounds": {
+            "history_start": "absent",
+            "history_end": "absent",
+            "current": "absent",
+            "cutoff": "absent",
+            "future_start": "absent",
+            "future_end": "absent",
+            "generation_window": "absent",
+            "bwm_future_start": "absent",
+            "bwm_future_end": "absent"
+          },
+          "simengine_code_contract_dt_s": 0.1,
+          "simengine_code_contract_hz": 10.0,
+          "cutoff_support_if_full_trajectory": {
+            "cutoff_3_has_ge_5_history_frames": false,
+            "cutoff_3_in_range": true,
+            "cutoff_4_has_ge_5_history_frames": true,
+            "cutoff_4_in_range": true
+          },
+          "note": "No author cutoff is invented. If explicit bounds absent, scenario is treated as full trajectory without BWM-future boundary fact."
+        },
+        "ego": {
+          "sdc_id": "ego",
+          "ego_token_resolved": "ego",
+          "ego_state_shapes": {
+            "position": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                3
+              ],
+              "dtype": "float64",
+              "nbytes": 504,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 63
+            },
+            "heading": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "velocity": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                2
+              ],
+              "dtype": "float64",
+              "nbytes": 336,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 42
+            },
+            "valid": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float32",
+              "nbytes": 84,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "length": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "width": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "height": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            }
+          }
+        },
+        "agents": {
+          "n_agents": 59,
+          "type_counts": {
+            "VEHICLE": 59
+          },
+          "state_key_present_counts": {
+            "position": 59,
+            "heading": 59,
+            "velocity": 59,
+            "valid": 59,
+            "length": 59,
+            "width": 59,
+            "height": 59
+          },
+          "state_shape_dtype_top": {
+            "position": [
+              [
+                "(21, 3)|float64",
+                59
+              ]
+            ],
+            "heading": [
+              [
+                "(21,)|float64",
+                59
+              ]
+            ],
+            "velocity": [
+              [
+                "(21, 2)|float64",
+                59
+              ]
+            ],
+            "valid": [
+              [
+                "(21,)|float32",
+                59
+              ]
+            ],
+            "length": [
+              [
+                "(21, 1)|float64",
+                59
+              ]
+            ],
+            "width": [
+              [
+                "(21, 1)|float64",
+                59
+              ]
+            ],
+            "height": [
+              [
+                "(21, 1)|float64",
+                59
+              ]
+            ]
+          },
+          "spawn_despawn": {
+            "n_with_valid_switch": 33,
+            "n_checked": 59
+          },
+          "log_length_declared": 21
+        },
+        "map": {
+          "n_features": 1221,
+          "type_counts": {
+            "LANE_SURFACE_STREET": 370,
+            "ROAD_LINE_BROKEN_SINGLE_WHITE": 356,
+            "LANE_SURFACE_UNSTRUCTURE": 426,
+            "ROAD_EDGE_SIDEWALK": 26,
+            "CROSSWALK": 20,
+            "ROAD_LINE_SOLID_SINGLE_WHITE": 23
+          },
+          "geometry": {
+            "polyline": 1175,
+            "polygon": 46,
+            "neither": 0
+          },
+          "interest_counts": {
+            "LANE": 796,
+            "LANE_CONNECTOR": 0,
+            "ROADBLOCK": 0,
+            "CROSSWALK": 20,
+            "STOP_LINE": 0
+          }
+        },
+        "dynamic_map": {
+          "n_lights_or_dynamic": 26,
+          "state_shape_samples": [
+            [
+              "traffic_light_state:list",
+              26
+            ]
+          ]
+        },
+        "coordinate_transforms": {
+          "old_origin_in_current_coordinate": {
+            "kind": "ndarray",
+            "shape": [
+              2
+            ],
+            "dtype": "float64",
+            "nbytes": 16,
+            "ndim": 1,
+            "finite_frac": 1.0,
+            "nan_count_sample": 0,
+            "inf_count_sample": 0,
+            "sample_n": 2
+          },
+          "digitaltwin_ego2globals": {
+            "type": "list",
+            "repr": "list"
+          },
+          "coordinate": "absent"
+        },
+        "coordinate_declared": "absent",
+        "reward_scan": {
+          "present_keys": [],
+          "absent": [
+            "comfort",
+            "drivable_area_compliance",
+            "driving_direction_compliance",
+            "ego_progress",
+            "lane_keeping",
+            "no_at_fault_collisions",
+            "pdms",
+            "pdms_pkl",
+            "reward",
+            "rewards",
+            "score",
+            "scores",
+            "time_to_collision_within_bound"
+          ]
+        },
+        "sensor_scan": {
+          "present_keys": [
+            "cameras",
+            "lidar",
+            "openscene_data_infos_dict"
+          ],
+          "absent": [
+            "digitaltwin_asset_id",
+            "sensor_blobs",
+            "sensor_path",
+            "synthetic_scene_info"
+          ],
+          "present_detail": {
+            "cameras": [
+              {
+                "path": "cameras",
+                "value_type": "dict"
+              }
+            ],
+            "lidar": [
+              {
+                "path": "lidar",
+                "value_type": "dict"
+              }
+            ],
+            "openscene_data_infos_dict": [
+              {
+                "path": "metadata.openscene_data_infos_dict",
+                "value_type": "dict"
+              }
+            ]
+          }
+        },
+        "dual_trajectory_tracks": {
+          "original_track_key": "absent",
+          "bwm_track_key": "absent",
+          "note": "Only explicit dual-track keys counted; no trajectory-similarity inference."
+        }
+      },
+      {
+        "scenario_key": "2021.06.14.18.42.45_veh-12_03445_03902-c5d0464eadce551f-002",
+        "scenario_type": "dict",
+        "top_keys": [
+          "base_timestamp",
+          "cameras",
+          "dataset",
+          "dynamic_map_states",
+          "id",
+          "lidar",
+          "log_length",
+          "map",
+          "map_features",
+          "metadata",
+          "name",
+          "object_track",
+          "sample_rate",
+          "sdc_id",
+          "token"
+        ],
+        "required_first_level": {
+          "object_track": true,
+          "id": true,
+          "dynamic_map_states": true,
+          "map_features": true,
+          "log_length": true
+        },
+        "id_field": "2021.06.14.18.42.45_veh-12_03445_03902-c5d0464eadce551f-002",
+        "name_field": "2021.06.14.18.42.45_veh-12_03445_03902-c5d0464eadce551f-002",
+        "token_field": "2021.06.14.18.42.45_veh-12_03445_03902-c5d0464eadce551f-goal_conditional_copy_with_noise",
+        "source_fields": {
+          "source": "absent",
+          "source_token": "absent",
+          "source_scene_id": "absent",
+          "original": "absent",
+          "original_token": "absent",
+          "original_scene_id": "absent",
+          "original_id": "absent",
+          "parent": "absent",
+          "parent_token": "absent",
+          "parent_scene_id": "absent",
+          "base_scene_id": "absent",
+          "base_token": "absent"
+        },
+        "variant_fields": {
+          "variant": "absent",
+          "variant_id": "absent",
+          "sample_id": "absent",
+          "seed": "absent",
+          "augmentation_type": "absent",
+          "aug_type": "absent",
+          "goal": "absent",
+          "intent": "absent",
+          "attack": "absent"
+        },
+        "ego_conditioning_fields": {
+          "ego_conditioning": "absent",
+          "ego_plan": "absent",
+          "ego_future": "absent",
+          "plan_idx": "absent",
+          "plan_index": "absent",
+          "requested_ego_conditioning_hash": "absent",
+          "ego_traj_hash": "absent",
+          "conditioning_plan": "absent",
+          "bwm_ego_plan": "absent"
+        },
+        "bwm_provenance_fields": {
+          "bwm_provenance": "absent",
+          "bwm_model": "absent",
+          "bwm_revision": "absent",
+          "generation_window": "absent",
+          "generation_seed": "absent",
+          "model_revision": "absent",
+          "bwm_future": "absent",
+          "traffic_future_source": "absent"
+        },
+        "deep_source_scan": {
+          "absent": [
+            "base_scene_id",
+            "base_token",
+            "original",
+            "original_id",
+            "original_scene_id",
+            "original_token",
+            "parent",
+            "parent_scene_id",
+            "parent_token",
+            "source",
+            "source_scene_id",
+            "source_token"
+          ],
+          "present_keys": []
+        },
+        "deep_ego_scan": {
+          "absent": [
+            "bwm_ego_plan",
+            "conditioning_plan",
+            "ego_conditioning",
+            "ego_future",
+            "ego_plan",
+            "ego_traj_hash",
+            "plan_idx",
+            "plan_index",
+            "requested_ego_conditioning_hash"
+          ],
+          "present_keys": []
+        },
+        "time_anchor": {
+          "sample_rate": 2,
+          "log_length": 21,
+          "base_timestamp": 1623714523699708,
+          "explicit_time_bounds": {
+            "history_start": "absent",
+            "history_end": "absent",
+            "current": "absent",
+            "cutoff": "absent",
+            "future_start": "absent",
+            "future_end": "absent",
+            "generation_window": "absent",
+            "bwm_future_start": "absent",
+            "bwm_future_end": "absent"
+          },
+          "simengine_code_contract_dt_s": 0.1,
+          "simengine_code_contract_hz": 10.0,
+          "cutoff_support_if_full_trajectory": {
+            "cutoff_3_has_ge_5_history_frames": false,
+            "cutoff_3_in_range": true,
+            "cutoff_4_has_ge_5_history_frames": true,
+            "cutoff_4_in_range": true
+          },
+          "note": "No author cutoff is invented. If explicit bounds absent, scenario is treated as full trajectory without BWM-future boundary fact."
+        },
+        "ego": {
+          "sdc_id": "ego",
+          "ego_token_resolved": "ego",
+          "ego_state_shapes": {
+            "position": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                3
+              ],
+              "dtype": "float64",
+              "nbytes": 504,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 63
+            },
+            "heading": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "velocity": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                2
+              ],
+              "dtype": "float64",
+              "nbytes": 336,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 42
+            },
+            "valid": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float32",
+              "nbytes": 84,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "length": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "width": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "height": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            }
+          }
+        },
+        "agents": {
+          "n_agents": 71,
+          "type_counts": {
+            "VEHICLE": 71
+          },
+          "state_key_present_counts": {
+            "position": 71,
+            "heading": 71,
+            "velocity": 71,
+            "valid": 71,
+            "length": 71,
+            "width": 71,
+            "height": 71
+          },
+          "state_shape_dtype_top": {
+            "position": [
+              [
+                "(21, 3)|float64",
+                71
+              ]
+            ],
+            "heading": [
+              [
+                "(21,)|float64",
+                71
+              ]
+            ],
+            "velocity": [
+              [
+                "(21, 2)|float64",
+                71
+              ]
+            ],
+            "valid": [
+              [
+                "(21,)|float32",
+                71
+              ]
+            ],
+            "length": [
+              [
+                "(21, 1)|float64",
+                71
+              ]
+            ],
+            "width": [
+              [
+                "(21, 1)|float64",
+                71
+              ]
+            ],
+            "height": [
+              [
+                "(21, 1)|float64",
+                71
+              ]
+            ]
+          },
+          "spawn_despawn": {
+            "n_with_valid_switch": 44,
+            "n_checked": 71
+          },
+          "log_length_declared": 21
+        },
+        "map": {
+          "n_features": 1006,
+          "type_counts": {
+            "LANE_SURFACE_STREET": 300,
+            "ROAD_LINE_BROKEN_SINGLE_WHITE": 294,
+            "LANE_SURFACE_UNSTRUCTURE": 355,
+            "ROAD_EDGE_SIDEWALK": 23,
+            "CROSSWALK": 16,
+            "ROAD_LINE_SOLID_SINGLE_WHITE": 18
+          },
+          "geometry": {
+            "polyline": 967,
+            "polygon": 39,
+            "neither": 0
+          },
+          "interest_counts": {
+            "LANE": 655,
+            "LANE_CONNECTOR": 0,
+            "ROADBLOCK": 0,
+            "CROSSWALK": 16,
+            "STOP_LINE": 0
+          }
+        },
+        "dynamic_map": {
+          "n_lights_or_dynamic": 31,
+          "state_shape_samples": [
+            [
+              "traffic_light_state:list",
+              31
+            ]
+          ]
+        },
+        "coordinate_transforms": {
+          "old_origin_in_current_coordinate": {
+            "kind": "ndarray",
+            "shape": [
+              2
+            ],
+            "dtype": "float64",
+            "nbytes": 16,
+            "ndim": 1,
+            "finite_frac": 1.0,
+            "nan_count_sample": 0,
+            "inf_count_sample": 0,
+            "sample_n": 2
+          },
+          "digitaltwin_ego2globals": {
+            "type": "list",
+            "repr": "list"
+          },
+          "coordinate": "absent"
+        },
+        "coordinate_declared": "absent",
+        "reward_scan": {
+          "present_keys": [],
+          "absent": [
+            "comfort",
+            "drivable_area_compliance",
+            "driving_direction_compliance",
+            "ego_progress",
+            "lane_keeping",
+            "no_at_fault_collisions",
+            "pdms",
+            "pdms_pkl",
+            "reward",
+            "rewards",
+            "score",
+            "scores",
+            "time_to_collision_within_bound"
+          ]
+        },
+        "sensor_scan": {
+          "present_keys": [
+            "cameras",
+            "lidar",
+            "openscene_data_infos_dict"
+          ],
+          "absent": [
+            "digitaltwin_asset_id",
+            "sensor_blobs",
+            "sensor_path",
+            "synthetic_scene_info"
+          ],
+          "present_detail": {
+            "cameras": [
+              {
+                "path": "cameras",
+                "value_type": "dict"
+              }
+            ],
+            "lidar": [
+              {
+                "path": "lidar",
+                "value_type": "dict"
+              }
+            ],
+            "openscene_data_infos_dict": [
+              {
+                "path": "metadata.openscene_data_infos_dict",
+                "value_type": "dict"
+              }
+            ]
+          }
+        },
+        "dual_trajectory_tracks": {
+          "original_track_key": "absent",
+          "bwm_track_key": "absent",
+          "note": "Only explicit dual-track keys counted; no trajectory-similarity inference."
+        }
+      },
+      {
+        "scenario_key": "2021.06.23.18.23.38_veh-26_00069_00642-f666fe3a5a4254f6-009",
+        "scenario_type": "dict",
+        "top_keys": [
+          "base_timestamp",
+          "cameras",
+          "dataset",
+          "dynamic_map_states",
+          "id",
+          "lidar",
+          "log_length",
+          "map",
+          "map_features",
+          "metadata",
+          "name",
+          "object_track",
+          "sample_rate",
+          "sdc_id",
+          "token"
+        ],
+        "required_first_level": {
+          "object_track": true,
+          "id": true,
+          "dynamic_map_states": true,
+          "map_features": true,
+          "log_length": true
+        },
+        "id_field": "2021.06.23.18.23.38_veh-26_00069_00642-f666fe3a5a4254f6-009",
+        "name_field": "2021.06.23.18.23.38_veh-26_00069_00642-f666fe3a5a4254f6-009",
+        "token_field": "2021.06.23.18.23.38_veh-26_00069_00642-f666fe3a5a4254f6-intent_attack_with_goal_selection",
+        "source_fields": {
+          "source": "absent",
+          "source_token": "absent",
+          "source_scene_id": "absent",
+          "original": "absent",
+          "original_token": "absent",
+          "original_scene_id": "absent",
+          "original_id": "absent",
+          "parent": "absent",
+          "parent_token": "absent",
+          "parent_scene_id": "absent",
+          "base_scene_id": "absent",
+          "base_token": "absent"
+        },
+        "variant_fields": {
+          "variant": "absent",
+          "variant_id": "absent",
+          "sample_id": "absent",
+          "seed": "absent",
+          "augmentation_type": "absent",
+          "aug_type": "absent",
+          "goal": "absent",
+          "intent": "absent",
+          "attack": "absent"
+        },
+        "ego_conditioning_fields": {
+          "ego_conditioning": "absent",
+          "ego_plan": "absent",
+          "ego_future": "absent",
+          "plan_idx": "absent",
+          "plan_index": "absent",
+          "requested_ego_conditioning_hash": "absent",
+          "ego_traj_hash": "absent",
+          "conditioning_plan": "absent",
+          "bwm_ego_plan": "absent"
+        },
+        "bwm_provenance_fields": {
+          "bwm_provenance": "absent",
+          "bwm_model": "absent",
+          "bwm_revision": "absent",
+          "generation_window": "absent",
+          "generation_seed": "absent",
+          "model_revision": "absent",
+          "bwm_future": "absent",
+          "traffic_future_source": "absent"
+        },
+        "deep_source_scan": {
+          "absent": [
+            "base_scene_id",
+            "base_token",
+            "original",
+            "original_id",
+            "original_scene_id",
+            "original_token",
+            "parent",
+            "parent_scene_id",
+            "parent_token",
+            "source",
+            "source_scene_id",
+            "source_token"
+          ],
+          "present_keys": []
+        },
+        "deep_ego_scan": {
+          "absent": [
+            "bwm_ego_plan",
+            "conditioning_plan",
+            "ego_conditioning",
+            "ego_future",
+            "ego_plan",
+            "ego_traj_hash",
+            "plan_idx",
+            "plan_index",
+            "requested_ego_conditioning_hash"
+          ],
+          "present_keys": []
+        },
+        "time_anchor": {
+          "sample_rate": 2,
+          "log_length": 21,
+          "base_timestamp": 1624473181366846,
+          "explicit_time_bounds": {
+            "history_start": "absent",
+            "history_end": "absent",
+            "current": "absent",
+            "cutoff": "absent",
+            "future_start": "absent",
+            "future_end": "absent",
+            "generation_window": "absent",
+            "bwm_future_start": "absent",
+            "bwm_future_end": "absent"
+          },
+          "simengine_code_contract_dt_s": 0.1,
+          "simengine_code_contract_hz": 10.0,
+          "cutoff_support_if_full_trajectory": {
+            "cutoff_3_has_ge_5_history_frames": false,
+            "cutoff_3_in_range": true,
+            "cutoff_4_has_ge_5_history_frames": true,
+            "cutoff_4_in_range": true
+          },
+          "note": "No author cutoff is invented. If explicit bounds absent, scenario is treated as full trajectory without BWM-future boundary fact."
+        },
+        "ego": {
+          "sdc_id": "ego",
+          "ego_token_resolved": "ego",
+          "ego_state_shapes": {
+            "position": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                3
+              ],
+              "dtype": "float64",
+              "nbytes": 504,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 63
+            },
+            "heading": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "velocity": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                2
+              ],
+              "dtype": "float64",
+              "nbytes": 336,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 42
+            },
+            "valid": {
+              "kind": "ndarray",
+              "shape": [
+                21
+              ],
+              "dtype": "float32",
+              "nbytes": 84,
+              "ndim": 1,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "length": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "width": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            },
+            "height": {
+              "kind": "ndarray",
+              "shape": [
+                21,
+                1
+              ],
+              "dtype": "float64",
+              "nbytes": 168,
+              "ndim": 2,
+              "finite_frac": 1.0,
+              "nan_count_sample": 0,
+              "inf_count_sample": 0,
+              "sample_n": 21
+            }
+          }
+        },
+        "agents": {
+          "n_agents": 50,
+          "type_counts": {
+            "VEHICLE": 50
+          },
+          "state_key_present_counts": {
+            "position": 50,
+            "heading": 50,
+            "velocity": 50,
+            "valid": 50,
+            "length": 50,
+            "width": 50,
+            "height": 50
+          },
+          "state_shape_dtype_top": {
+            "position": [
+              [
+                "(21, 3)|float64",
+                50
+              ]
+            ],
+            "heading": [
+              [
+                "(21,)|float64",
+                50
+              ]
+            ],
+            "velocity": [
+              [
+                "(21, 2)|float64",
+                50
+              ]
+            ],
+            "valid": [
+              [
+                "(21,)|float32",
+                50
+              ]
+            ],
+            "length": [
+              [
+                "(21, 1)|float64",
+                50
+              ]
+            ],
+            "width": [
+              [
+                "(21, 1)|float64",
+                50
+              ]
+            ],
+            "height": [
+              [
+                "(21, 1)|float64",
+                50
+              ]
+            ]
+          },
+          "spawn_despawn": {
+            "n_with_valid_switch": 38,
+            "n_checked": 50
+          },
+          "log_length_declared": 21
+        },
+        "map": {
+          "n_features": 1199,
+          "type_counts": {
+            "LANE_SURFACE_STREET": 361,
+            "ROAD_LINE_BROKEN_SINGLE_WHITE": 353,
+            "LANE_SURFACE_UNSTRUCTURE": 420,
+            "ROAD_EDGE_SIDEWALK": 23,
+            "CROSSWALK": 16,
+            "ROAD_LINE_SOLID_SINGLE_WHITE": 26
+          },
+          "geometry": {
+            "polyline": 1160,
+            "polygon": 39,
+            "neither": 0
+          },
+          "interest_counts": {
+            "LANE": 781,
+            "LANE_CONNECTOR": 0,
+            "ROADBLOCK": 0,
+            "CROSSWALK": 16,
+            "STOP_LINE": 0
+          }
+        },
+        "dynamic_map": {
+          "n_lights_or_dynamic": 29,
+          "state_shape_samples": [
+            [
+              "traffic_light_state:list",
+              29
+            ]
+          ]
+        },
+        "coordinate_transforms": {
+          "old_origin_in_current_coordinate": {
+            "kind": "ndarray",
+            "shape": [
+              2
+            ],
+            "dtype": "float64",
+            "nbytes": 16,
+            "ndim": 1,
+            "finite_frac": 1.0,
+            "nan_count_sample": 0,
+            "inf_count_sample": 0,
+            "sample_n": 2
+          },
+          "digitaltwin_ego2globals": {
+            "type": "list",
+            "repr": "list"
+          },
+          "coordinate": "absent"
+        },
+        "coordinate_declared": "absent",
+        "reward_scan": {
+          "present_keys": [],
+          "absent": [
+            "comfort",
+            "drivable_area_compliance",
+            "driving_direction_compliance",
+            "ego_progress",
+            "lane_keeping",
+            "no_at_fault_collisions",
+            "pdms",
+            "pdms_pkl",
+            "reward",
+            "rewards",
+            "score",
+            "scores",
+            "time_to_collision_within_bound"
+          ]
+        },
+        "sensor_scan": {
+          "present_keys": [
+            "cameras",
+            "lidar",
+            "openscene_data_infos_dict"
+          ],
+          "absent": [
+            "digitaltwin_asset_id",
+            "sensor_blobs",
+            "sensor_path",
+            "synthetic_scene_info"
+          ],
+          "present_detail": {
+            "cameras": [
+              {
+                "path": "cameras",
+                "value_type": "dict"
+              }
+            ],
+            "lidar": [
+              {
+                "path": "lidar",
+                "value_type": "dict"
+              }
+            ],
+            "openscene_data_infos_dict": [
+              {
+                "path": "metadata.openscene_data_infos_dict",
+                "value_type": "dict"
+              }
+            ]
+          }
+        },
+        "dual_trajectory_tracks": {
+          "original_track_key": "absent",
+          "bwm_track_key": "absent",
+          "note": "Only explicit dual-track keys counted; no trajectory-similarity inference."
+        }
+      }
+    ],
+    "wall_s": 18.341,
+    "peak_rss_gb": 4.977,
+    "pairing_grade": {
+      "grade": "C",
+      "evidence": [
+        "source_fields_absent_no_filename_inference",
+        "ego_conditioning_absent_no_trajectory_inference",
+        "full_trajectory_without_author_cutoff_boundary",
+        "external_generated_domain_without_explicit_source_pairing"
+      ],
+      "missing": [
+        "explicit_source_original_parent_base_fields",
+        "explicit_ego_conditioning_fields",
+        "explicit_cutoff_generation_window",
+        "explicit_dual_tracks",
+        "cannot_claim_A_without_proven_identical_history_ego_map_agents"
+      ],
+      "allowed": [
+        "independent generated-domain quality/robustness description"
+      ],
+      "forbidden": [
+        "any same-scene paired effect attribution",
+        "strict or weak paired reward attribution"
+      ],
+      "reward_fields_present": false,
+      "note": "Filename/ID-suffix/trajectory-similarity MUST NOT upgrade grade."
+    },
+    "traffic_future_pack_compatibility": {
+      "scene_cutoff_history": {
+        "direct": false,
+        "convert": true,
+        "interpolate": false,
+        "missing": false,
+        "needs_original": false,
+        "note": "Full trajectory present if log_length known; author cutoff absent → cutoff is consumer choice, not data fact."
+      },
+      "ego_conditioning": {
+        "direct": false,
+        "convert": false,
+        "interpolate": false,
+        "missing": true,
+        "needs_original": false,
+        "note": "absent in pickle"
+      },
+      "agent_futures": {
+        "direct": true,
+        "convert": true,
+        "interpolate": false,
+        "missing": false,
+        "needs_original": false,
+        "note": "Can slice object_track like extract_replay_futures; source label must be set to bwm-offline by adapter."
+      },
+      "token_type_size_valid": {
+        "direct": true,
+        "convert": false,
+        "interpolate": false,
+        "missing": false,
+        "needs_original": false,
+        "note": "size stays on scene object_track; futures carry type/pos/heading/vel/valid."
+      },
+      "map_traffic_lights": {
+        "direct": true,
+        "convert": false,
+        "interpolate": false,
+        "missing": false,
+        "needs_original": false,
+        "note": "map_features flat dict; dynamic_map_states present if has_lights."
+      },
+      "frequency_horizon": {
+        "direct": false,
+        "convert": false,
+        "interpolate": true,
+        "missing": false,
+        "needs_original": false,
+        "note": "dominant_code_contract_hz=10.0; interpolation rules only designed, not executed."
+      },
+      "coverage_future_hash_provenance": {
+        "direct": false,
+        "convert": true,
+        "interpolate": false,
+        "missing": true,
+        "needs_original": false,
+        "note": "future_hash/provenance can be computed; explicit BWM provenance fields mostly absent."
+      },
+      "needs_19gb_original_for_strict_equality": false,
+      "can_reuse_existing_pdm_sidecar_without_scoring_now": true,
+      "same_anchor_as_replay_idm_nexus": {
+        "direct": false,
+        "convert": false,
+        "interpolate": false,
+        "missing": true,
+        "needs_original": false,
+        "note": "Unified cutoff NOT decided this stage; data does not force cutoff=3 or 4."
+      }
+    }
+  }
+}
