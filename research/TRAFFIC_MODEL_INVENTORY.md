@@ -99,6 +99,8 @@ data/sim_engine/scenarios/augmented/
 - 支持token级inpainting，可固定ego future并生成其他agents；
 - 权重公开，避免从零训练。
 
+**2026-06-17 官方确认**（WorldEngine GitHub issue #8，@WCJ-BERT 回复）：BWM 模块目前基于 Nexus 仓库实现，尚未整合进 WorldEngine 主仓，暂无明确时间节点；官方建议"如有迫切需要，可先参考 Nexus 仓库"。佐证：WorldEngine 论文 3.3 节 BWM 扩散公式（`k=[k_a,τ]∈(0,1]^{A×T}`，逐 token 独立噪声）与 Nexus 论文核心创新"decoupled diffusion"（该论文即 WorldEngine 参考文献 [16]）数学形式一致；两篇论文 3 位共同作者（Tianyu Li、Naisheng Ye、Hongyang Li）。**这把"用 Nexus 作为 BWM 研究代理"从架构层面的合理推断，升级为官方确认的事实**，进一步支持当前选择。
+
 已知阻断：
 
 - `world_model_agents_observation.yaml` 指向缺失/不匹配类；

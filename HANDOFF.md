@@ -42,6 +42,20 @@
 - 当前可把 BWM 预生成轨迹作为 `BWM-Offline` 行为来源，不能声称可调用完整 BWM。
 - Replay/IDM 已在 SimEngine 中分别对应 NR/R；Nexus sidecar 旁路在 1-scene 上判定 **可用**；SMART 尚未可运行接入。
 
+## Mac 侧代码/论文深度问答新增确认事实（2026-07-16，基于本地 `fc79b937050ed9d68e18add2b480ae72578a7ea5` 官方仓库克隆直接读码 + 论文原文 + 官方 GitHub issues）
+
+本节为一次纯问答式代码/论文核对的沉淀，不改变研究判断或下一阶段，仅补充工程细节记录。
+
+- **官方确认 BWM 基于 Nexus 实现**：WorldEngine GitHub issue #8（2026-06-17，@WCJ-BERT 回复）——"BWM 模块目前基于我们的 Nexus 仓库实现，相关代码整合进 WorldEngine 主仓库的工作仍在规划中，暂无明确时间节点……如有迫切需要，可先参考 Nexus 仓库"；BWM 生成场景数据为 `.pkl` 格式，不含点云。佐证：WorldEngine 论文 3.3 节 BWM 扩散公式（`k=[k_a,τ]∈(0,1]^{A×T}`，逐 token 独立噪声）与 Nexus 论文标题同源的核心创新"decoupled diffusion"数学形式一致；两篇论文 3 位共同作者（Tianyu Li、Naisheng Ye、Hongyang Li）。此前"Nexus 作为 BWM 研究代理"的选择，从架构推断升级为官方确认。
+- **预训练 IL 阶段**（`e2e_vadv2_50pct.py`）仅冻结 ResNet 骨干（`freeze_img_backbone=True`），BEV 编码器/FPN 颈部/BN/tracking 头均联合训练；`reward_shaping=False` 时模型只有 `imi` 头，noc/da/ttc/comfort/progress 五个 reward head 不存在。
+- **imitation 监督**：词表轨迹与专家轨迹的 L2 距离（`torch.linalg.norm`）取最小作为硬标签，配合 `label_smoothing=0.2` 的交叉熵；若最近标签自身 PDM 分数 ≤0.8 则该样本 imitation loss 清零。**reward 监督**为 5 个独立 BCE（noc/da/ttc/comfort/progress，权重 3/3/2/1/1），逐候选对应 PDM 缓存里的一列，不是联合回归一张表。
+- **PDM 子奖励标签来源**：离线预计算缓存（`pdms_cache/pdm_8192_gt_cache_navtrain.pkl` 等），由 `DenseRewardManager` 对日志（非反应式）他车 future 打分生成，训练时直接查表，不现算；这与"分歧"研究的关注点一致——换一个交通模型，本质是换一套 PDM 缓存。
+- **数据管线三层关系**：`scenarios/augmented/`（BWM-Offline，纯轨迹+地图，无图像）→ SimEngine rollout（`run_ray_distributed_rollout.sh` **硬编码** `--react_type NR`，无 R/IDM 分支）→ `openscene-synthetic`（渲染图像+PDM 标签，RLFT 真正消费的数据）。`rare_rollout`/`rare_rollout_bwm`/`rare_syn_replay` 三个 config 的 `synthetic_folder_names` 均为 `/path/to/...` 占位符，需自行跑 rollout 生成；`rare_log`/`common_log`/ILFT 不需要此步，直接用标准真实数据+yaml 过滤。
+- **未发现显式 KL 散度项**：全文搜索 `traj_scoring_head_RL.py`、`navformer.py` 均无 `KL`/`kl` 相关计算，论文 Eq.9 的 behaviour-regularized RL（`KL(π_φ‖π_ref)`）在代码里没有对应的显式实现；实际起类似作用的是重要性采样比值裁剪（PPO 式，`IS_ratio.clamp(max=10)`）+ LoRA 架构约束 + 真实日志按 `normal_ratio`（默认 1:1）混合。
+- **`rl_finetuning=True` 非占位**：`compute_RL_loss`（PG + ranking margin + entropy）是完整实现，非 stub；且 `configs/simscale/`（OpenDriveLab 姊妹项目 **SimScale**，非 WorldEngine 论文本身，arXiv 2511.23369）下的两个 config 确实设置 `rl_finetuning=True` 并使用该路径，证明机制被真实使用过。但 WorldEngine 论文自己发布的全部 5 个 RLFT config（含 `rare_rollout_bwm`）均为 `False`——这是"WorldEngine 默认开源配置的选择"，不是"代码没写"。
+- **3DGS asset 分段逻辑**（官方 issue #6）：按 MTGS 多 traversal 空间覆盖聚合，非固定时间窗；navtest split（1491 assets）实测 min 8.6s / median 17.5s / mean 28.2s / max 139.9s。默认 rollout 步数为 `num_history=4 + num_future=8 = 12` 步（文档曾写"20 步"，官方已确认是文档错误）。
+- **scenario_id 与 asset 文件夹名不是直接字符串匹配**（官方 issue #10）：一个 asset 可覆盖同路段的多个 scenario token，需通过该 asset 对应 yaml 的 `central_tokens` 字段解析；此前"navtrain_50pct_collision 资产是否覆盖"的存疑，结论是**资产存在，只是查找逻辑不是直接匹配**。
+
 ## H20 已知资源
 
 - Ubuntu 22.04.5 LTS，内核 5.10 Alibaba。
