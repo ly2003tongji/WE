@@ -259,6 +259,69 @@ def _state_at_local(
     )
 
 
+def _extract_map_polyline(obj: Dict[str, Any]) -> Optional[np.ndarray]:
+    """Prefer polyline; for CROSSWALK-like features fall back to polygon ring."""
+    poly = np.asarray(obj.get("polyline", []), dtype=np.float64)
+    if poly.ndim == 2 and poly.shape[0] >= 2:
+        return poly[:, :2]
+    polygon = np.asarray(obj.get("polygon", []), dtype=np.float64)
+    if polygon.ndim == 2 and polygon.shape[0] >= 2:
+        # Close ring if needed so sampling covers full boundary.
+        ring = polygon[:, :2]
+        if not np.allclose(ring[0], ring[-1]):
+            ring = np.concatenate([ring, ring[:1]], axis=0)
+        return ring
+    return None
+
+
+def audit_map_coverage(scene: Dict[str, Any], freeze: FreezeFrame, radius_m: float = DEFAULT_RADIUS_M) -> Dict[str, Any]:
+    """Explain missing Nexus map types: absent / unmapped / no-geometry / radius truncation."""
+    mf = scene.get("map_features", {}) or {}
+    we_counts: Dict[str, int] = {}
+    reasons = {
+        "LANE_CONNECTOR": {"we_absent": True, "note": "OpenScene scene has no LANE_CONNECTOR type"},
+        "STOP_LINE": {"we_absent": True, "note": "OpenScene scene has no STOP_LINE type"},
+        "CROSSWALK": {"we_count": 0, "with_polyline": 0, "with_polygon_only": 0, "in_radius": 0, "encoded_via_polygon": 0},
+        "LANE": {"we_street": 0, "we_unstructure": 0, "in_radius": 0},
+    }
+    for mid, obj in mf.items():
+        if not isinstance(obj, dict):
+            continue
+        t = str(obj.get("type", ""))
+        we_counts[t] = we_counts.get(t, 0) + 1
+        if t == "CROSSWALK":
+            reasons["CROSSWALK"]["we_count"] += 1
+            has_pl = np.asarray(obj.get("polyline", [])).ndim == 2 and len(obj.get("polyline", [])) >= 2
+            has_pg = np.asarray(obj.get("polygon", [])).ndim == 2 and len(obj.get("polygon", [])) >= 2
+            if has_pl:
+                reasons["CROSSWALK"]["with_polyline"] += 1
+            elif has_pg:
+                reasons["CROSSWALK"]["with_polygon_only"] += 1
+            geom = _extract_map_polyline(obj)
+            if geom is not None:
+                d = float(np.linalg.norm(geom - freeze.origin_xy[None, :], axis=1).min())
+                if d <= radius_m:
+                    reasons["CROSSWALK"]["in_radius"] += 1
+        if t in ("LANE_SURFACE_STREET", "LANE_SURFACE_UNSTRUCTURE"):
+            key = "we_street" if t.endswith("STREET") else "we_unstructure"
+            reasons["LANE"][key] += 1
+            geom = _extract_map_polyline(obj)
+            if geom is not None:
+                d = float(np.linalg.norm(geom - freeze.origin_xy[None, :], axis=1).min())
+                if d <= radius_m:
+                    reasons["LANE"]["in_radius"] += 1
+    return {
+        "we_type_counts": we_counts,
+        "diagnosis": reasons,
+        "conclusion": {
+            "LANE_CONNECTOR": "upstream_absent",
+            "STOP_LINE": "upstream_absent",
+            "CROSSWALK": "adapter_omission_if_polygon_not_used_else_radius",
+            "LANE": "mapped_from_LANE_SURFACE_*",
+        },
+    }
+
+
 def encode_map_polylines(
     scene: Dict[str, Any],
     freeze: FreezeFrame,
@@ -275,9 +338,12 @@ def encode_map_polylines(
     counts_nexus: Dict[str, int] = {k: 0 for k in map_features}
     used = 0
     missing_types = set()
+    skipped_no_geom = 0
+    skipped_radius = 0
+    used_polygon_fallback = 0
 
     # Collect candidates within radius of freeze origin
-    candidates: List[Tuple[float, str, Dict[str, Any], str]] = []
+    candidates: List[Tuple[float, str, Dict[str, Any], str, np.ndarray]] = []
     for mid, obj in mf.items():
         if not isinstance(obj, dict):
             continue
@@ -288,19 +354,28 @@ def encode_map_polylines(
             if we_type:
                 missing_types.add(we_type)
             continue
-        poly = np.asarray(obj.get("polyline", []), dtype=np.float64)
-        if poly.ndim != 2 or poly.shape[0] < 2:
+        geom = _extract_map_polyline(obj)
+        if geom is None:
+            skipped_no_geom += 1
             continue
-        # distance of closest point to origin
-        d = np.linalg.norm(poly[:, :2] - freeze.origin_xy[None, :], axis=1).min()
+        if "polyline" not in obj or len(np.asarray(obj.get("polyline", []))) < 2:
+            if "polygon" in obj:
+                used_polygon_fallback += 1
+        d = float(np.linalg.norm(geom - freeze.origin_xy[None, :], axis=1).min())
         if d > radius_m:
+            skipped_radius += 1
             continue
-        candidates.append((float(d), str(mid), obj, nexus_type))
+        candidates.append((d, str(mid), obj, nexus_type, geom))
 
     candidates.sort(key=lambda x: x[0])
-    for _, mid, obj, nexus_type in candidates[:num_max]:
-        poly = np.asarray(obj["polyline"], dtype=np.float64)[:, :2]
-        local = freeze.world_to_local_xy(poly)
+    # Prefer diversity: encode lanes first then crosswalks within budget
+    lanes = [c for c in candidates if c[3] == "LANE"]
+    others = [c for c in candidates if c[3] != "LANE"]
+    ordered = lanes[: max(0, num_max - min(32, len(others)))] + others
+    ordered = ordered[:num_max]
+
+    for _, mid, obj, nexus_type, geom in ordered:
+        local = freeze.world_to_local_xy(geom)
         n = local.shape[0]
         idx = np.linspace(0, n - 1, num_points)
         xs = np.interp(idx, np.arange(n), local[:, 0])
@@ -312,13 +387,12 @@ def encode_map_polylines(
         row = np.concatenate([coords, onehot, speed], axis=1)
         road[used] = row
         road_v[used] = 1.0
-        # speed_limit channel invalid
         road_v[used, :, -1] = 0.0
         counts_nexus[nexus_type] += 1
         used += 1
 
-    # normalize xy like official
     road[..., :2] = (road[..., :2] - FEATURE_MEANS[:2]) / (2.0 * FEATURE_STD[:2])
+    audit = audit_map_coverage(scene, freeze, radius_m=radius_m)
 
     coverage = {
         "we_type_counts": counts_we,
@@ -326,7 +400,15 @@ def encode_map_polylines(
         "n_encoded": used,
         "missing_requested": [t for t in map_features if counts_nexus.get(t, 0) == 0],
         "unmapped_we_types": sorted(missing_types),
-        "note": "LANE_CONNECTOR/STOP_LINE absent in this OpenScene map; traffic lights not in Nexus map builder.",
+        "skipped_no_geom": skipped_no_geom,
+        "skipped_radius": skipped_radius,
+        "polygon_fallback_used": used_polygon_fallback,
+        "audit": audit,
+        "note": (
+            "LANE_CONNECTOR/STOP_LINE absent in OpenScene WE map; "
+            "CROSSWALK uses polygon ring when polyline missing; "
+            "traffic lights not in Nexus map builder."
+        ),
     }
     return road, road_v, coverage
 
@@ -594,19 +676,51 @@ def vocab_candidate_to_nexus_ego_future(
     heading = np.concatenate([real_head, ext_head], axis=0)
     velocity = np.concatenate([real_vel, ext_vel], axis=0)
 
-    # Physics stats for registration
-    endpoint_sep = float(np.linalg.norm(position[7] - position[0]))  # within real 4s
+    # Physics stats for registration / filtering (all gates actually enforced).
+    steps = np.linalg.norm(np.diff(full_c, axis=0), axis=1)
+    spd = np.linalg.norm(np.diff(full_c, axis=0), axis=1) / 0.5
+    max_acc = 0.0
+    if len(spd) >= 2:
+        max_acc = float(np.max(np.abs(np.diff(spd) / 0.5)))
+    head_real = head_traj[:9]
+    dh = np.abs(np.arctan2(np.sin(np.diff(head_real)), np.cos(np.diff(head_real))))
+    max_yaw_rate = float(np.max(dh / 0.5)) if len(dh) else 0.0
+    max_heading_jump = float(np.max(dh)) if len(dh) else 0.0
+    # heading ↔ velocity alignment on moving steps (speed > 0.5 m/s)
+    aligned = True
+    for i in range(len(real_vel)):
+        v = real_vel[i]
+        sp = float(np.linalg.norm(v))
+        if sp < 0.5:
+            continue
+        v_h = math.atan2(float(v[1]), float(v[0]))
+        err = abs(math.atan2(math.sin(v_h - float(real_head[i])), math.cos(v_h - float(real_head[i]))))
+        if err > math.pi / 2:
+            aligned = False
+            break
+    # Continuity: first real step from t0 should match first velocity * dt
+    first_step = float(np.linalg.norm(full_c[1] - full_c[0]))
+    continuity_ok = first_step <= 15.0 and max_heading_jump <= math.pi / 2 and max_acc <= 12.0
+    lon_end = float(np.dot(real_center[-1] - center_traj[0], np.array([math.cos(ego_h), math.sin(ego_h)])))
+    lat_end = float(
+        np.dot(real_center[-1] - center_traj[0], np.array([-math.sin(ego_h), math.cos(ego_h)]))
+    )
     stats = {
         "real_endpoint_from_t0_m": float(np.linalg.norm(real_center[-1] - center_traj[0])),
-        "real_path_length_m": float(np.sum(np.linalg.norm(np.diff(full_c, axis=0), axis=1))),
+        "real_path_length_m": float(np.sum(steps)),
         "terminal_speed_m_s": float(np.linalg.norm(v_term)),
         "ext_endpoint_from_real_end_m": float(np.linalg.norm(ext_center[-1] - real_center[-1])),
         "max_step_m": float(np.max(np.linalg.norm(np.diff(position, axis=0), axis=1))),
+        "max_acc_m_s2": max_acc,
+        "max_yaw_rate_rad_s": max_yaw_rate,
+        "max_heading_jump_rad": max_heading_jump,
         "within_100m_radius": bool(np.all(np.linalg.norm(position - center_traj[0], axis=1) <= 100.0)),
-        "heading_vel_aligned": bool(
-            abs(math.atan2(v_term[1], v_term[0]) - h_term) < math.pi / 2
-            or np.linalg.norm(v_term) < 0.1
-        ),
+        "heading_vel_aligned": bool(aligned),
+        "continuity_ok": bool(continuity_ok),
+        "lon_endpoint_m": lon_end,
+        "lat_endpoint_m": lat_end,
+        # Map feasibility is NOT claimed here; PDM DAC/Direction provide static map gates.
+        "map_feasibility_enforced_here": False,
     }
     return {
         "position": position,
@@ -621,6 +735,272 @@ def vocab_candidate_to_nexus_ego_future(
         "traj_hash": sha256_array(position) + ":" + sha256_array(heading),
         "real_hash": sha256_array(real_center) + ":" + sha256_array(real_head),
         "ext_hash": sha256_array(ext_center),
+    }
+
+
+def candidate_physics_reject_reasons(stats: Dict[str, Any]) -> List[str]:
+    """Return reject reasons; empty list means pass. All listed gates are enforced."""
+    reasons: List[str] = []
+    if not stats.get("within_100m_radius", False):
+        reasons.append("outside_100m_radius")
+    if float(stats.get("max_step_m", 0.0)) > 15.0:
+        reasons.append("max_step_gt_15m")
+    if float(stats.get("terminal_speed_m_s", 0.0)) > 30.0:
+        reasons.append("terminal_speed_gt_30")
+    # near-stationary but inconsistent terminal speed → reject (must continue, not pass)
+    if float(stats.get("real_path_length_m", 0.0)) < 0.5 and float(stats.get("terminal_speed_m_s", 0.0)) > 1.0:
+        reasons.append("near_stationary_speed_inconsistent")
+    if not stats.get("heading_vel_aligned", False):
+        reasons.append("heading_velocity_misaligned")
+    if float(stats.get("max_acc_m_s2", 0.0)) > 12.0:
+        reasons.append("acceleration_gt_12")
+    if float(stats.get("max_yaw_rate_rad_s", 0.0)) > math.pi:
+        reasons.append("yaw_rate_gt_pi")
+    if float(stats.get("max_heading_jump_rad", 0.0)) > math.pi / 2:
+        reasons.append("heading_jump_gt_90deg")
+    if not stats.get("continuity_ok", False):
+        reasons.append("trajectory_discontinuity")
+    return reasons
+
+
+def filter_vocab_candidates(
+    vocab: np.ndarray,
+    ego_center: np.ndarray,
+    ego_heading: float,
+) -> Tuple[List[Dict[str, Any]], Dict[str, int]]:
+    """Filter vocabulary with enforced physics gates. Returns (kept, reject_counts)."""
+    kept: List[Dict[str, Any]] = []
+    reject_counts: Dict[str, int] = {}
+    for idx in range(len(vocab)):
+        fut = vocab_candidate_to_nexus_ego_future(vocab[idx], ego_center, ego_heading)
+        reasons = candidate_physics_reject_reasons(fut["stats"])
+        if reasons:
+            for r in reasons:
+                reject_counts[r] = reject_counts.get(r, 0) + 1
+            continue
+        kept.append({"plan_idx": int(idx), "future": fut})
+    return kept, reject_counts
+
+
+def pair_frame_separation(a: Dict[str, Any], b: Dict[str, Any], ego_heading: float) -> Dict[str, float]:
+    sep = pair_separation(a, b)
+    da = a["real_position"][-1] - a["t0_center"]
+    db = b["real_position"][-1] - b["t0_center"]
+    fwd = np.array([math.cos(ego_heading), math.sin(ego_heading)])
+    left = np.array([-math.sin(ego_heading), math.cos(ego_heading)])
+    lon_a, lat_a = float(np.dot(da, fwd)), float(np.dot(da, left))
+    lon_b, lat_b = float(np.dot(db, fwd)), float(np.dot(db, left))
+    sep["lon_delta_m"] = abs(lon_a - lon_b)
+    sep["lat_delta_m"] = abs(lat_a - lat_b)
+    sep["path_length_delta_m"] = abs(
+        float(a["stats"]["real_path_length_m"]) - float(b["stats"]["real_path_length_m"])
+    )
+    return sep
+
+
+def select_moderate_candidate_pairs(
+    candidates: List[Dict[str, Any]],
+    ego_heading: float,
+    max_pairs: int = 3,
+) -> List[Dict[str, Any]]:
+    """Select up to 3 moderate pairs (small / mid-longitudinal / reasonable-lateral).
+
+    Does NOT pick the global farthest pair in the full vocabulary.
+    Both members must already be static-feasible (caller responsibility).
+    """
+    if len(candidates) < 2:
+        raise RuntimeError("Not enough static-feasible candidates for pairs")
+    cands = sorted(candidates, key=lambda c: c["future"]["stats"]["real_path_length_m"])
+    anchor = cands[len(cands) // 2]
+    scored = []
+    for b in cands:
+        if b["plan_idx"] == anchor["plan_idx"]:
+            continue
+        sep = pair_frame_separation(anchor["future"], b["future"], ego_heading)
+        scored.append((sep, b))
+
+    def _mk(i: int, a: Dict[str, Any], b: Dict[str, Any], sep: Dict[str, float], rule: str) -> Dict[str, Any]:
+        return {
+            "pair_id": i,
+            "A": {
+                "plan_idx": a["plan_idx"],
+                "traj_hash": a["future"]["traj_hash"],
+                "real_hash": a["future"]["real_hash"],
+                "ext_hash": a["future"]["ext_hash"],
+                "stats": a["future"]["stats"],
+                "static_gate": a.get("static_gate"),
+            },
+            "B": {
+                "plan_idx": b["plan_idx"],
+                "traj_hash": b["future"]["traj_hash"],
+                "real_hash": b["future"]["real_hash"],
+                "ext_hash": b["future"]["ext_hash"],
+                "stats": b["future"]["stats"],
+                "static_gate": b.get("static_gate"),
+            },
+            "separation": sep,
+            "selection_rule": rule,
+            "meets_sep_thresholds": bool(sep["endpoint_m"] >= 1.0 and sep["rms_m"] >= 0.5),
+        }
+
+    pairs: List[Dict[str, Any]] = []
+    used = {anchor["plan_idx"]}
+
+    # 1) small difference
+    small = [
+        (s, b)
+        for s, b in scored
+        if 1.0 <= s["endpoint_m"] <= 5.0 and 0.5 <= s["rms_m"] <= 3.0
+    ]
+    small.sort(key=lambda x: abs(x[0]["endpoint_m"] - 2.5) + abs(x[0]["rms_m"] - 1.5))
+    if small:
+        s, b = small[0]
+        pairs.append(_mk(0, anchor, b, s, "static_feasible_median_anchor_small_sep"))
+        used.add(b["plan_idx"])
+
+    # 2) medium longitudinal
+    mid = [
+        (s, b)
+        for s, b in scored
+        if b["plan_idx"] not in used
+        and 5.0 <= s["path_length_delta_m"] <= 25.0
+        and s["lat_delta_m"] <= 4.0
+        and s["endpoint_m"] >= 3.0
+    ]
+    mid.sort(key=lambda x: abs(x[0]["path_length_delta_m"] - 12.0))
+    if mid:
+        s, b = mid[0]
+        pairs.append(_mk(len(pairs), anchor, b, s, "static_feasible_median_anchor_mid_longitudinal"))
+        used.add(b["plan_idx"])
+
+    # 3) reasonable lateral
+    lat = [
+        (s, b)
+        for s, b in scored
+        if b["plan_idx"] not in used
+        and 2.0 <= s["lat_delta_m"] <= 12.0
+        and s["lon_delta_m"] <= 15.0
+        and s["endpoint_m"] >= 2.0
+    ]
+    lat.sort(key=lambda x: abs(x[0]["lat_delta_m"] - 5.0))
+    if lat:
+        s, b = lat[0]
+        pairs.append(_mk(len(pairs), anchor, b, s, "static_feasible_median_anchor_reasonable_lateral"))
+        used.add(b["plan_idx"])
+
+    # Fill remaining with moderate (not farthest) seps if needed
+    if len(pairs) < max_pairs:
+        rest = [(s, b) for s, b in scored if b["plan_idx"] not in used and s["endpoint_m"] >= 1.0]
+        rest.sort(key=lambda x: x[0]["endpoint_m"] + x[0]["rms_m"])
+        # take mid of remaining rather than max
+        if rest:
+            mid_i = len(rest) // 2
+            for s, b in rest[mid_i:]:
+                if len(pairs) >= max_pairs:
+                    break
+                pairs.append(_mk(len(pairs), anchor, b, s, "static_feasible_median_anchor_moderate_fill"))
+                used.add(b["plan_idx"])
+
+    if not pairs:
+        raise RuntimeError("Failed to pre-register moderate static-feasible pairs")
+    return pairs[:max_pairs]
+
+
+def decoded_agent_physics_gate(agent: Dict[str, Any], dt: float = 0.5) -> Dict[str, Any]:
+    """Physics gate on decoded Nexus agent (first 8 future frames + cutoff continuity)."""
+    pos = np.asarray(agent["position"], dtype=np.float64)
+    head = _as_1d(np.asarray(agent["heading"], dtype=np.float64))
+    vel = np.asarray(agent["velocity"], dtype=np.float64)
+    fut_pos = pos[N_PAST : N_PAST + 8]
+    fut_head = head[N_PAST : N_PAST + 8]
+    fut_vel = vel[N_PAST : N_PAST + 8]
+    issues: List[str] = []
+    if not (np.isfinite(fut_pos).all() and np.isfinite(fut_head).all() and np.isfinite(fut_vel).all()):
+        return {"ok": False, "issues": ["nan_inf"], "max_acc_from_model_spd": None, "max_acc_from_pos": None,
+                "max_heading_jump_rad": None, "cos_sin_norm_ok": True}
+    # Include cutoff→first-future for continuity of model velocity channel
+    spd = np.linalg.norm(vel[N_PAST - 1 : N_PAST + 8, :2], axis=1)
+    acc_model = np.abs(np.diff(spd) / dt) if len(spd) >= 2 else np.array([0.0])
+    pos_seg = pos[N_PAST - 1 : N_PAST + 8, :2]
+    step = np.linalg.norm(np.diff(pos_seg, axis=0), axis=1)
+    acc_pos = np.abs(np.diff(step / dt) / dt) if len(step) >= 2 else np.array([0.0])
+    head_seg = head[N_PAST - 1 : N_PAST + 8]
+    dh = np.abs(np.arctan2(np.sin(np.diff(head_seg)), np.cos(np.diff(head_seg))))
+    if float(np.max(step)) > 15.0:
+        issues.append("step_gt_15m")
+    if float(np.max(np.linalg.norm(fut_vel[:, :2], axis=1))) > 30.0:
+        issues.append("speed_gt_30")
+    if float(np.max(acc_model)) > 12.0:
+        issues.append("acc_gt_12")
+    if float(np.max(dh)) > math.pi / 2:
+        issues.append("heading_jump_gt_90deg")
+    return {
+        "ok": len(issues) == 0,
+        "issues": issues,
+        "max_acc_from_model_spd": float(np.max(acc_model)),
+        "max_acc_from_pos": float(np.max(acc_pos)) if len(acc_pos) else 0.0,
+        "max_heading_jump_rad": float(np.max(dh)) if len(dh) else 0.0,
+        "max_step_m": float(np.max(step)) if len(step) else 0.0,
+    }
+
+
+def diagnose_agent_physics(
+    token: str,
+    decoded: Dict[str, Any],
+    scene: Dict[str, Any],
+    cutoff: int,
+) -> Dict[str, Any]:
+    """Diagnose physics failures without relaxing gates or mutating outputs."""
+    if token not in decoded:
+        return {"token": token, "error": "missing"}
+    da = decoded[token]
+    gate = decoded_agent_physics_gate(da)
+    pos = np.asarray(da["position"], dtype=np.float64)
+    head = _as_1d(np.asarray(da["heading"], dtype=np.float64))
+    vel = np.asarray(da["velocity"], dtype=np.float64)
+    # current (cutoff) vs first future
+    i0, i1 = N_PAST - 1, N_PAST
+    st = scene["object_track"][token]["state"]
+    log_pos = np.asarray(st["position"], dtype=np.float64)[cutoff, :2]
+    log_vel = np.asarray(st["velocity"], dtype=np.float64)[cutoff, :2]
+    log_head = float(_as_1d(np.asarray(st["heading"]))[cutoff])
+    model_spd0 = float(np.linalg.norm(vel[i0, :2]))
+    model_spd1 = float(np.linalg.norm(vel[i1, :2]))
+    pos_implied_acc = float(np.linalg.norm(pos[i1, :2] - pos[i0, :2]) / 0.5 - model_spd0) / 0.5
+    # heading π-equivalence probe (diagnose only; do not canonicalize)
+    dh = abs(math.atan2(math.sin(head[i1] - head[i0]), math.cos(head[i1] - head[i0])))
+    dh_flip = abs(math.atan2(math.sin(head[i1] - (head[i0] + math.pi)), math.cos(head[i1] - (head[i0] + math.pi))))
+    # Reconstruct local cos/sin norm from world heading (decode uses atan2 already)
+    cos_sin_norm = 1.0  # world heading is scalar; check velocity vs heading at near-zero
+    near_zero = model_spd0 < 0.5 and model_spd1 < 0.5
+    return {
+        "token": token,
+        "gate": gate,
+        "cutoff_state_match": {
+            "pos_err_m": float(np.linalg.norm(pos[i0, :2] - log_pos)),
+            "vel_err_mps": float(np.linalg.norm(vel[i0, :2] - log_vel)),
+            "heading_err_rad": abs(math.atan2(math.sin(head[i0] - log_head), math.cos(head[i0] - log_head))),
+        },
+        "model_speed_channel": {
+            "spd_current": model_spd0,
+            "spd_first_future": model_spd1,
+            "acc_from_model_spd": abs(model_spd1 - model_spd0) / 0.5,
+            "acc_implied_by_position_step": abs(pos_implied_acc),
+            "source_hypothesis": (
+                "model_velocity_output_discontinuity"
+                if abs(model_spd1 - model_spd0) / 0.5 > 12.0
+                else "not_model_velocity_jump"
+            ),
+        },
+        "heading_jump": {
+            "dh_rad": dh,
+            "dh_deg": dh * 180.0 / math.pi,
+            "dh_if_theta_plus_pi_rad": dh_flip,
+            "near_zero_speed": near_zero,
+            "box_direction_pi_equivalence_suspect": bool(near_zero and dh > math.pi / 2 and dh_flip < 0.2),
+            "note": "Diagnose only; no heading canonicalization applied.",
+        },
+        "cos_sin_norm_world_scalar": cos_sin_norm,
     }
 
 

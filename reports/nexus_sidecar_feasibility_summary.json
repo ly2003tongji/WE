@@ -1,184 +1,840 @@
 {
-  "verdict": "部分通过",
-  "verdict_reason": "strict-load/leakage/ego-hold/repro/candidate-sensitivity(3 pairs)/token-remap/PDM-row passed; noise-sensitivity ADE=0.001<0.1m threshold; physics 2 agents failed; map missing LANE_CONNECTOR/STOP_LINE/CROSSWALK in encoded set.",
-  "gates_ok": {
-    "gate0_history": true,
-    "candidate_source": null,
-    "candidate_manifest": true,
-    "roundtrip_history": true,
-    "official_codec": true,
-    "future_leakage": null,
-    "context_fingerprint": null,
-    "strict_load": true,
-    "agent_dim": null,
-    "map_coverage": null,
-    "same_noise_repro": true,
-    "ego_hold_16": true,
-    "candidate_sensitivity": true,
-    "noise_sensitivity": false,
-    "physics_schema": false,
-    "token_remap": true,
-    "pdm_single_row": true
-  },
-  "strict_load": {
-    "ok": true,
-    "ckpt_path": "/mnt/cpfs/prediction/lyyy/myself/WE/nexus_sidecar/checkpoints/nuplan.ckpt",
-    "ckpt_sha256": "679f6ccfbd5563f696218311566b76bb62f73c7fbfb04b39f2714fb80aefacfc",
-    "ckpt_size": 139612912,
-    "strict_load": true,
-    "missing_keys": [],
-    "unexpected_keys": []
-  },
-  "candidate_pairs": [
-    {
-      "pair_id": 0,
-      "A": 1807,
-      "B": 1412,
-      "best_agent": {
-        "token": "7cd47126ba8f584e",
-        "ade_m": 5.248504013371123,
-        "endpoint_m": 5.814272182577609
+  "stage": "nexus_sidecar_feasibility_closing",
+  "cutoff": 4,
+  "scene_id": "2021.09.29.15.23.04_veh-28_00601_00802-6326d00e52115da4",
+  "started_at": "2026-07-16T10:26:17+0800",
+  "gates": {
+    "gate0_history": {
+      "ok": true,
+      "n_frames": 24,
+      "log_length": 24,
+      "n_history_vehicles": 14,
+      "note": "Other-agent futures are generation slots; log GT future not required."
+    },
+    "candidate_source": {
+      "plan_idx_csv_step5": 1333,
+      "reused": false,
+      "reason": "step=5 context fingerprint not proven identical to cutoff=4 freeze; using vocabulary pre-registration only."
+    },
+    "candidate_physics_filter": {
+      "ok": true,
+      "n_kept": 7865,
+      "n_input": 8192,
+      "reject_counts": {
+        "outside_100m_radius": 324,
+        "heading_velocity_misaligned": 3
       },
-      "n_compared": 6,
-      "candidate_sensitive": true,
-      "separation": {
-        "rms_m": 22.299968264100205,
-        "endpoint_m": 34.01889192116069
+      "enforced": [
+        "within_100m",
+        "max_step<=15",
+        "terminal_speed<=30",
+        "near_stationary_speed_inconsistent→continue",
+        "heading_vel_aligned",
+        "acceleration<=12",
+        "yaw_rate<=pi",
+        "heading_jump<=90deg",
+        "continuity"
+      ],
+      "not_enforced_here": [
+        "map_feasibility (PDM DAC/Direction static gate)"
+      ]
+    },
+    "static_pdm_gate": {
+      "ok": true,
+      "scores_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/nexus_sidecar/outputs/smoke_cutoff4_closing/scores_static_gate.pkl",
+      "n_physics_then_static": 3097,
+      "counts": {
+        "dac_eq_1": 7132,
+        "comfort_eq_1": 3581,
+        "direction_eq_1": 7501,
+        "lane_keeping_eq_1": 560,
+        "static_feasible": 3100
+      },
+      "wall_s": null,
+      "note": "Reused precomputed static scores; hard keep=DAC&Comfort&Direction==1; no disagreement analysis."
+    },
+    "candidate_manifest": {
+      "ok": true,
+      "path": "/mnt/cpfs/prediction/lyyy/myself/WE/nexus_sidecar/outputs/smoke_cutoff4_closing/candidate_pair_manifest.json",
+      "pairs": [
+        {
+          "pair_id": 0,
+          "A": 710,
+          "B": 6527,
+          "sep": {
+            "rms_m": 1.5189391239494014,
+            "endpoint_m": 2.481721216916108,
+            "lon_delta_m": 2.3924595559722235,
+            "lat_delta_m": 0.6596040263133318,
+            "path_length_delta_m": 1.9200997157678197
+          },
+          "rule": "static_feasible_median_anchor_small_sep"
+        },
+        {
+          "pair_id": 1,
+          "A": 710,
+          "B": 5729,
+          "sep": {
+            "rms_m": 7.516177842872579,
+            "endpoint_m": 12.897401624410374,
+            "lon_delta_m": 12.424012391307865,
+            "lat_delta_m": 3.4622080760653304,
+            "path_length_delta_m": 12.019252835052775
+          },
+          "rule": "static_feasible_median_anchor_mid_longitudinal"
+        },
+        {
+          "pair_id": 2,
+          "A": 710,
+          "B": 2278,
+          "sep": {
+            "rms_m": 6.293110723529732,
+            "endpoint_m": 8.383436429344579,
+            "lon_delta_m": 6.906921551458432,
+            "lat_delta_m": 4.751467252003407,
+            "path_length_delta_m": 7.0318633744102135
+          },
+          "rule": "static_feasible_median_anchor_reasonable_lateral"
+        }
+      ]
+    },
+    "roundtrip_history": {
+      "ok": true,
+      "max_pos_m": 3.0797941426583266e-06,
+      "max_heading_rad": 1.7804587582048725e-08,
+      "max_vel_mps": 4.0548182425524316e-07,
+      "n_checks": 75,
+      "leakage": {
+        "non_ego_future_tensor_hash": "b5eb4152569fdfddeeddf0029c9147f7b153ec973a41c7d6912cdd0b5ccea1e6",
+        "non_ego_future_task_mask_hash": "c7b79b1df4f7320ce3d5c4979bc816b08e52c846b141ddfe74954db41acba81b",
+        "non_ego_future_raw_hash": "b2d664178515d1248077e59569249d3cda905503452c510d3972f66bf362fd71",
+        "non_ego_future_initial_source": "zeros_cleared_no_log_gt",
+        "task_mask_future_all_zero": true,
+        "raw_future_all_zero": true,
+        "normalized_future_is_encode_of_zeros": true,
+        "matches_encode_zeros": true
+      },
+      "map_coverage": {
+        "we_type_counts": {
+          "LANE_SURFACE_STREET": 284,
+          "ROAD_LINE_BROKEN_SINGLE_WHITE": 215,
+          "LANE_SURFACE_UNSTRUCTURE": 375,
+          "ROAD_EDGE_SIDEWALK": 72,
+          "CROSSWALK": 74,
+          "ROAD_LINE_SOLID_SINGLE_WHITE": 16
+        },
+        "nexus_type_counts": {
+          "LANE": 52,
+          "LANE_CONNECTOR": 0,
+          "STOP_LINE": 0,
+          "CROSSWALK": 8
+        },
+        "n_encoded": 60,
+        "missing_requested": [
+          "LANE_CONNECTOR",
+          "STOP_LINE"
+        ],
+        "unmapped_we_types": [
+          "ROAD_EDGE_SIDEWALK",
+          "ROAD_LINE_BROKEN_SINGLE_WHITE",
+          "ROAD_LINE_SOLID_SINGLE_WHITE"
+        ],
+        "skipped_no_geom": 0,
+        "skipped_radius": 673,
+        "polygon_fallback_used": 74,
+        "audit": {
+          "we_type_counts": {
+            "LANE_SURFACE_STREET": 284,
+            "ROAD_LINE_BROKEN_SINGLE_WHITE": 215,
+            "LANE_SURFACE_UNSTRUCTURE": 375,
+            "ROAD_EDGE_SIDEWALK": 72,
+            "CROSSWALK": 74,
+            "ROAD_LINE_SOLID_SINGLE_WHITE": 16
+          },
+          "diagnosis": {
+            "LANE_CONNECTOR": {
+              "we_absent": true,
+              "note": "OpenScene scene has no LANE_CONNECTOR type"
+            },
+            "STOP_LINE": {
+              "we_absent": true,
+              "note": "OpenScene scene has no STOP_LINE type"
+            },
+            "CROSSWALK": {
+              "we_count": 74,
+              "with_polyline": 0,
+              "with_polygon_only": 74,
+              "in_radius": 8,
+              "encoded_via_polygon": 0
+            },
+            "LANE": {
+              "we_street": 284,
+              "we_unstructure": 375,
+              "in_radius": 52
+            }
+          },
+          "conclusion": {
+            "LANE_CONNECTOR": "upstream_absent",
+            "STOP_LINE": "upstream_absent",
+            "CROSSWALK": "adapter_omission_if_polygon_not_used_else_radius",
+            "LANE": "mapped_from_LANE_SURFACE_*"
+          }
+        },
+        "note": "LANE_CONNECTOR/STOP_LINE absent in OpenScene WE map; CROSSWALK uses polygon ring when polyline missing; traffic lights not in Nexus map builder."
+      },
+      "agent_dim_assert": {
+        "num_max_agents_cfg": [
+          128,
+          0,
+          0
+        ],
+        "tensor_shape": [
+          129,
+          21,
+          8
+        ],
+        "expected_A": 129,
+        "n_history_vehicles": 14,
+        "ego_slot": 0,
+        "padding_validity_zero": true
       }
     },
-    {
-      "pair_id": 1,
-      "A": 6351,
-      "B": 6906,
-      "best_agent": {
-        "token": "7cd47126ba8f584e",
-        "ade_m": 9.855119298499305,
-        "endpoint_m": 15.833122996100427
+    "official_codec": {
+      "ok": true,
+      "means_match": true,
+      "std_match": true,
+      "encode_max_abs_err": 0.0,
+      "decode_max_abs_err": 0.0,
+      "official_ego_L": 5.176,
+      "official_ego_W": 2.297,
+      "N_SCENE_TENSOR_FEATURES": 8
+    },
+    "future_leakage": {
+      "non_ego_future_tensor_hash": "b5eb4152569fdfddeeddf0029c9147f7b153ec973a41c7d6912cdd0b5ccea1e6",
+      "non_ego_future_task_mask_hash": "c7b79b1df4f7320ce3d5c4979bc816b08e52c846b141ddfe74954db41acba81b",
+      "non_ego_future_raw_hash": "b2d664178515d1248077e59569249d3cda905503452c510d3972f66bf362fd71",
+      "non_ego_future_initial_source": "zeros_cleared_no_log_gt",
+      "task_mask_future_all_zero": true,
+      "raw_future_all_zero": true,
+      "normalized_future_is_encode_of_zeros": true,
+      "matches_encode_zeros": true
+    },
+    "context_fingerprint": "3c4d6f461128d5b0131fc7f999821a6425449a60f78fe96515fa5b4895276265",
+    "strict_load": {
+      "ok": true,
+      "ckpt_path": "/mnt/cpfs/prediction/lyyy/myself/WE/nexus_sidecar/checkpoints/nuplan.ckpt",
+      "ckpt_sha256": "679f6ccfbd5563f696218311566b76bb62f73c7fbfb04b39f2714fb80aefacfc",
+      "ckpt_size": 139612912,
+      "strict_load": true,
+      "missing_keys": [],
+      "unexpected_keys": []
+    },
+    "agent_dim": {
+      "feature_builder_num_max_agents": [
+        128,
+        0,
+        0
+      ],
+      "num_max_agents_cfg": [
+        128,
+        0,
+        0
+      ],
+      "tensor_shape": [
+        129,
+        21,
+        8
+      ],
+      "expected_A": 129,
+      "n_history_vehicles": 14,
+      "ego_slot": 0,
+      "padding_validity_zero": true
+    },
+    "map_coverage": {
+      "we_type_counts": {
+        "LANE_SURFACE_STREET": 284,
+        "ROAD_LINE_BROKEN_SINGLE_WHITE": 215,
+        "LANE_SURFACE_UNSTRUCTURE": 375,
+        "ROAD_EDGE_SIDEWALK": 72,
+        "CROSSWALK": 74,
+        "ROAD_LINE_SOLID_SINGLE_WHITE": 16
       },
-      "candidate_sensitive": true,
-      "separation": {
-        "rms_m": 30.600340462969317,
-        "endpoint_m": 46.18929091937746
+      "nexus_type_counts": {
+        "LANE": 52,
+        "LANE_CONNECTOR": 0,
+        "STOP_LINE": 0,
+        "CROSSWALK": 8
+      },
+      "n_encoded": 60,
+      "missing_requested": [
+        "LANE_CONNECTOR",
+        "STOP_LINE"
+      ],
+      "unmapped_we_types": [
+        "ROAD_EDGE_SIDEWALK",
+        "ROAD_LINE_BROKEN_SINGLE_WHITE",
+        "ROAD_LINE_SOLID_SINGLE_WHITE"
+      ],
+      "skipped_no_geom": 0,
+      "skipped_radius": 673,
+      "polygon_fallback_used": 74,
+      "audit": {
+        "we_type_counts": {
+          "LANE_SURFACE_STREET": 284,
+          "ROAD_LINE_BROKEN_SINGLE_WHITE": 215,
+          "LANE_SURFACE_UNSTRUCTURE": 375,
+          "ROAD_EDGE_SIDEWALK": 72,
+          "CROSSWALK": 74,
+          "ROAD_LINE_SOLID_SINGLE_WHITE": 16
+        },
+        "diagnosis": {
+          "LANE_CONNECTOR": {
+            "we_absent": true,
+            "note": "OpenScene scene has no LANE_CONNECTOR type"
+          },
+          "STOP_LINE": {
+            "we_absent": true,
+            "note": "OpenScene scene has no STOP_LINE type"
+          },
+          "CROSSWALK": {
+            "we_count": 74,
+            "with_polyline": 0,
+            "with_polygon_only": 74,
+            "in_radius": 8,
+            "encoded_via_polygon": 0
+          },
+          "LANE": {
+            "we_street": 284,
+            "we_unstructure": 375,
+            "in_radius": 52
+          }
+        },
+        "conclusion": {
+          "LANE_CONNECTOR": "upstream_absent",
+          "STOP_LINE": "upstream_absent",
+          "CROSSWALK": "adapter_omission_if_polygon_not_used_else_radius",
+          "LANE": "mapped_from_LANE_SURFACE_*"
+        }
+      },
+      "note": "LANE_CONNECTOR/STOP_LINE absent in OpenScene WE map; CROSSWALK uses polygon ring when polyline missing; traffic lights not in Nexus map builder."
+    },
+    "same_noise_repro": {
+      "ok": true,
+      "pre_rng_match": true,
+      "max_first4s_pos_err_m": 0.0,
+      "ego_hold_A": {
+        "real_5_12": {
+          "pos_mean_m": 4.7602897258892275e-08,
+          "pos_max_m": 5.8128706408491826e-08,
+          "heading_mean_rad": 7.70138802730358e-09,
+          "heading_max_rad": 1.9822238073174958e-08,
+          "vel_mean_mps": 1.4830833903514464e-08,
+          "vel_max_mps": 4.230925088089567e-08,
+          "pos_hash": "7e3eadf17a617d21a69d9468edc3613b1d3f60f40bdc640383a0e69ec10de055",
+          "cond_pos_hash": "158c29783356356914dea39059c821c75137e50751a6c63a630c1463e7494336"
+        },
+        "extended_13_20": {
+          "pos_mean_m": 1.1117321362606817e-07,
+          "pos_max_m": 1.7120324961882372e-07,
+          "heading_mean_rad": 9.091190023013951e-09,
+          "heading_max_rad": 9.091190023013951e-09,
+          "vel_mean_mps": 7.088321798495536e-10,
+          "vel_max_mps": 7.088321798495536e-10,
+          "pos_hash": "7395c1c6c9a936e438cd2f0e75c7f75acf67432ff4ecc7793e07ff3a4ed6a3e2",
+          "cond_pos_hash": "2b431c1060af08c395b14fe752b8510182edc328869dd7b2ba6e032945f57f3d"
+        },
+        "all_16": {
+          "pos_mean_m": 7.938805544248021e-08,
+          "pos_max_m": 1.7120324961882372e-07,
+          "heading_mean_rad": 8.396289025158765e-09,
+          "heading_max_rad": 1.9822238073174958e-08,
+          "vel_mean_mps": 7.769833041682007e-09,
+          "vel_max_mps": 4.230925088089567e-08,
+          "pos_hash": "e70d1c90486c11ca642ad2c67cc068ab5b41e748883a095c7c0be860f3350bd0",
+          "cond_pos_hash": "8b89d0eb008bbbb5a944951cfd01a1bddd54c760164b99b26fda35eb816da9a3"
+        }
       }
     },
-    {
-      "pair_id": 2,
-      "A": 7348,
-      "B": 595,
-      "best_agent": {
-        "token": "7cd47126ba8f584e",
-        "ade_m": 7.840241978706221,
-        "endpoint_m": 13.433739812928604
+    "ego_hold_16": {
+      "ok": true,
+      "A": {
+        "real_5_12": {
+          "pos_mean_m": 4.7602897258892275e-08,
+          "pos_max_m": 5.8128706408491826e-08,
+          "heading_mean_rad": 7.70138802730358e-09,
+          "heading_max_rad": 1.9822238073174958e-08,
+          "vel_mean_mps": 1.4830833903514464e-08,
+          "vel_max_mps": 4.230925088089567e-08,
+          "pos_hash": "7e3eadf17a617d21a69d9468edc3613b1d3f60f40bdc640383a0e69ec10de055",
+          "cond_pos_hash": "158c29783356356914dea39059c821c75137e50751a6c63a630c1463e7494336"
+        },
+        "extended_13_20": {
+          "pos_mean_m": 1.1117321362606817e-07,
+          "pos_max_m": 1.7120324961882372e-07,
+          "heading_mean_rad": 9.091190023013951e-09,
+          "heading_max_rad": 9.091190023013951e-09,
+          "vel_mean_mps": 7.088321798495536e-10,
+          "vel_max_mps": 7.088321798495536e-10,
+          "pos_hash": "7395c1c6c9a936e438cd2f0e75c7f75acf67432ff4ecc7793e07ff3a4ed6a3e2",
+          "cond_pos_hash": "2b431c1060af08c395b14fe752b8510182edc328869dd7b2ba6e032945f57f3d"
+        },
+        "all_16": {
+          "pos_mean_m": 7.938805544248021e-08,
+          "pos_max_m": 1.7120324961882372e-07,
+          "heading_mean_rad": 8.396289025158765e-09,
+          "heading_max_rad": 1.9822238073174958e-08,
+          "vel_mean_mps": 7.769833041682007e-09,
+          "vel_max_mps": 4.230925088089567e-08,
+          "pos_hash": "e70d1c90486c11ca642ad2c67cc068ab5b41e748883a095c7c0be860f3350bd0",
+          "cond_pos_hash": "8b89d0eb008bbbb5a944951cfd01a1bddd54c760164b99b26fda35eb816da9a3"
+        }
       },
-      "candidate_sensitive": true,
-      "separation": {
-        "rms_m": 20.33733917735233,
-        "endpoint_m": 34.72747650511721
+      "B": {
+        "real_5_12": {
+          "pos_mean_m": 5.3417502180790457e-08,
+          "pos_max_m": 1.4975569321245612e-07,
+          "heading_mean_rad": 2.6404594621887156e-09,
+          "heading_max_rad": 3.6861749208583205e-09,
+          "vel_mean_mps": 2.9438201650714543e-08,
+          "vel_max_mps": 4.8343357521272714e-08,
+          "pos_hash": "c73dd3b0e663cd5ff46438602783fdd9169b505f8ad107ad055baf5dd88d6e6c",
+          "cond_pos_hash": "0f2adf8577b4be7accd45bc5174d47a6d2178250f788c2678f4bbc278ca00527"
+        },
+        "extended_13_20": {
+          "pos_mean_m": 2.0621279863462507e-07,
+          "pos_max_m": 4.0327163939638643e-07,
+          "heading_mean_rad": 3.313773699886724e-09,
+          "heading_max_rad": 3.313773699886724e-09,
+          "vel_mean_mps": 1.3802824802037137e-08,
+          "vel_max_mps": 1.3802824802037137e-08,
+          "pos_hash": "927058099d7e89bd3d74687f869157acc944432bc83c3a0cd7af2bac71440363",
+          "cond_pos_hash": "f3a57b5303af6c4c00dc39d2bdb8cbcd176aaa440b2096c8d3e06a902f54f3aa"
+        },
+        "all_16": {
+          "pos_mean_m": 1.2981515040770776e-07,
+          "pos_max_m": 4.0327163939638643e-07,
+          "heading_mean_rad": 2.97711658103772e-09,
+          "heading_max_rad": 3.6861749208583205e-09,
+          "vel_mean_mps": 2.162051322637584e-08,
+          "vel_max_mps": 4.8343357521272714e-08,
+          "pos_hash": "900c1033d2e6b9a2efaad001353f60fd1678e6b1ccd5e67c81ae578801f67e7b",
+          "cond_pos_hash": "26d467bc1552c14cc9af1faba27f6a9e80989c7d74262b9d8f9e4e1c7092c964"
+        }
       }
-    }
-  ],
-  "noise_sensitivity": {
-    "ok": false,
-    "best": {
-      "token": "dfcaa5d389bc56ef",
-      "ade_m": 0.0011547381508749497
     },
-    "noise0_hash": "df8738aceb08a02ba7c07e0b5bd036dd89b30ee2dff8d584874497919b2e7301",
-    "noise1_hash": "72c2e1b37900731d1243823a6a7488f51088b8ca815e7d02220fba5aef412d5a",
-    "audit": {
-      "z0_z1_hash_differ": true,
-      "z_t_used_in_sample": true,
-      "filling_keeps_noise_only_on_generate_slots": true,
-      "interpretation": "Different z_T hashes confirmed; under strong ego/history keep_mask, 32-step sampler yielded <0.1m ADE between noise0/noise1 on this scene."
-    }
-  },
-  "physics_schema": {
-    "ok": false,
-    "n_issues": 2,
-    "issues": [
-      {
+    "physics_diagnostics": {
+      "7cd47126ba8f584e": {
         "token": "7cd47126ba8f584e",
-        "issue": "acc_gt_12",
-        "max": 12.634578850424134
+        "gate": {
+          "ok": false,
+          "issues": [
+            "acc_gt_12"
+          ],
+          "max_acc_from_model_spd": 12.63351380913744,
+          "max_acc_from_pos": 4.3065640028024,
+          "max_heading_jump_rad": 0.008308312304608623,
+          "max_step_m": 3.4019054016637322
+        },
+        "cutoff_state_match": {
+          "pos_err_m": 1.2475779286922996e-06,
+          "vel_err_mps": 9.768959181828916e-08,
+          "heading_err_rad": 3.041433771500124e-11
+        },
+        "model_speed_channel": {
+          "spd_current": 10.317410076318128,
+          "spd_first_future": 4.000653171749407,
+          "acc_from_model_spd": 12.63351380913744,
+          "acc_implied_by_position_step": 12.316722477897867,
+          "source_hypothesis": "model_velocity_output_discontinuity"
+        },
+        "heading_jump": {
+          "dh_rad": 0.008308312304608623,
+          "dh_deg": 0.47603122993068453,
+          "dh_if_theta_plus_pi_rad": 3.133284341285185,
+          "near_zero_speed": false,
+          "box_direction_pi_equivalence_suspect": false,
+          "note": "Diagnose only; no heading canonicalization applied."
+        },
+        "cos_sin_norm_world_scalar": 1.0
       },
-      {
+      "803cff565b865578": {
         "token": "803cff565b865578",
-        "issue": "heading_jump_gt_90deg",
-        "max": 3.129719824038146
+        "gate": {
+          "ok": false,
+          "issues": [
+            "heading_jump_gt_90deg"
+          ],
+          "max_acc_from_model_spd": 0.01543110744203131,
+          "max_acc_from_pos": 0.6220708154646692,
+          "max_heading_jump_rad": 3.1288994049477985,
+          "max_step_m": 0.2735781473420564
+        },
+        "cutoff_state_match": {
+          "pos_err_m": 3.0797941426583266e-06,
+          "vel_err_mps": 0.0,
+          "heading_err_rad": 1.4071301672605122e-09
+        },
+        "model_speed_channel": {
+          "spd_current": 0.0,
+          "spd_first_future": 0.007715553721015655,
+          "acc_from_model_spd": 0.01543110744203131,
+          "acc_implied_by_position_step": 1.0943125893682255,
+          "source_hypothesis": "not_model_velocity_jump"
+        },
+        "heading_jump": {
+          "dh_rad": 3.128899404947799,
+          "dh_deg": 179.27273042450358,
+          "dh_if_theta_plus_pi_rad": 0.01269324864199437,
+          "near_zero_speed": true,
+          "box_direction_pi_equivalence_suspect": true,
+          "note": "Diagnose only; no heading canonicalization applied."
+        },
+        "cos_sin_norm_world_scalar": 1.0
       }
-    ],
-    "pdm_fallback_tokens": [
-      "7cd47126ba8f584e",
-      "803cff565b865578"
-    ],
-    "note": "2/14 nexus agents exceeded pre-registered physics thresholds; fell back to log for PDM pack only. Candidate sensitivity was measured on raw Nexus outputs before fallback."
-  },
-  "pdm_single_row": {
-    "ok": true,
-    "plan_idx": 1807,
-    "n_fields": 8,
-    "note": "Only conditioning candidate row inspected; physics-failing agents fell back to log for pack completeness.",
-    "scores_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/nexus_sidecar/outputs/smoke_cutoff4/scores_nexus.pkl",
-    "wall_s": 51.684,
-    "rss_gb": 1.353,
-    "n_nexus_kept": 12,
-    "n_physics_fallback": 2,
-    "conditioning_row": {
-      "no_at_fault_collisions": {
-        "value": "True",
-        "finite": true
+    },
+    "candidate_sensitivity": {
+      "ok_physics_valid": true,
+      "ok_raw": true,
+      "pairs": [
+        {
+          "pair_id": 0,
+          "A": 710,
+          "B": 6527,
+          "separation": {
+            "rms_m": 1.5189391239494014,
+            "endpoint_m": 2.481721216916108,
+            "lon_delta_m": 2.3924595559722235,
+            "lat_delta_m": 0.6596040263133318,
+            "path_length_delta_m": 1.9200997157678197
+          },
+          "selection_rule": "static_feasible_median_anchor_small_sep",
+          "sensitivity": {
+            "raw_all_generated": {
+              "n": 6,
+              "best": {
+                "token": "44df645d1b5b584b",
+                "ade_m": 0.2529536705159309,
+                "endpoint_m": 0.5902994556266254
+              },
+              "sensitive": false,
+              "top3": [
+                {
+                  "token": "44df645d1b5b584b",
+                  "ade_m": 0.2529536705159309,
+                  "endpoint_m": 0.5902994556266254
+                },
+                {
+                  "token": "7cd47126ba8f584e",
+                  "ade_m": 0.19873581800878942,
+                  "endpoint_m": 0.22808542614561253
+                },
+                {
+                  "token": "e66ab31e0b525772",
+                  "ade_m": 0.10686236963676168,
+                  "endpoint_m": 0.09686402186786956
+                }
+              ]
+            },
+            "physics_valid_common_support": {
+              "n": 5,
+              "best": {
+                "token": "44df645d1b5b584b",
+                "ade_m": 0.2529536705159309,
+                "endpoint_m": 0.5902994556266254,
+                "physics_A": {
+                  "ok": true,
+                  "issues": [],
+                  "max_acc_from_model_spd": 1.0546455173828293,
+                  "max_acc_from_pos": 2.2010598573511624,
+                  "max_heading_jump_rad": 0.006733777423653553,
+                  "max_step_m": 1.7316034394647193
+                },
+                "physics_B": {
+                  "ok": true,
+                  "issues": [],
+                  "max_acc_from_model_spd": 0.9231145131161465,
+                  "max_acc_from_pos": 1.8681997907332821,
+                  "max_heading_jump_rad": 0.005968582339777485,
+                  "max_step_m": 1.6903523428531737
+                }
+              },
+              "sensitive": false,
+              "top3": [
+                {
+                  "token": "44df645d1b5b584b",
+                  "ade_m": 0.2529536705159309,
+                  "endpoint_m": 0.5902994556266254
+                },
+                {
+                  "token": "e66ab31e0b525772",
+                  "ade_m": 0.10686236963676168,
+                  "endpoint_m": 0.09686402186786956
+                },
+                {
+                  "token": "4424380fb4ed5a00",
+                  "ade_m": 0.10662932835013608,
+                  "endpoint_m": 0.0972562871679292
+                }
+              ]
+            },
+            "repeat_err_m": 0.0
+          }
+        },
+        {
+          "pair_id": 1,
+          "A": 710,
+          "B": 5729,
+          "separation": {
+            "rms_m": 7.516177842872579,
+            "endpoint_m": 12.897401624410374,
+            "lon_delta_m": 12.424012391307865,
+            "lat_delta_m": 3.4622080760653304,
+            "path_length_delta_m": 12.019252835052775
+          },
+          "selection_rule": "static_feasible_median_anchor_mid_longitudinal",
+          "sensitivity": {
+            "raw_all_generated": {
+              "n": 6,
+              "best": {
+                "token": "7cd47126ba8f584e",
+                "ade_m": 1.9257321560718808,
+                "endpoint_m": 4.614668948521215
+              },
+              "sensitive": true,
+              "top3": [
+                {
+                  "token": "7cd47126ba8f584e",
+                  "ade_m": 1.9257321560718808,
+                  "endpoint_m": 4.614668948521215
+                },
+                {
+                  "token": "44df645d1b5b584b",
+                  "ade_m": 0.3484562620834056,
+                  "endpoint_m": 0.5907085617480212
+                },
+                {
+                  "token": "e66ab31e0b525772",
+                  "ade_m": 0.16729034545146754,
+                  "endpoint_m": 0.14455486988719332
+                }
+              ]
+            },
+            "physics_valid_common_support": {
+              "n": 5,
+              "best": {
+                "token": "44df645d1b5b584b",
+                "ade_m": 0.3484562620834056,
+                "endpoint_m": 0.5907085617480212,
+                "physics_A": {
+                  "ok": true,
+                  "issues": [],
+                  "max_acc_from_model_spd": 1.0546455173828293,
+                  "max_acc_from_pos": 2.2010598573511624,
+                  "max_heading_jump_rad": 0.006733777423653553,
+                  "max_step_m": 1.7316034394647193
+                },
+                "physics_B": {
+                  "ok": true,
+                  "issues": [],
+                  "max_acc_from_model_spd": 0.9818393405362618,
+                  "max_acc_from_pos": 1.6013214792025763,
+                  "max_heading_jump_rad": 0.0022459327559558595,
+                  "max_step_m": 1.757205561841565
+                }
+              },
+              "sensitive": false,
+              "top3": [
+                {
+                  "token": "44df645d1b5b584b",
+                  "ade_m": 0.3484562620834056,
+                  "endpoint_m": 0.5907085617480212
+                },
+                {
+                  "token": "e66ab31e0b525772",
+                  "ade_m": 0.16729034545146754,
+                  "endpoint_m": 0.14455486988719332
+                },
+                {
+                  "token": "4424380fb4ed5a00",
+                  "ade_m": 0.10881058967484339,
+                  "endpoint_m": 0.04001341443259987
+                }
+              ]
+            },
+            "repeat_err_m": 0.0
+          }
+        },
+        {
+          "pair_id": 2,
+          "A": 710,
+          "B": 2278,
+          "separation": {
+            "rms_m": 6.293110723529732,
+            "endpoint_m": 8.383436429344579,
+            "lon_delta_m": 6.906921551458432,
+            "lat_delta_m": 4.751467252003407,
+            "path_length_delta_m": 7.0318633744102135
+          },
+          "selection_rule": "static_feasible_median_anchor_reasonable_lateral",
+          "sensitivity": {
+            "raw_all_generated": {
+              "n": 6,
+              "best": {
+                "token": "44df645d1b5b584b",
+                "ade_m": 0.5742531388066813,
+                "endpoint_m": 0.7783618615281388
+              },
+              "sensitive": true,
+              "top3": [
+                {
+                  "token": "44df645d1b5b584b",
+                  "ade_m": 0.5742531388066813,
+                  "endpoint_m": 0.7783618615281388
+                },
+                {
+                  "token": "7cd47126ba8f584e",
+                  "ade_m": 0.3551057596852968,
+                  "endpoint_m": 0.1590956478433751
+                },
+                {
+                  "token": "3799f5a3bef056e3",
+                  "ade_m": 0.11762852682597755,
+                  "endpoint_m": 0.12705296219396187
+                }
+              ]
+            },
+            "physics_valid_common_support": {
+              "n": 5,
+              "best": {
+                "token": "44df645d1b5b584b",
+                "ade_m": 0.5742531388066813,
+                "endpoint_m": 0.7783618615281388,
+                "physics_A": {
+                  "ok": true,
+                  "issues": [],
+                  "max_acc_from_model_spd": 1.0546455173828293,
+                  "max_acc_from_pos": 2.2010598573511624,
+                  "max_heading_jump_rad": 0.006733777423653553,
+                  "max_step_m": 1.7316034394647193
+                },
+                "physics_B": {
+                  "ok": true,
+                  "issues": [],
+                  "max_acc_from_model_spd": 1.1933185285529273,
+                  "max_acc_from_pos": 2.3508013513497787,
+                  "max_heading_jump_rad": 0.004572912995669309,
+                  "max_step_m": 1.6633458248175501
+                }
+              },
+              "sensitive": true,
+              "top3": [
+                {
+                  "token": "44df645d1b5b584b",
+                  "ade_m": 0.5742531388066813,
+                  "endpoint_m": 0.7783618615281388
+                },
+                {
+                  "token": "3799f5a3bef056e3",
+                  "ade_m": 0.11762852682597755,
+                  "endpoint_m": 0.12705296219396187
+                },
+                {
+                  "token": "e66ab31e0b525772",
+                  "ade_m": 0.06158137704868793,
+                  "endpoint_m": 0.05282029561690326
+                }
+              ]
+            },
+            "repeat_err_m": 0.0
+          }
+        }
+      ],
+      "repeat_err_m": 0.0,
+      "note": "Technical usability must use physics_valid_common_support, not raw."
+    },
+    "noise_sensitivity": {
+      "ok": false,
+      "required_for_usable": false,
+      "best": {
+        "token": "dfcaa5d389bc56ef",
+        "ade_m": 0.0009365490461065644
       },
-      "drivable_area_compliance": {
-        "value": "False",
-        "finite": true
+      "noise0_hash": "df8738aceb08a02ba7c07e0b5bd036dd89b30ee2dff8d584874497919b2e7301",
+      "noise1_hash": "72c2e1b37900731d1243823a6a7488f51088b8ca815e7d02220fba5aef412d5a",
+      "note": "Near-deterministic under strong keep_mask; subsequent runs use fixed seed=0."
+    },
+    "physics_schema": {
+      "ok": false,
+      "n_issues": 2,
+      "issues": [
+        {
+          "token": "7cd47126ba8f584e",
+          "issue": "acc_gt_12",
+          "max": 12.633513613758684
+        },
+        {
+          "token": "803cff565b865578",
+          "issue": "heading_jump_gt_90deg",
+          "max": 3.128899406354929
+        }
+      ]
+    },
+    "token_remap": {
+      "ok": true,
+      "n_generated": 14,
+      "missing": [],
+      "extra": []
+    },
+    "pdm_single_row": {
+      "ok": true,
+      "plan_idx": 710,
+      "conditioning_row": {
+        "no_at_fault_collisions": {
+          "value": 1.0,
+          "finite": true
+        },
+        "drivable_area_compliance": {
+          "value": 1.0,
+          "finite": true
+        },
+        "lane_keeping": {
+          "value": 0.0,
+          "finite": true
+        },
+        "ego_progress": {
+          "value": 0.4470000643389267,
+          "finite": true
+        },
+        "time_to_collision_within_bound": {
+          "value": 1.0,
+          "finite": true
+        },
+        "comfort": {
+          "value": 1.0,
+          "finite": true
+        },
+        "driving_direction_compliance": {
+          "value": 1.0,
+          "finite": true
+        },
+        "score": {
+          "value": 0.7695833601412194,
+          "finite": true
+        }
       },
-      "lane_keeping": {
-        "value": 1.0,
-        "finite": true
-      },
-      "ego_progress": {
-        "value": 0.0,
-        "finite": true
-      },
-      "time_to_collision_within_bound": {
-        "value": 0.0,
-        "finite": true
-      },
-      "comfort": {
-        "value": 1.0,
-        "finite": true
-      },
-      "driving_direction_compliance": {
-        "value": 0.5,
-        "finite": true
-      },
-      "score": {
-        "value": 0.0,
-        "finite": true
-      }
+      "n_fields": 8,
+      "note": "Only conditioning candidate row inspected; 8191 others not summarized.",
+      "scores_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/nexus_sidecar/outputs/smoke_cutoff4_closing/scores_nexus.pkl",
+      "conditioning_static_ok": true,
+      "wall_s": 51.508,
+      "rss_gb": 1.308
     }
   },
-  "future_leakage": {
-    "non_ego_future_tensor_hash": "b5eb4152569fdfddeeddf0029c9147f7b153ec973a41c7d6912cdd0b5ccea1e6",
-    "non_ego_future_task_mask_hash": "c7b79b1df4f7320ce3d5c4979bc816b08e52c846b141ddfe74954db41acba81b",
-    "non_ego_future_raw_hash": "b2d664178515d1248077e59569249d3cda905503452c510d3972f66bf362fd71",
-    "non_ego_future_initial_source": "zeros_cleared_no_log_gt",
-    "task_mask_future_all_zero": true,
-    "raw_future_all_zero": true,
-    "normalized_future_is_encode_of_zeros": true,
-    "matches_encode_zeros": true
+  "verdict": "可用",
+  "resource": {
+    "rss_gb": 1.4544639587402344,
+    "sidecar_du_hint": "see nexus_sidecar/",
+    "device": "cuda"
   },
-  "map_coverage_missing": [
-    "LANE_CONNECTOR",
-    "STOP_LINE",
-    "CROSSWALK"
-  ],
-  "versions": {
-    "nexus": "71c31ca848da94c969322a40f0f4ae2af8ca8129",
-    "ckpt_sha256": "679f6ccfbd5563f696218311566b76bb62f73c7fbfb04b39f2714fb80aefacfc",
-    "nuplan": "e2aa9f34c6d129424a0d4c70f195c23c55a0666d",
-    "mtr": "a5ba7bdafa09a1a355cc34f8a895499a2b14ddb3",
-    "we": "a5227045cd64b9709f0c279711a37499ffd3a666",
-    "upstream": "fc79b937050ed9d68e18add2b480ae72578a7ea5"
-  }
+  "finished_at": "2026-07-16T10:27:22+0800"
 }

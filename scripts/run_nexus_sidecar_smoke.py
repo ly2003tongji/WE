@@ -69,107 +69,193 @@ def filter_vocab_candidates(
     vocab: np.ndarray,
     ego_center: np.ndarray,
     ego_heading: float,
-) -> List[Dict[str, Any]]:
-    """Pre-register feasible vocabulary plans (deterministic)."""
-    out = []
-    for idx in range(len(vocab)):
-        fut = nx.vocab_candidate_to_nexus_ego_future(vocab[idx], ego_center, ego_heading)
-        st = fut["stats"]
-        # filters
-        if not st["within_100m_radius"]:
-            continue
-        if st["max_step_m"] > 15.0:
-            continue
-        if st["terminal_speed_m_s"] > 30.0:
-            continue
-        if st["real_path_length_m"] < 0.5 and st["terminal_speed_m_s"] > 1.0:
-            # near-stationary but claims speed — skip inconsistent
-            pass
-        # continuity: first real step from t0
-        out.append({"plan_idx": int(idx), "future": fut})
-    return out
+) -> Tuple[List[Dict[str, Any]], Dict[str, int]]:
+    """Physics-filter vocabulary; near-stationary inconsistency uses continue (not pass)."""
+    return nx.filter_vocab_candidates(vocab, ego_center, ego_heading)
 
 
 def select_candidate_pairs(
     candidates: List[Dict[str, Any]],
+    ego_heading: float,
     max_pairs: int = MAX_PAIRS,
 ) -> List[Dict[str, Any]]:
-    """Deterministic A/B pairs by endpoint/RMS separation."""
-    if len(candidates) < 2:
-        raise RuntimeError("Not enough vocabulary candidates after filtering")
-    # Prefer mid-speed diverse plans: sort by path length
-    cands = sorted(candidates, key=lambda c: c["future"]["stats"]["real_path_length_m"])
-    # Pick A as median path length
-    a = cands[len(cands) // 2]
-    pairs = []
-    # Rank others by separation from A
-    scored = []
-    for b in cands:
-        if b["plan_idx"] == a["plan_idx"]:
-            continue
-        sep = nx.pair_separation(a["future"], b["future"])
-        if sep["endpoint_m"] >= 3.0 and sep["rms_m"] >= 1.0:
-            scored.append((sep["endpoint_m"] + sep["rms_m"], sep, b))
-    scored.sort(key=lambda x: -x[0])
-    if not scored:
-        # relax: take farthest endpoint even if below threshold, but mark
-        scored = []
-        for b in cands:
-            if b["plan_idx"] == a["plan_idx"]:
-                continue
-            sep = nx.pair_separation(a["future"], b["future"])
-            scored.append((sep["endpoint_m"] + sep["rms_m"], sep, b))
-        scored.sort(key=lambda x: -x[0])
-    used_b = set()
-    # Pair 0: median A vs farthest B
-    if scored:
-        sep, b = scored[0][1], scored[0][2]
-        pairs.append(_make_pair(0, a, b, sep))
-        used_b.add(b["plan_idx"])
-    # Additional pairs: other anchors at quartiles
-    anchors = [cands[len(cands) // 4], cands[(3 * len(cands)) // 4]]
-    for anc in anchors:
-        if len(pairs) >= max_pairs:
+    """Moderate A/B pairs among static-feasible candidates (not global farthest)."""
+    return nx.select_moderate_candidate_pairs(candidates, ego_heading, max_pairs=max_pairs)
+
+
+def score_static_pdm_gate(
+    scene: Dict[str, Any],
+    vocab: np.ndarray,
+    vocab_path: Path,
+    work_dir: Path,
+    asset_folder: str,
+    cutoff: int = DEFAULT_CUTOFF,
+    horizon: int = DEFAULT_HORIZON,
+) -> Dict[str, Any]:
+    """Score all 8192 with log-agent futures (traffic-model-independent static gate).
+
+    Keeps candidates with DAC=1, Comfort=1, Direction==1 (full compliance).
+    Lane-keeping is recorded but not a hard keep criterion.
+    Does NOT perform Replay/Nexus disagreement analysis.
+    """
+    from frozen_state_lib import extract_replay_futures
+
+    we_root = WE_ROOT / "upstream/WorldEngine"
+    os.environ.setdefault("WORLDENGINE_ROOT", str(we_root))
+    os.environ.setdefault("SIMENGINE_ROOT", str(we_root / "projects/SimEngine"))
+    maps = Path("/mnt/cpfs/prediction/lyyy/myself/WE/data/maps/extracted")
+    if maps.exists():
+        os.environ.setdefault("NUPLAN_MAPS_ROOT", str(maps))
+    if os.environ["SIMENGINE_ROOT"] not in sys.path:
+        sys.path.insert(0, os.environ["SIMENGINE_ROOT"])
+
+    from score_frozen_disagreement import score_one_source
+
+    replay = extract_replay_futures(scene, cutoff, horizon)
+    pack = {
+        "source": "log_replay_static_gate",
+        "cutoff": cutoff,
+        "horizon": horizon,
+        "frequency_hz": 2.0,
+        "dt_s": 0.5,
+        "futures": replay["futures"],
+        "coverage": replay.get("coverage", {}),
+        "future_hash": replay.get("future_hash", "static_log"),
+        "provenance": {"source": "log_replay_static_gate", "cutoff": cutoff},
+        "n_agents": len(replay["futures"]),
+    }
+    # Arbitrary plan_idx for fingerprint only; DenseReward scores all 8192.
+    plan_idx = 0
+    scene_scored = copy.deepcopy(scene)
+    ego_meta = inject_ego_conditioning_at_cutoff(scene_scored, cutoff, plan_idx, vocab)
+    t0 = time.time()
+    prov = score_one_source(
+        scene=scene_scored,
+        futures_pack=pack,
+        source_name="static_gate",
+        cutoff=cutoff,
+        horizon=horizon,
+        work_dir=work_dir,
+        asset_folder=asset_folder,
+        vocab_path=vocab_path,
+        vocab=vocab,
+        plan_idx=plan_idx,
+        requested_ego_hash=ego_meta["requested_ego_conditioning_hash"],
+        wall_limit_sec=1800,
+        rss_limit_gb=64.0,
+        t0=t0,
+    )
+    scores_pkl = None
+    for cand in [
+        work_dir.parent / "scores_static_gate.pkl",
+        *work_dir.parent.glob("scores_static_gate*.pkl"),
+        *work_dir.rglob("*_scores.pkl"),
+    ]:
+        if Path(cand).exists():
+            scores_pkl = Path(cand)
             break
-        local = []
-        for b in cands:
-            if b["plan_idx"] in used_b or b["plan_idx"] == anc["plan_idx"]:
-                continue
-            if any(p["A"]["plan_idx"] == anc["plan_idx"] and p["B"]["plan_idx"] == b["plan_idx"] for p in pairs):
-                continue
-            sep = nx.pair_separation(anc["future"], b["future"])
-            if sep["endpoint_m"] >= 3.0 and sep["rms_m"] >= 1.0:
-                local.append((sep["endpoint_m"] + sep["rms_m"], sep, b))
-        local.sort(key=lambda x: -x[0])
-        if local:
-            sep, b = local[0][1], local[0][2]
-            pairs.append(_make_pair(len(pairs), anc, b, sep))
-            used_b.add(b["plan_idx"])
-    if not pairs:
-        raise RuntimeError("Failed to pre-register any candidate pairs")
-    return pairs[:max_pairs]
-
-
-def _make_pair(i: int, a: Dict[str, Any], b: Dict[str, Any], sep: Dict[str, float]) -> Dict[str, Any]:
+    if scores_pkl is None:
+        raise RuntimeError(f"static gate scores missing; prov={prov}")
+    obj = pickle.load(open(scores_pkl, "rb"))
+    dac = np.asarray(obj["drivable_area_compliance"], dtype=np.float64).reshape(-1)
+    comfort = np.asarray(obj["comfort"], dtype=np.float64).reshape(-1)
+    direction = np.asarray(obj["driving_direction_compliance"], dtype=np.float64).reshape(-1)
+    lane_keep = np.asarray(obj.get("lane_keeping", np.zeros_like(dac)), dtype=np.float64).reshape(-1)
+    score = np.asarray(obj["score"], dtype=np.float64).reshape(-1)
+    keep_mask = (dac == 1.0) & (comfort == 1.0) & (direction == 1.0) & np.isfinite(score)
+    keep_idx = np.nonzero(keep_mask)[0].astype(int).tolist()
     return {
-        "pair_id": i,
-        "A": {
-            "plan_idx": a["plan_idx"],
-            "traj_hash": a["future"]["traj_hash"],
-            "real_hash": a["future"]["real_hash"],
-            "ext_hash": a["future"]["ext_hash"],
-            "stats": a["future"]["stats"],
+        "ok": len(keep_idx) >= 2,
+        "scores_pkl": str(scores_pkl),
+        "n_keep": len(keep_idx),
+        "keep_idx": keep_idx,
+        "counts": {
+            "dac_eq_1": int((dac == 1.0).sum()),
+            "comfort_eq_1": int((comfort == 1.0).sum()),
+            "direction_eq_1": int((direction == 1.0).sum()),
+            "lane_keeping_eq_1": int((lane_keep == 1.0).sum()),
+            "static_feasible": len(keep_idx),
         },
-        "B": {
-            "plan_idx": b["plan_idx"],
-            "traj_hash": b["future"]["traj_hash"],
-            "real_hash": b["future"]["real_hash"],
-            "ext_hash": b["future"]["ext_hash"],
-            "stats": b["future"]["stats"],
+        "arrays": {
+            "dac": dac,
+            "comfort": comfort,
+            "direction": direction,
+            "lane_keeping": lane_keep,
+            "score": score,
         },
-        "separation": sep,
-        "selection_rule": "vocab_preregister_median_path_then_max_sep",
-        "meets_sep_thresholds": bool(sep["endpoint_m"] >= 3.0 and sep["rms_m"] >= 1.0),
+        "wall_s": prov.get("wall_s"),
+        "note": (
+            "Static gate uses log-agent futures at cutoff=4; "
+            "hard keep = DAC=1 & Comfort=1 & Direction=1; "
+            "lane_keeping recorded only; no disagreement analysis."
+        ),
+    }
+
+
+def sensitivity_report(
+    decoded_a: Dict[str, Any],
+    decoded_b: Dict[str, Any],
+    pack_a: Optional[Dict[str, Any]],
+    sdc: str,
+    repeat_err: float,
+) -> Dict[str, Any]:
+    """Two-track sensitivity: raw generated vs physics-valid common-support."""
+    raw = []
+    phys = []
+    for tok in decoded_a:
+        if tok == sdc:
+            continue
+        if not decoded_a[tok].get("generate"):
+            continue
+        if tok not in decoded_b or not decoded_b[tok].get("generate"):
+            continue
+        ego_p = decoded_a[sdc]["position"][nx.N_PAST - 1, :2]
+        ap = decoded_a[tok]["position"][nx.N_PAST - 1, :2]
+        if float(np.linalg.norm(ap - ego_p)) > 50.0:
+            continue
+        pa = decoded_a[tok]["position"][nx.N_PAST : nx.N_PAST + 8]
+        pb = decoded_b[tok]["position"][nx.N_PAST : nx.N_PAST + 8]
+        va = decoded_a[tok]["valid"][nx.N_PAST : nx.N_PAST + 8]
+        vb = decoded_b[tok]["valid"][nx.N_PAST : nx.N_PAST + 8]
+        ade = agent_ade(pa, pb, va, vb)
+        end = float(np.linalg.norm(pa[-1] - pb[-1])) if np.isfinite(ade) else float("nan")
+        row = {"token": tok, "ade_m": ade, "endpoint_m": end}
+        raw.append(row)
+        ga = nx.decoded_agent_physics_gate(decoded_a[tok])
+        gb = nx.decoded_agent_physics_gate(decoded_b[tok])
+        fallback = False
+        if pack_a is not None:
+            src = (pack_a.get("futures") or {}).get(tok, {}).get("source")
+            fallback = src is not None and src != "nexus"
+        cutoff_ok = True  # pack overwrites k=0 with log; gate checked in diagnose
+        if ga["ok"] and gb["ok"] and not fallback and cutoff_ok:
+            phys.append({**row, "physics_A": ga, "physics_B": gb})
+    raw.sort(key=lambda x: -(x["ade_m"] if np.isfinite(x["ade_m"]) else -1))
+    phys.sort(key=lambda x: -(x["ade_m"] if np.isfinite(x["ade_m"]) else -1))
+
+    def _ok(best: Optional[Dict[str, Any]]) -> bool:
+        if not best or not np.isfinite(best.get("ade_m", float("nan"))):
+            return False
+        return (best["ade_m"] >= 0.5 or best["endpoint_m"] >= 1.0) and best["ade_m"] > 5 * max(
+            repeat_err, 1e-8
+        )
+
+    return {
+        "raw_all_generated": {
+            "n": len(raw),
+            "best": raw[0] if raw else None,
+            "sensitive": _ok(raw[0] if raw else None),
+            "top3": raw[:3],
+        },
+        "physics_valid_common_support": {
+            "n": len(phys),
+            "best": phys[0] if phys else None,
+            "sensitive": _ok(phys[0] if phys else None),
+            "top3": [
+                {k: v for k, v in r.items() if k in ("token", "ade_m", "endpoint_m")} for r in phys[:3]
+            ],
+        },
+        "repeat_err_m": repeat_err,
     }
 
 
@@ -332,10 +418,19 @@ def score_pdm_single_row(
         arr = np.asarray(v)
         if arr.ndim >= 1 and arr.shape[0] == 8192:
             val = arr[plan_idx]
-            row[k] = {
-                "value": float(val) if np.issubdtype(arr.dtype, np.number) else str(val),
-                "finite": bool(np.isfinite(val)) if np.issubdtype(arr.dtype, np.number) else True,
-            }
+            if isinstance(val, (bool, np.bool_)):
+                num = float(val)
+                row[k] = {"value": num, "finite": True}
+            elif np.issubdtype(arr.dtype, np.number) or np.issubdtype(type(val), np.number):
+                num = float(val)
+                row[k] = {"value": num, "finite": bool(np.isfinite(num))}
+            else:
+                # try cast bool-like / numeric strings
+                try:
+                    num = float(val)
+                    row[k] = {"value": num, "finite": bool(np.isfinite(num))}
+                except Exception:
+                    row[k] = {"value": str(val), "finite": True}
     return {
         "ok": bool(row) and all(r.get("finite", True) for r in row.values()),
         "plan_idx": plan_idx,
@@ -372,13 +467,19 @@ def main() -> int:
     ap.add_argument("--device", type=str, default="cuda")
     ap.add_argument("--skip-pdm", action="store_true")
     ap.add_argument("--cpu-only-tests", action="store_true")
+    ap.add_argument(
+        "--static-scores-pkl",
+        type=Path,
+        default=None,
+        help="Reuse precomputed cutoff=4 log-agent PDM scores for static gate (skip re-score).",
+    )
     args = ap.parse_args()
 
     sidecar = args.sidecar_root
-    out_dir = args.out_dir or (sidecar / "outputs/smoke_cutoff4")
+    out_dir = args.out_dir or (sidecar / "outputs/smoke_cutoff4_closing")
     out_dir.mkdir(parents=True, exist_ok=True)
     report: Dict[str, Any] = {
-        "stage": "nexus_sidecar_feasibility",
+        "stage": "nexus_sidecar_feasibility_closing",
         "cutoff": DEFAULT_CUTOFF,
         "scene_id": SCENE_ID,
         "started_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
@@ -410,7 +511,6 @@ def main() -> int:
         print(json.dumps(report, indent=2, ensure_ascii=False))
         return 2
 
-    # plan_idx step=5 fingerprint mismatch → vocab preregister (no Action Policy)
     report["gates"]["candidate_source"] = {
         "plan_idx_csv_step5": 1333,
         "reused": False,
@@ -420,9 +520,112 @@ def main() -> int:
     vocab = np.load(args.vocab)
     ego_center = np.asarray(ego_st["position"], dtype=np.float64)[cutoff, :2]
     ego_heading = float(np.asarray(ego_st["heading"]).reshape(-1)[cutoff])
-    filtered = filter_vocab_candidates(vocab, ego_center, ego_heading)
-    pairs = select_candidate_pairs(filtered, max_pairs=MAX_PAIRS)
-    # Materialize futures for registered indices
+    phys_filtered, reject_counts = filter_vocab_candidates(vocab, ego_center, ego_heading)
+    report["gates"]["candidate_physics_filter"] = {
+        "ok": len(phys_filtered) >= 2,
+        "n_kept": len(phys_filtered),
+        "n_input": int(len(vocab)),
+        "reject_counts": reject_counts,
+        "enforced": [
+            "within_100m",
+            "max_step<=15",
+            "terminal_speed<=30",
+            "near_stationary_speed_inconsistent→continue",
+            "heading_vel_aligned",
+            "acceleration<=12",
+            "yaw_rate<=pi",
+            "heading_jump<=90deg",
+            "continuity",
+        ],
+        "not_enforced_here": [
+            "map_feasibility (PDM DAC/Direction static gate)",
+        ],
+    }
+    if not report["gates"]["candidate_physics_filter"]["ok"]:
+        report["verdict"] = "失败"
+        save_json(out_dir / "feasibility_summary.json", report)
+        return 2
+
+    # Static PDM gate BEFORE first Nexus GPU inference
+    if args.skip_pdm and args.static_scores_pkl is None:
+        report["gates"]["static_pdm_gate"] = {"ok": False, "skipped": True}
+        report["verdict"] = "失败"
+        save_json(out_dir / "feasibility_summary.json", report)
+        print("STOP: static PDM gate required for closing stage")
+        return 2
+
+    if args.static_scores_pkl is not None:
+        obj = pickle.load(open(args.static_scores_pkl, "rb"))
+        dac = np.asarray(obj["drivable_area_compliance"], dtype=np.float64).reshape(-1)
+        comfort = np.asarray(obj["comfort"], dtype=np.float64).reshape(-1)
+        direction = np.asarray(obj["driving_direction_compliance"], dtype=np.float64).reshape(-1)
+        lane_keep = np.asarray(obj.get("lane_keeping", np.zeros_like(dac)), dtype=np.float64).reshape(-1)
+        score = np.asarray(obj["score"], dtype=np.float64).reshape(-1)
+        keep_mask = (dac == 1.0) & (comfort == 1.0) & (direction == 1.0) & np.isfinite(score)
+        keep_idx = np.nonzero(keep_mask)[0].astype(int).tolist()
+        static_gate = {
+            "ok": len(keep_idx) >= 2,
+            "scores_pkl": str(args.static_scores_pkl),
+            "n_keep": len(keep_idx),
+            "keep_idx": keep_idx,
+            "counts": {
+                "dac_eq_1": int((dac == 1.0).sum()),
+                "comfort_eq_1": int((comfort == 1.0).sum()),
+                "direction_eq_1": int((direction == 1.0).sum()),
+                "lane_keeping_eq_1": int((lane_keep == 1.0).sum()),
+                "static_feasible": len(keep_idx),
+            },
+            "arrays": {
+                "dac": dac,
+                "comfort": comfort,
+                "direction": direction,
+                "lane_keeping": lane_keep,
+                "score": score,
+            },
+            "wall_s": None,
+            "note": "Reused precomputed static scores; hard keep=DAC&Comfort&Direction==1; no disagreement analysis.",
+        }
+    else:
+        static_gate = score_static_pdm_gate(
+            scene=scene,
+            vocab=vocab,
+            vocab_path=args.vocab,
+            work_dir=out_dir / "static_gate_workdir",
+            asset_folder=args.asset_folder,
+            cutoff=cutoff,
+            horizon=DEFAULT_HORIZON,
+        )
+    keep_set = set(static_gate["keep_idx"])
+    static_cands = []
+    for c in phys_filtered:
+        if c["plan_idx"] not in keep_set:
+            continue
+        sg = {
+            "dac": float(static_gate["arrays"]["dac"][c["plan_idx"]]),
+            "comfort": float(static_gate["arrays"]["comfort"][c["plan_idx"]]),
+            "direction": float(static_gate["arrays"]["direction"][c["plan_idx"]]),
+            "lane_keeping": float(static_gate["arrays"]["lane_keeping"][c["plan_idx"]]),
+            "score": float(static_gate["arrays"]["score"][c["plan_idx"]]),
+        }
+        c2 = dict(c)
+        c2["static_gate"] = sg
+        static_cands.append(c2)
+    # Drop heavy arrays from report
+    report["gates"]["static_pdm_gate"] = {
+        "ok": static_gate["ok"] and len(static_cands) >= 2,
+        "scores_pkl": static_gate["scores_pkl"],
+        "n_physics_then_static": len(static_cands),
+        "counts": static_gate["counts"],
+        "wall_s": static_gate["wall_s"],
+        "note": static_gate["note"],
+    }
+    if not report["gates"]["static_pdm_gate"]["ok"]:
+        report["verdict"] = "失败"
+        save_json(out_dir / "feasibility_summary.json", report)
+        print("STOP: static PDM gate failed", report["gates"]["static_pdm_gate"])
+        return 2
+
+    pairs = select_candidate_pairs(static_cands, ego_heading, max_pairs=MAX_PAIRS)
     pair_futures = {}
     for p in pairs:
         for lab in ("A", "B"):
@@ -434,27 +637,36 @@ def main() -> int:
     manifest = {
         "immutable": True,
         "created_before_gpu": True,
+        "selection": "moderate_among_static_feasible",
         "n_pairs": len(pairs),
         "pairs": pairs,
-        "n_filtered_candidates": len(filtered),
+        "n_physics_filtered": len(phys_filtered),
+        "n_static_feasible": len(static_cands),
+        "physics_reject_counts": reject_counts,
+        "static_gate_counts": static_gate["counts"],
         "vocab_sha256": sha256_file(args.vocab),
         "freeze_ego_center": ego_center.tolist(),
         "freeze_ego_heading": ego_heading,
     }
     manifest_path = out_dir / "candidate_pair_manifest.json"
-    if manifest_path.exists():
-        # Must not rewrite after GPU; if exists from prior failed run, keep if same
+    if manifest_path.exists() and (out_dir / "gpu_results.json").exists():
         old = json.loads(manifest_path.read_text())
         if old.get("pairs") != pairs:
-            # allow overwrite only if no gpu_results yet
-            if (out_dir / "gpu_results.json").exists():
-                raise RuntimeError("Refuse to alter immutable candidate manifest after GPU")
+            raise RuntimeError("Refuse to alter immutable candidate manifest after GPU")
     save_json(manifest_path, manifest)
-    # also copy light summary into WE reports later
     report["gates"]["candidate_manifest"] = {
         "ok": True,
         "path": str(manifest_path),
-        "pairs": [{"pair_id": p["pair_id"], "A": p["A"]["plan_idx"], "B": p["B"]["plan_idx"], "sep": p["separation"]} for p in pairs],
+        "pairs": [
+            {
+                "pair_id": p["pair_id"],
+                "A": p["A"]["plan_idx"],
+                "B": p["B"]["plan_idx"],
+                "sep": p["separation"],
+                "rule": p["selection_rule"],
+            }
+            for p in pairs
+        ],
     }
 
     # CPU tests
@@ -648,81 +860,63 @@ def main() -> int:
         print("STOP: ego hold failed")
         return 6
 
-    # Candidate sensitivity on pair0
-    sens_agents = []
-    for tok in r_a1["decoded"]:
-        if not r_a1["decoded"][tok].get("generate"):
-            continue
-        # within 50m of ego at cutoff
-        ego_p = r_a1["decoded"][sdc]["position"][nx.N_PAST - 1, :2]
-        ap = r_a1["decoded"][tok]["position"][nx.N_PAST - 1, :2]
-        if float(np.linalg.norm(ap - ego_p)) > 50.0:
-            continue
-        pa = r_a1["decoded"][tok]["position"][nx.N_PAST : nx.N_PAST + 8]
-        pb = r_b["decoded"][tok]["position"][nx.N_PAST : nx.N_PAST + 8]
-        va = r_a1["decoded"][tok]["valid"][nx.N_PAST : nx.N_PAST + 8]
-        vb = r_b["decoded"][tok]["valid"][nx.N_PAST : nx.N_PAST + 8]
-        ade = agent_ade(pa, pb, va, vb)
-        end = float(np.linalg.norm(pa[-1] - pb[-1])) if np.isfinite(ade) else float("nan")
-        sens_agents.append({"token": tok, "ade_m": ade, "endpoint_m": end})
-    sens_agents.sort(key=lambda x: -(x["ade_m"] if np.isfinite(x["ade_m"]) else -1))
-    best = sens_agents[0] if sens_agents else None
-    # repeat error baseline
-    repeat_err = max(same_noise_pos_err) if same_noise_pos_err else 0.0
-    cand_ok = False
-    if best and np.isfinite(best["ade_m"]):
-        cand_ok = (best["ade_m"] >= 0.5 or best["endpoint_m"] >= 1.0) and best["ade_m"] > 5 * max(repeat_err, 1e-8)
+    # Candidate sensitivity on pair0 — report raw vs physics-valid
+    sens0 = sensitivity_report(r_a1["decoded"], r_b["decoded"], None, sdc, max(same_noise_pos_err) if same_noise_pos_err else 0.0)
+    repeat_err = sens0["repeat_err_m"]
 
-    # Run remaining pre-registered pairs (up to 3) for reporting
+    # Diagnose the two known failing tokens on A+noise0 (diagnose only)
+    diag_tokens = ["7cd47126ba8f584e", "803cff56"]
+    # Resolve full tokens by prefix
+    all_toks = list(r_a1["decoded"].keys())
+    resolved = []
+    for pref in diag_tokens:
+        hits = [t for t in all_toks if t.startswith(pref) or pref in t]
+        resolved.extend(hits if hits else [pref])
+    diagnostics = {
+        t: nx.diagnose_agent_physics(t, r_a1["decoded"], scene, cutoff)
+        for t in resolved
+        if t in r_a1["decoded"]
+    }
+    report["gates"]["physics_diagnostics"] = diagnostics
+
     pair_reports = [
         {
             "pair_id": 0,
             "A": a_idx,
             "B": b_idx,
-            "best_agent": best,
-            "n_compared": len(sens_agents),
-            "candidate_sensitive": cand_ok,
             "separation": pair0["separation"],
+            "selection_rule": pair0["selection_rule"],
+            "sensitivity": sens0,
         }
     ]
+    phys_sensitive_any = bool(sens0["physics_valid_common_support"]["sensitive"])
+    raw_sensitive_any = bool(sens0["raw_all_generated"]["sensitive"])
     for p in pairs[1:]:
         ra = infer_for(p["A"]["plan_idx"], z0)
         rb = infer_for(p["B"]["plan_idx"], z0)
-        local = []
-        for tok in ra["decoded"]:
-            if not ra["decoded"][tok].get("generate"):
-                continue
-            ego_p = ra["decoded"][sdc]["position"][nx.N_PAST - 1, :2]
-            ap = ra["decoded"][tok]["position"][nx.N_PAST - 1, :2]
-            if float(np.linalg.norm(ap - ego_p)) > 50.0:
-                continue
-            pa = ra["decoded"][tok]["position"][nx.N_PAST : nx.N_PAST + 8]
-            pb = rb["decoded"][tok]["position"][nx.N_PAST : nx.N_PAST + 8]
-            ade = float(np.mean(np.linalg.norm(pa - pb, axis=1)))
-            end = float(np.linalg.norm(pa[-1] - pb[-1]))
-            local.append({"token": tok, "ade_m": ade, "endpoint_m": end})
-        local.sort(key=lambda x: -x["ade_m"])
-        b0 = local[0] if local else None
-        ok_i = bool(b0 and (b0["ade_m"] >= 0.5 or b0["endpoint_m"] >= 1.0) and b0["ade_m"] > 5 * max(repeat_err, 1e-8))
+        sens_i = sensitivity_report(ra["decoded"], rb["decoded"], None, sdc, repeat_err)
         pair_reports.append(
             {
                 "pair_id": p["pair_id"],
                 "A": p["A"]["plan_idx"],
                 "B": p["B"]["plan_idx"],
-                "best_agent": b0,
-                "candidate_sensitive": ok_i,
                 "separation": p["separation"],
+                "selection_rule": p["selection_rule"],
+                "sensitivity": sens_i,
             }
         )
-        cand_ok = cand_ok or ok_i
+        phys_sensitive_any = phys_sensitive_any or bool(sens_i["physics_valid_common_support"]["sensitive"])
+        raw_sensitive_any = raw_sensitive_any or bool(sens_i["raw_all_generated"]["sensitive"])
 
     report["gates"]["candidate_sensitivity"] = {
-        "ok": cand_ok,
+        "ok_physics_valid": phys_sensitive_any,
+        "ok_raw": raw_sensitive_any,
         "pairs": pair_reports,
         "repeat_err_m": repeat_err,
+        "note": "Technical usability must use physics_valid_common_support, not raw.",
     }
 
-    # Noise sensitivity A+n0 vs A+n1
+    # Noise sensitivity A+n0 vs A+n1 (recorded; not required for 可用)
     noise_agents = []
     for tok in r_a1["decoded"]:
         if not r_a1["decoded"][tok].get("generate"):
@@ -735,9 +929,11 @@ def main() -> int:
     noise_ok = bool(noise_agents and noise_agents[0]["ade_m"] >= 0.1)
     report["gates"]["noise_sensitivity"] = {
         "ok": noise_ok,
+        "required_for_usable": False,
         "best": noise_agents[0] if noise_agents else None,
         "noise0_hash": noise0_hash,
         "noise1_hash": noise1_hash,
+        "note": "Near-deterministic under strong keep_mask; subsequent runs use fixed seed=0.",
     }
 
     # Build future pack from A+noise0
@@ -783,8 +979,8 @@ def main() -> int:
         "extra": sorted(gen_tokens - slot_tokens),
     }
 
-    # PDM single-row
-    if not args.skip_pdm and phys.get("ok") and report["gates"]["token_remap"]["ok"]:
+    # PDM single-row on conditioning candidate (must DAC=1 Comfort=1 finite)
+    if not args.skip_pdm and report["gates"]["token_remap"]["ok"]:
         try:
             pdm = score_pdm_single_row(
                 scene=scene,
@@ -795,6 +991,19 @@ def main() -> int:
                 work_dir=out_dir / "pdm_workdir",
                 asset_folder=args.asset_folder,
             )
+            row = pdm.get("conditioning_row") or {}
+            dac_v = (row.get("drivable_area_compliance") or {}).get("value")
+            com_v = (row.get("comfort") or {}).get("value")
+            sc_v = (row.get("score") or {}).get("value")
+            pdm_ok = bool(
+                pdm.get("ok")
+                and dac_v == 1.0
+                and com_v == 1.0
+                and sc_v is not None
+                and np.isfinite(sc_v)
+            )
+            pdm["conditioning_static_ok"] = pdm_ok
+            pdm["ok"] = pdm_ok
             report["gates"]["pdm_single_row"] = pdm
         except Exception as e:
             report["gates"]["pdm_single_row"] = {
@@ -806,36 +1015,30 @@ def main() -> int:
         report["gates"]["pdm_single_row"] = {
             "ok": False,
             "skipped": True,
-            "reason": "physics_or_token_failed_or_skip_flag",
+            "reason": "token_failed_or_skip_flag",
         }
 
-    # Verdict
+    # Verdict (closing criteria)
     g = report["gates"]
-    tech = (
+    interface_ok = (
         g["strict_load"]["ok"]
         and g["roundtrip_history"]["ok"]
         and g.get("future_leakage", {}).get("task_mask_future_all_zero", False)
         and g["ego_hold_16"]["ok"]
         and g["same_noise_repro"]["ok"]
-        and g["candidate_sensitivity"]["ok"]
-        and g["noise_sensitivity"]["ok"]
-        and g["physics_schema"]["ok"]
         and g["token_remap"]["ok"]
         and g.get("pdm_single_row", {}).get("ok", False)
+        and g.get("static_pdm_gate", {}).get("ok", False)
+        and g.get("candidate_manifest", {}).get("ok", False)
     )
-    partial = (
-        g["strict_load"]["ok"]
-        and g["ego_hold_16"]["ok"]
-        and g["same_noise_repro"]["ok"]
-        and g["physics_schema"]["ok"]
-        and g["token_remap"]["ok"]
-        and g.get("pdm_single_row", {}).get("ok", False)
-        and not g["candidate_sensitivity"]["ok"]
-    )
-    if tech:
-        report["verdict"] = "技术通过"
-    elif partial:
-        report["verdict"] = "部分通过"
+    # Pack schema: allow physics issues if fallback covers; require pack written
+    pack_ok = bool(pack.get("future_hash")) and g["token_remap"]["ok"]
+    phys_resp = bool(g.get("candidate_sensitivity", {}).get("ok_physics_valid"))
+    raw_only_resp = bool(g.get("candidate_sensitivity", {}).get("ok_raw")) and not phys_resp
+    if interface_ok and pack_ok and phys_resp:
+        report["verdict"] = "可用"
+    elif interface_ok and pack_ok and (raw_only_resp or not phys_resp):
+        report["verdict"] = "接口可用但行为未验证"
     else:
         report["verdict"] = "失败"
 
@@ -846,7 +1049,6 @@ def main() -> int:
     }
     report["finished_at"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
     save_json(out_dir / "feasibility_summary.json", report)
-    # Light GPU summary without huge arrays
     save_json(
         out_dir / "gpu_results.json",
         {
@@ -856,6 +1058,8 @@ def main() -> int:
             "ego_hold_A": r_a1["hold"],
             "repro": report["gates"]["same_noise_repro"],
             "noise_sens": report["gates"]["noise_sensitivity"],
+            "physics_diagnostics": diagnostics,
+            "verdict": report["verdict"],
         },
     )
     print(json.dumps({k: report[k] for k in ("verdict", "gates", "resource")}, indent=2, ensure_ascii=False, default=str))

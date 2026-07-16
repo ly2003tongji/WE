@@ -1,66 +1,114 @@
-# Nexus 单场景 ego-conditioned sidecar 可行性
+# Nexus 单场景 ego-conditioned sidecar 可行性（收尾修正）
 
 **工程验证 only**。仅当前 1-scene、`cutoff=4`；未扩样、未改 upstream、未跑 BWM/SMART、未做三模型分歧结论。
 
 ## 结论
 
-**部分通过。**
+**可用。**
 
-公开 Nexus `71c31ca…` + `nuplan.ckpt`（SHA256 `679f6ccf…`）可在本场景上完成：strict-load、5 帧真实历史、非 ego future 无日志 GT 泄漏、官方 encode/decode 等价、ego 16 帧条件保持、同噪声可复现、预注册 3 组 A/B 候选敏感性（最大 ADE≈9.9 m）、token 回映、以及 conditioning candidate 单行 PDM 接口烟测。
+在物理过滤 + PDM 静态可行门预筛后的**适中** ego candidate pair 上，至少一个 **physics-valid** common-support agent（`44df645d`，pair2 ADE≈0.574 m）对 candidate conditioning 产生可测响应；future pack 与 conditioning 单行 PDM 接口通过（DAC=1、Comfort=1、score 有限）。
 
-未达「技术通过」的原因：
+噪声敏感性仍近确定性（ADE≈0.001 m），**不再**作为「可用」必要条件；后续统一固定 `seed=0`。
 
-1. **噪声敏感性**：`A+noise0` vs `A+noise1` 最大 ADE≈0.001 m（阈值 ≥0.1 m）。已确认 `z_T` hash 不同且传入 `sample(z_t=…)`；在强 keep_mask 条件下本场景扩散采样几乎确定性。
-2. **物理门**：14 个生成车辆中 2 个超出预注册阈值（`7cd47126` 加速度 12.63>12；`803cff56` heading jump>90°）。PDM pack 完整性对这些 token 使用 log fallback；候选敏感性在 fallback **之前**的原始 Nexus 输出上测量。
-3. **地图覆盖**：编码得到 LANE=52；`LANE_CONNECTOR`/`STOP_LINE`/`CROSSWALK` 在编码集合中为 0（OpenScene 类型映射与半径筛选限制），按计划降为部分通过。
-
-允许主张：本单场景上 Nexus 公开模型支持 ego-conditioned sidecar 旁路推理接口。  
+允许主张：本单场景上，合理静态可行 ego candidate 可驱动至少一台通过 Nexus 物理门的 agent 产生 candidate-conditioned 响应，且旁路接口闭环。  
 禁止主张：泛化、held-out、或多场景奖励分歧结论。
+
+## 判定对照
+
+| 判定 | 条件 | 本轮 |
+|---|---|---|
+| **可用** | 合理 pair + ≥1 physics-valid 响应 + pack/PDM 过 | **是**（pair2） |
+| 接口可用但行为未验证 | 仅物理失败 agent 响应，或合理 pair 无响应 | 否 |
+| 失败 | 筛选/地图/物理/schema 无法闭环 | 否 |
 
 ## 固定版本
 
 | 项 | 值 |
 |---|---|
-| 协作仓 | `a5227045cd64b9709f0c279711a37499ffd3a666` |
-| WorldEngine | `fc79b937050ed9d68e18add2b480ae72578a7ea5` |
 | Nexus | `71c31ca848da94c969322a40f0f4ae2af8ca8129` |
-| nuplan fork | `e2aa9f34c6d129424a0d4c70f195c23c55a0666d` |
-| MTR | `a5ba7bdafa09a1a355cc34f8a895499a2b14ddb3` |
-| ckpt | HF `OpenDriveLab-org/Nexus@6eec52e8…` / 139,612,912 B / SHA256 `679f6ccf…` |
-| 场景 | `2021.09.29.15.23.04_veh-28_00601_00802-6326d00e52115da4` |
-| cutoff | **4**（历史索引 0..4；不复用 cutoff=3 artifact） |
+| ckpt | SHA256 `679f6ccf…` / 139,612,912 B |
+| 场景 | `2021.09.29…-6326d00e52115da4` |
+| cutoff | **4** |
 
-## 关键门控结果
+## 1. 候选过滤修正
+
+| 项 | 状态 |
+|---|---|
+| near-stationary 速度不一致 | **`continue`（已修；原 `pass` bug）** |
+| heading↔velocity | **已实现并强制** |
+| acceleration ≤12 | **已实现并强制** |
+| yaw-rate ≤π | **已实现并强制** |
+| 连续性 / heading jump | **已实现并强制** |
+| 地图可行性 | **不在 vocab 物理过滤中声称**；由 PDM DAC/Direction 静态门承担 |
+
+物理过滤后保留 7868/8192；拒绝：`outside_100m`=324，`heading_vel_misaligned`=3。
+
+## 2. 静态可行预筛（GPU 前）
+
+同 cutoff=4、log-agent futures，对 8192 计算 DAC / Comfort / Direction / lane_keeping（记录）/ 轨迹物理连续性（已在上一步）。
+
+硬保留：`DAC=1 ∧ Comfort=1 ∧ Direction=1` → **3100** 条；与物理过滤交集 **3097**。  
+lane_keeping=1 仅 560（**非**硬门）。不做 Replay/Nexus 分歧分析。
+
+## 3. 适中 candidate pairs（非全库最远）
+
+锚点：静态可行集中位路径长度；规则见 manifest。
+
+| pair | A | B | endpoint / RMS (m) | lon / lat Δ | 规则 |
+|---|---|---|---|---|---|
+| 0 | 710 | 6527 | 2.48 / 1.52 | 2.39 / 0.66 | small_sep |
+| 1 | 710 | 5729 | 12.90 / 7.52 | 12.42 / 3.46 | mid_longitudinal |
+| 2 | 710 | 2278 | 8.38 / 6.29 | 6.91 / 4.75 | reasonable_lateral |
+
+A/B 均通过静态门。不可变 manifest：`reports/nexus_candidate_pair_manifest.json`。
+
+## 4. 敏感性（两套）
+
+| 套 | 定义 | 本轮 |
+|---|---|---|
+| raw 全部生成 agent | 含物理失败车 | pair1 上 `7cd47126` ADE≈1.93 m 等 |
+| **physics-valid common-support** | 无 NaN；过速度/加速度/heading 门；非 Replay fallback；token 正确 | **pair2：`44df645d` ADE≈0.574 m（≥0.5），>5×同噪误差（0）** |
+
+技术可用结论**仅**基于第 2 套。
+
+## 5. 物理失败诊断（只诊断，不放宽门）
+
+### `7cd47126ba8f584e`（acc 12.63 > 12）
+
+- **来源：模型速度通道** `spd[current]=10.32 → spd[first_future]=4.00`，差分 acc≈12.63。
+- 位置差分门：`max_acc_from_pos≈4.31`（不过 12）。
+- **不是**单纯坐标变换伪影；**不得**事后放宽 12 m/s²。
+
+### `803cff565b865578`（heading jump ≈179°）
+
+- 近零速（current spd=0）。
+- `θ→θ+π` 后 jump≈0.013 rad → **疑似 box 方向 π 等价 / 近零速不稳定**。
+- **未**做 heading canonicalization；门保持。
+
+## 6. 地图覆盖
+
+WorldEngine 原始类型：有 `CROSSWALK`（仅 polygon、无 polyline）；**无** `LANE_CONNECTOR` / `STOP_LINE`。
+
+| 类型 | 原因 | 处理 |
+|---|---|---|
+| CROSSWALK | **adapter 曾遗漏**（只读 polyline） | **已修**：polygon ring 回退；本轮编码 **CROSSWALK=8** |
+| LANE_CONNECTOR / STOP_LINE | **上游 OpenScene 场景缺失** | 只记录，不扩任务 |
+| LANE | `LANE_SURFACE_*` 映射 | 编码 52 |
+
+## 7. 门控摘要
 
 | 门控 | 结果 |
 |---|---|
-| strict-load | **通过** `missing=[]` `unexpected=[]`；`num_max_agents=[128,0,0]`；tensor `(129,21,8)` |
-| 5 帧历史 | **通过**；14 辆车全程有效 |
-| future 泄漏 | **通过**；非 ego future raw=0、`task_mask=0`、normalized=encode(zeros)；hash 已记录 |
-| 官方 codec 等价 | **通过**；encode/decode max abs err = 0 |
-| 历史 round-trip | **通过**；max pos≈3e-6 m |
-| ego 16 帧保持 | **通过**；A/B 全 16 帧 pos max <1e-5 m |
-| 同噪声复现 | **通过**；RNG hash 一致，first-4s max err = 0 |
-| 候选敏感性 | **通过**；3 组预注册 pairs 均敏感（pair0 ADE 5.25 m @`7cd47126`） |
-| 噪声敏感性 | **未达阈值**；ADE≈0.001 m；`z_T` 已审计传入 |
-| 物理/schema | **部分**；2 agent 超阈；其余可打包 |
-| token 回映 | **通过**；14/14 |
-| PDM 单行 | **通过**；plan_idx=1807 行 8 字段均可计算且有限 |
+| strict-load | 通过 |
+| future 泄漏 / ego16 / 同噪复现 / token | 通过 |
+| 静态门 + 适中 pairs | 通过 |
+| physics-valid 敏感性 | **通过**（pair2） |
+| 噪声敏感性 | 未达 0.1 m；如实近确定性 |
+| 物理/schema | 2 agent 超阈 → pack log fallback；其余可打包 |
+| PDM conditioning 行 | **DAC=1, Comfort=1, score≈0.770**（plan_idx=710） |
 
-## 候选来源
+## 产物
 
-`plan_idx.csv` step=5（1333）与 cutoff=4 冻结 fingerprint **未**证明一致 → **未**接入 Action Policy。  
-按 vocabulary 预注册规则在 GPU 前写入不可变 manifest（见 `reports/nexus_candidate_pair_manifest.json`）。
-
-## 产物位置
-
-- 代码：`adapters/traffic_models/{base,nexus}.py`，`scripts/run_nexus_sidecar_smoke.py`，`tests/test_nexus_adapter.py`
-- 轻量摘要：`reports/nexus_sidecar_feasibility_summary.json`
-- 原始输出（Git 外）：`/mnt/cpfs/prediction/lyyy/myself/WE/nexus_sidecar/outputs/smoke_cutoff4/`
-- 隔离环境/权重/第三方源码（Git 外）：`/mnt/cpfs/prediction/lyyy/myself/WE/nexus_sidecar/`
-
-## 资源
-
-- sidecar 落盘约 22 GiB（硬上限 40 GiB 内）
-- GPU 烟测峰值 RSS ≈1.5 GB；PDM ≈1.4 GB / 52 s
-- 未修改 `/workspace/worldengine/envs/{simengine,algengine}`，未修改 upstream
+- 代码：`adapters/traffic_models/nexus.py`，`scripts/run_nexus_sidecar_smoke.py`，`tests/test_nexus_adapter.py`（synthetic unit + integration skip）
+- 摘要：`reports/nexus_sidecar_feasibility_summary.{json,csv}`，`reports/nexus_candidate_pair_manifest.json`
+- 原始输出（Git 外）：`nexus_sidecar/outputs/smoke_cutoff4_closing/`

@@ -1,127 +1,233 @@
 {
   "immutable": true,
   "created_before_gpu": true,
+  "selection": "moderate_among_static_feasible",
   "n_pairs": 3,
   "pairs": [
     {
       "pair_id": 0,
       "A": {
-        "plan_idx": 1807,
-        "traj_hash": "c6eed2d55fa83537fee170aab8a57e2f7791ee874ad4d2ebc3f9aae6830bbf3c:f82e37ca7cdff15b3d5d429ce7c18b0803167cd01c9239183bfa3cd872606bcd",
-        "real_hash": "b9af5a75ce14f37bac68b4ec4782b07f27edcd4ee6ef30286dd65c3eeb380987:352f04e8fc75eb34dd71edd4e677e2a23b1024f874d4b2e08e37b612488c85c6",
-        "ext_hash": "29869868c9d1021d2cedf5ae45960af7e9bca176750a4e9df52c656ca46a8489",
+        "plan_idx": 710,
+        "traj_hash": "8b89d0eb008bbbb5a944951cfd01a1bddd54c760164b99b26fda35eb816da9a3:0c8e54772da38bc6556b82203eec3fa7f996014f024b6e83c48ba34f195e22df",
+        "real_hash": "158c29783356356914dea39059c821c75137e50751a6c63a630c1463e7494336:b0207bb9602ac81b43f5cc24b2c58455ac371d79f18d16056f46b560b8c7da15",
+        "ext_hash": "2b431c1060af08c395b14fe752b8510182edc328869dd7b2ba6e032945f57f3d",
         "stats": {
-          "real_endpoint_from_t0_m": 19.798260260917623,
-          "real_path_length_m": 19.91480591056955,
-          "terminal_speed_m_s": 5.769491470319982,
-          "ext_endpoint_from_real_end_m": 23.07796588127994,
-          "max_step_m": 2.8847457351599926,
+          "real_endpoint_from_t0_m": 2.8633875209266244,
+          "real_path_length_m": 2.960054708452641,
+          "terminal_speed_m_s": 0.0195036897160314,
+          "ext_endpoint_from_real_end_m": 0.0780147588641256,
+          "max_step_m": 0.8255950976781652,
+          "max_acc_m_s2": 1.0359783687026798,
+          "max_yaw_rate_rad_s": 0.2260299175977707,
+          "max_heading_jump_rad": 0.11301495879888535,
           "within_100m_radius": true,
-          "heading_vel_aligned": true
+          "heading_vel_aligned": true,
+          "continuity_ok": true,
+          "lon_endpoint_m": 2.404495758299263,
+          "lat_endpoint_m": 1.5547952416055215,
+          "map_feasibility_enforced_here": false
+        },
+        "static_gate": {
+          "dac": 1.0,
+          "comfort": 1.0,
+          "direction": 1.0,
+          "lane_keeping": 0.0,
+          "score": 0.6023772499878884
         }
       },
       "B": {
-        "plan_idx": 1412,
-        "traj_hash": "5eb23c44962da8581edf1e1155713896b039c4025e31523539ff55eca945ec63:51a51ad3a563f5144170391328506ad4b6666bb149e68873e570fd74db699c12",
-        "real_hash": "f2c7a26ec451f6641b749aee06f03c8ab8eb7fa64586c7d97abd5a5f7e8b21bd:04ff07a112fea14b1165220544bb0a7a5f120ad43bc388c6a15cdc816db6a2f4",
-        "ext_hash": "8609b47cf460815e454175224721959b71e55699d8444d88bba609656e3dc661",
+        "plan_idx": 6527,
+        "traj_hash": "26d467bc1552c14cc9af1faba27f6a9e80989c7d74262b9d8f9e4e1c7092c964:3a60f0b936559669c891e05673c6d44c1cbc4ef7c7ffaf1f594e74caf9903340",
+        "real_hash": "0f2adf8577b4be7accd45bc5174d47a6d2178250f788c2678f4bbc278ca00527:cb763babca2b1370b533495e5d6c39783412e99499ff6dde56d48f1dd65e1f01",
+        "ext_hash": "f3a57b5303af6c4c00dc39d2bdb8cbcd176aaa440b2096c8d3e06a902f54f3aa",
         "stats": {
-          "real_endpoint_from_t0_m": 51.93501439787907,
-          "real_path_length_m": 51.93524113775596,
-          "terminal_speed_m_s": 11.757685658608741,
-          "ext_endpoint_from_real_end_m": 47.03074263443494,
-          "max_step_m": 6.8241261142550105,
+          "real_endpoint_from_t0_m": 4.879769215757418,
+          "real_path_length_m": 4.880154424220461,
+          "terminal_speed_m_s": 0.7452212211853926,
+          "ext_endpoint_from_real_end_m": 2.980884884741571,
+          "max_step_m": 0.79088251310522,
+          "max_acc_m_s2": 0.3327273284512038,
+          "max_yaw_rate_rad_s": 0.08944787085056305,
+          "max_heading_jump_rad": 0.044723935425281525,
           "within_100m_radius": true,
-          "heading_vel_aligned": true
+          "heading_vel_aligned": true,
+          "continuity_ok": true,
+          "lon_endpoint_m": 4.796955314271487,
+          "lat_endpoint_m": 0.8951912152921897,
+          "map_feasibility_enforced_here": false
+        },
+        "static_gate": {
+          "dac": 1.0,
+          "comfort": 1.0,
+          "direction": 1.0,
+          "lane_keeping": 0.0,
+          "score": 0.6314009427286532
         }
       },
       "separation": {
-        "rms_m": 22.299968264100205,
-        "endpoint_m": 34.01889192116069
+        "rms_m": 1.5189391239494014,
+        "endpoint_m": 2.481721216916108,
+        "lon_delta_m": 2.3924595559722235,
+        "lat_delta_m": 0.6596040263133318,
+        "path_length_delta_m": 1.9200997157678197
       },
-      "selection_rule": "vocab_preregister_median_path_then_max_sep",
+      "selection_rule": "static_feasible_median_anchor_small_sep",
       "meets_sep_thresholds": true
     },
     {
       "pair_id": 1,
       "A": {
-        "plan_idx": 6351,
-        "traj_hash": "f821af20dbf72a4515296b0f5c0696e470c957d0103ff9af6226544310892280:9c3385336f654ff7e0e5e972f3c39166a30a6972e97ad17bdedff84ba731bdcf",
-        "real_hash": "c8aaa4fb10c71bf932f9fb4cea11f7fae754a825c6f01c672d19e79d9ea36c7d:7501407f7d62a3604a5a8bd5ce1239f2d627d08987fc1ca65a0560c2af902775",
-        "ext_hash": "f6f0a8236f8019f450460785ad6016648bee54d42cfc0a05434b66acafd45e5e",
+        "plan_idx": 710,
+        "traj_hash": "8b89d0eb008bbbb5a944951cfd01a1bddd54c760164b99b26fda35eb816da9a3:0c8e54772da38bc6556b82203eec3fa7f996014f024b6e83c48ba34f195e22df",
+        "real_hash": "158c29783356356914dea39059c821c75137e50751a6c63a630c1463e7494336:b0207bb9602ac81b43f5cc24b2c58455ac371d79f18d16056f46b560b8c7da15",
+        "ext_hash": "2b431c1060af08c395b14fe752b8510182edc328869dd7b2ba6e032945f57f3d",
         "stats": {
-          "real_endpoint_from_t0_m": 6.241686132373098,
-          "real_path_length_m": 6.31474194727639,
-          "terminal_speed_m_s": 2.497686545354283,
-          "ext_endpoint_from_real_end_m": 9.990746181417125,
-          "max_step_m": 1.2488432726771415,
+          "real_endpoint_from_t0_m": 2.8633875209266244,
+          "real_path_length_m": 2.960054708452641,
+          "terminal_speed_m_s": 0.0195036897160314,
+          "ext_endpoint_from_real_end_m": 0.0780147588641256,
+          "max_step_m": 0.8255950976781652,
+          "max_acc_m_s2": 1.0359783687026798,
+          "max_yaw_rate_rad_s": 0.2260299175977707,
+          "max_heading_jump_rad": 0.11301495879888535,
           "within_100m_radius": true,
-          "heading_vel_aligned": true
+          "heading_vel_aligned": true,
+          "continuity_ok": true,
+          "lon_endpoint_m": 2.404495758299263,
+          "lat_endpoint_m": 1.5547952416055215,
+          "map_feasibility_enforced_here": false
+        },
+        "static_gate": {
+          "dac": 1.0,
+          "comfort": 1.0,
+          "direction": 1.0,
+          "lane_keeping": 0.0,
+          "score": 0.6023772499878884
         }
       },
       "B": {
-        "plan_idx": 6906,
-        "traj_hash": "dd5624f45672ab2023e35771e9fcf03c577548c78492f3ec3df3f3d5f361477d:3bb74b68fb33c437f0e025380a09dbbde5b692ab86155d38ec6315e5f1a07789",
-        "real_hash": "0977f4f90d5347fb1135f0774bd8a51ff0e6cca18c40e19ab7ab143fa347bbac:9d77ea8c30575609e0bcd3868ec19535ec748c1b63f1098d5b84e620dcf8d765",
-        "ext_hash": "8ef6ef137685c5001a1b69fccca9c8d1aa32ef6058d51229c0c6e479d95caea0",
+        "plan_idx": 5729,
+        "traj_hash": "ee18584e2c0fcdc87bb4649dffd4f94a5b72759901ba16756dff4928346a11f9:5430054a5bcb3803fbcc74782143829d045895d8a57b59fac6211e16b65ed211",
+        "real_hash": "fa642013f050bf1f0715f632c1a9aaf85ea5f7d15b76e973be6c65080a124f75:e5a41547eaef871881334046df6ed78af24863261b6f2b6de852226107e8e3fb",
+        "ext_hash": "52136518664736372dff54ea95a7e00ec87f168fabec280a61f9c19a89285cb6",
         "stats": {
-          "real_endpoint_from_t0_m": 52.03950887134358,
-          "real_path_length_m": 52.05664626544119,
-          "terminal_speed_m_s": 11.294513104519341,
-          "ext_endpoint_from_real_end_m": 45.17805241807737,
-          "max_step_m": 7.011014165180849,
+          "real_endpoint_from_t0_m": 14.950681511691265,
+          "real_path_length_m": 14.979307543505417,
+          "terminal_speed_m_s": 4.109606869704557,
+          "ext_endpoint_from_real_end_m": 16.438427478818227,
+          "max_step_m": 2.0548034348522783,
+          "max_acc_m_s2": 0.27831157992295985,
+          "max_yaw_rate_rad_s": 0.05756407976150513,
+          "max_heading_jump_rad": 0.028782039880752563,
           "within_100m_radius": true,
-          "heading_vel_aligned": true
+          "heading_vel_aligned": true,
+          "continuity_ok": true,
+          "lon_endpoint_m": 14.828508149607128,
+          "lat_endpoint_m": -1.907412834459809,
+          "map_feasibility_enforced_here": false
+        },
+        "static_gate": {
+          "dac": 1.0,
+          "comfort": 1.0,
+          "direction": 1.0,
+          "lane_keeping": 0.0,
+          "score": 0.1241391709244578
         }
       },
       "separation": {
-        "rms_m": 30.600340462969317,
-        "endpoint_m": 46.18929091937746
+        "rms_m": 7.516177842872579,
+        "endpoint_m": 12.897401624410374,
+        "lon_delta_m": 12.424012391307865,
+        "lat_delta_m": 3.4622080760653304,
+        "path_length_delta_m": 12.019252835052775
       },
-      "selection_rule": "vocab_preregister_median_path_then_max_sep",
+      "selection_rule": "static_feasible_median_anchor_mid_longitudinal",
       "meets_sep_thresholds": true
     },
     {
       "pair_id": 2,
       "A": {
-        "plan_idx": 7348,
-        "traj_hash": "f0772e62c55a8ea704328ed2f825e0f76d590cebbad8e06e491be5dec88ae972:6b94613cb5dc6ccd482aeba36ec3e0fb28db01eaa1f9255693da00c113248bff",
-        "real_hash": "3a7b5a271a719b68226d4aaa6cb7af2902e274a40f3442596ae993030f9e1f73:437ffdc7c3c2dc1e61e7b6394ad4a96c7f715580ead64694cff3a8dcf6bc8bb4",
-        "ext_hash": "5270a2f6e7c67392e625976a48fb0c58d48d143649d1669e98a9a0d91f38fdf3",
+        "plan_idx": 710,
+        "traj_hash": "8b89d0eb008bbbb5a944951cfd01a1bddd54c760164b99b26fda35eb816da9a3:0c8e54772da38bc6556b82203eec3fa7f996014f024b6e83c48ba34f195e22df",
+        "real_hash": "158c29783356356914dea39059c821c75137e50751a6c63a630c1463e7494336:b0207bb9602ac81b43f5cc24b2c58455ac371d79f18d16056f46b560b8c7da15",
+        "ext_hash": "2b431c1060af08c395b14fe752b8510182edc328869dd7b2ba6e032945f57f3d",
         "stats": {
-          "real_endpoint_from_t0_m": 30.964775879644066,
-          "real_path_length_m": 30.96587183276653,
-          "terminal_speed_m_s": 8.513410936803922,
-          "ext_endpoint_from_real_end_m": 34.05364374721569,
-          "max_step_m": 4.256705468401962,
+          "real_endpoint_from_t0_m": 2.8633875209266244,
+          "real_path_length_m": 2.960054708452641,
+          "terminal_speed_m_s": 0.0195036897160314,
+          "ext_endpoint_from_real_end_m": 0.0780147588641256,
+          "max_step_m": 0.8255950976781652,
+          "max_acc_m_s2": 1.0359783687026798,
+          "max_yaw_rate_rad_s": 0.2260299175977707,
+          "max_heading_jump_rad": 0.11301495879888535,
           "within_100m_radius": true,
-          "heading_vel_aligned": true
+          "heading_vel_aligned": true,
+          "continuity_ok": true,
+          "lon_endpoint_m": 2.404495758299263,
+          "lat_endpoint_m": 1.5547952416055215,
+          "map_feasibility_enforced_here": false
+        },
+        "static_gate": {
+          "dac": 1.0,
+          "comfort": 1.0,
+          "direction": 1.0,
+          "lane_keeping": 0.0,
+          "score": 0.6023772499878884
         }
       },
       "B": {
-        "plan_idx": 595,
-        "traj_hash": "51aadfacf15285d3a17471cd8c4074db68f4bbb4247e78f0cc4e39512af31651:1540c3c3f446bc6bd6d01a78001da499bf74eabd3002d42970489758e5bb5121",
-        "real_hash": "9f096b6ef4022dee18b758158bab134748a308bb7952988c81d1b6cd24354ade:6dcba160e91330425134fc58906c2718879924462a287cebd1547089f3908c8c",
-        "ext_hash": "5a9ea889099715deb2c8c7e58b9325b4a6656df1f5f776476128e8bfe00c1d52",
+        "plan_idx": 2278,
+        "traj_hash": "6a6a8ffc6eb95bcba0654d6e23f9a9e35f616bce3fbed1e644231954cae859e7:f00a349fa923394e4e6e4e3479d484b68fd597c1ced464ba8a6732f50712026c",
+        "real_hash": "2562f58b8cd172c85868061e162747f8edd8b284a3501c4cd9e6b5eb7c0e8cec:e6195e6553d53e569cfe1eaea31ec3c3c1f295de23b484ae022832f60b2360bf",
+        "ext_hash": "88e25818842ee49e012fba8cf65f4990f96702436d5c83dd0082ed5c99f42554",
         "stats": {
-          "real_endpoint_from_t0_m": 13.545152866061821,
-          "real_path_length_m": 14.824075136069256,
-          "terminal_speed_m_s": 4.368164105387483,
-          "ext_endpoint_from_real_end_m": 17.47265642154993,
-          "max_step_m": 2.184082052693742,
+          "real_endpoint_from_t0_m": 9.844856741391238,
+          "real_path_length_m": 9.991918082862854,
+          "terminal_speed_m_s": 0.5556523076597769,
+          "ext_endpoint_from_real_end_m": 2.2226092306391085,
+          "max_step_m": 2.0902696567539416,
+          "max_acc_m_s2": 1.4866438499168972,
+          "max_yaw_rate_rad_s": 0.16243648529052734,
+          "max_heading_jump_rad": 0.08121824264526367,
           "within_100m_radius": true,
-          "heading_vel_aligned": false
+          "heading_vel_aligned": true,
+          "continuity_ok": true,
+          "lon_endpoint_m": 9.311417309757696,
+          "lat_endpoint_m": -3.196672010397886,
+          "map_feasibility_enforced_here": false
+        },
+        "static_gate": {
+          "dac": 1.0,
+          "comfort": 1.0,
+          "direction": 1.0,
+          "lane_keeping": 1.0,
+          "score": 0.10208633419960993
         }
       },
       "separation": {
-        "rms_m": 20.33733917735233,
-        "endpoint_m": 34.72747650511721
+        "rms_m": 6.293110723529732,
+        "endpoint_m": 8.383436429344579,
+        "lon_delta_m": 6.906921551458432,
+        "lat_delta_m": 4.751467252003407,
+        "path_length_delta_m": 7.0318633744102135
       },
-      "selection_rule": "vocab_preregister_median_path_then_max_sep",
+      "selection_rule": "static_feasible_median_anchor_reasonable_lateral",
       "meets_sep_thresholds": true
     }
   ],
-  "n_filtered_candidates": 7868,
+  "n_physics_filtered": 7865,
+  "n_static_feasible": 3097,
+  "physics_reject_counts": {
+    "outside_100m_radius": 324,
+    "heading_velocity_misaligned": 3
+  },
+  "static_gate_counts": {
+    "dac_eq_1": 7132,
+    "comfort_eq_1": 3581,
+    "direction_eq_1": 7501,
+    "lane_keeping_eq_1": 560,
+    "static_feasible": 3100
+  },
   "vocab_sha256": "cc44a31e75a53406db59f026f0358de97931e726f10254542f98d2a87a38ad35",
   "freeze_ego_center": [
     -1.429073650855571,
