@@ -17,8 +17,10 @@
   - `research/PAPER_POSITIONING.md`（2026-07-21 新增）
   - `reports/POST_TRAINING_OPENSOURCE_AUDIT.md`（2026-07-21 新增）
 - H20 新会话使用：
-  - **当前唯一阶段**：`prompts/H20_CUTOFF4_THREE_SOURCE_PROMPT.md`（cutoff=4 三源对齐；先 Plan Mode）
-  - 总览/旧全量阶段说明：`prompts/H20_DISAGREEMENT_AGENT_PROMPT.md`（勿覆盖本阶段锁定决策）
+  - **当前唯一阶段**：`prompts/H20_TRAIN_SIDE_LE10_PROMPT.md`（train-side≤10 效应量；先 Plan Mode）
+  - 已完成冒烟批准副本：`prompts/H20_CUTOFF4_PLAN_APPROVAL.md`
+  - 冒烟任务原文：`prompts/H20_CUTOFF4_THREE_SOURCE_PROMPT.md`
+  - 总览/旧全量：`prompts/H20_DISAGREEMENT_AGENT_PROMPT.md`（勿覆盖锁定决策）
 - **叙事决策**：WE = 平台/问题来源，不复现 Table 1 全消融；方法阶段可选 OpenWE-SFT（`rl_finetuning=False`）作弱基线。详见定位文档。
 
 ## 已确认的论文事实
@@ -111,9 +113,9 @@
 
 ## H20 下一步
 
-**本批已停在单场景三源冒烟。** 未自动 commit/push。
+**单场景三源冒烟已完成并 push（`df99739`）。**
 
-**建议下一批准项（不自动执行）：** 同协议 train-side ≤10 scenes 效应量；288 `navtest_failures` 仍不参与公式/调参。明确不做：Table 1、后训、SMART 训练、BWM 配对奖励。
+**下一批准项：** 发 `prompts/H20_TRAIN_SIDE_LE10_PROMPT.md` → H20 先 Plan Mode，Mac 批 scene 池后再执行。明确不做：Table 1、后训、SMART 训练、BWM 配对；288 navtest 不进抽样池。
 
 **IDM 口径：** 规则式；path 先沿日志参考轨迹，纵向由 IDM 重算；`enable_lane_change=False`。
 

@@ -1,6 +1,6 @@
 # WorldEngine 交通模型分歧研究：当前状态
 
-最后更新：2026-07-21（已锁定统一 cutoff=4）
+最后更新：2026-07-21（cutoff=4 单场景三源冒烟已完成；下一阶段 train-side≤10）
 
 ## 1. 文档用途与权威顺序
 
@@ -21,7 +21,7 @@
 ## 2. 固定版本
 
 - 协作仓库分支：`h20/reproduction`
-- 最新有效协作提交：`d5959be815edfc131ab81db0a6d8259be5b6c88d`（锁定 cutoff=4、后训审计、H20 三源提示词）
+- 最新有效协作提交：`df99739`（cutoff=4 三源冒烟；Mac 随后将追加 train-side≤10 提示词提交）
 - WorldEngine upstream：`fc79b937050ed9d68e18add2b480ae72578a7ea5`
 - 官方数据revision：`8728616abaf090d195b3bdc7af6aacde40271145`
 - 本地姊妹仓 SimScale（仅审计，非训练依赖）：`相关论文/World Engine/SimScale` @ `df99d45`
@@ -308,8 +308,8 @@ Nexus + SMART → held-out IDM
 尚未开始的正式研究工作：
 
 - ~~统一时间锚点决定（cutoff=3 vs 4）~~ **已锁定 cutoff=4**；
-- Replay/IDM 管线迁移到 cutoff=4 并与 Nexus 三源对齐冒烟；
-- train-side长尾场景多来源候选奖励比较；
+- ~~Replay/IDM 管线迁移到 cutoff=4 并与 Nexus 三源对齐冒烟~~ **已完成**（单场景 engineering；见 `reports/CUTOFF4_THREE_SOURCE_SMOKE.md`）；
+- train-side长尾场景多来源候选奖励比较（≤10）；
 - 分歧是否存在、是否可预测held-out失败；
 - 第三个独立在线模型（SMART重训练）；
 - 后训练方法。
@@ -336,16 +336,15 @@ Nexus + SMART → held-out IDM
 
 **IDM 工作理解（用户确认，2026-07-21）：** 规则式、不训练。参考路径在默认设定下**先跟日志轨迹**（`IDMNavigation`），纵向速度/加速度由 IDM 跟车公式按当前前车与状态重算，故 path 形状大致沿日志、纵向可偏离日志；本项目 `enable_lane_change=False`。走出原轨迹末端后可接地图 lane（仍非学习模型）。
 
-**开展顺序（cutoff 已锁，待交 H20 Plan Mode）：**
+**开展顺序：**
 
 1. ~~锁锚点~~ **已决：cutoff=4**；
-2. **迁移 + 单场景三源对齐冒烟**：Replay/IDM→4，与 Nexus 同 scene / 同 8192 / 同 PDM，导出可逐候选 diff；重验 IDM 门控 A；
-3. **小规模 train-side**（建议先 ≤10，再视效应量到 ~50）：效应量、同模型波动、难度基线对照；
+2. ~~迁移 + 单场景三源对齐冒烟~~ **已完成**（门控 A；fingerprint 对齐；engineering smoke ≠ research）；
+3. **小规模 train-side ≤10**（效应量、同模型波动、难度基线对照）——**当前唯一待批执行项**；
 4. **停/扩门**：效应量值得再扩样或评估 SMART；否则收缩主张。
 
-下一阶段可执行计划必须先由H20 Agent在Plan Mode给出，再由Mac侧审核批准。
-
-发给 H20 的提示词：`prompts/H20_CUTOFF4_THREE_SOURCE_PROMPT.md`（复制其中 `---` 之间正文）。
+发给 H20 的提示词：`prompts/H20_TRAIN_SIDE_LE10_PROMPT.md`（复制其中 `---` 之间正文；先 Plan Mode）。  
+冒烟已完成：勿再发 `H20_CUTOFF4_THREE_SOURCE_PROMPT.md` 作为主任务。
 
 ## 11. 该阶段之后的决策
 
