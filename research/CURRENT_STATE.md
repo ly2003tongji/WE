@@ -21,7 +21,7 @@
 ## 2. 固定版本
 
 - 协作仓库分支：`h20/reproduction`
-- 最新有效协作提交：`a68dea42070bbb63ed578033a028d378d95b837e`（本文档更新前；含 Mac 侧代码问答沉淀）
+- 最新有效协作提交：`d5959be815edfc131ab81db0a6d8259be5b6c88d`（锁定 cutoff=4、后训审计、H20 三源提示词）
 - WorldEngine upstream：`fc79b937050ed9d68e18add2b480ae72578a7ea5`
 - 官方数据revision：`8728616abaf090d195b3bdc7af6aacde40271145`
 - 本地姊妹仓 SimScale（仅审计，非训练依赖）：`相关论文/World Engine/SimScale` @ `df99d45`
