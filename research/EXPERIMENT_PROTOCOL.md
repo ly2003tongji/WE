@@ -1,6 +1,6 @@
 # 交通模型分歧实验协议
 
-最后更新：2026-07-15
+最后更新：2026-07-21
 
 ## 1. 总原则
 
@@ -10,6 +10,8 @@
 - 288 个 `rare navtest` 尽量保留为最终测试集，不用于反复设计分歧公式。
 - 第一阶段不要求 3DGS；固定帧结构化评分成立后，再做完整视觉闭环。
 - 任何 held-out 模型不得参与公式、阈值、超参数、早停、checkpoint 或场景选择。
+- **不**将复现论文 Table 1 / full WE 列为本协议阶段目标；叙事与基线见 `PAPER_POSITIONING.md`。
+- **统一 cutoff 已锁定为 4**（2026-07-21）。三源（Replay / IDM restore-physics / Nexus）全部使用该锚点；禁止与旧 cutoff=3 结果并表。
 
 ## 2. 配对样本定义
 
@@ -72,10 +74,11 @@ agent 集合和车辆尺寸
 
 ### 行为来源
 
-- Log Replay（NR）；
-- IDM（R）；
-- 3–5 组随机参数 IDM，仅用于模型内/同族波动；
-- BWM-Offline（若可严格配对）。
+- Log Replay（NR / 冻结态 Replay future）；
+- IDM（**必须** restore-physics 协议，禁止用未恢复物理的 cold/warm 冒充严格配对）；
+- Nexus sidecar（固定 seed；与 Replay/IDM **同一 cutoff**）；
+- 可选：3–5 组随机参数 IDM，仅用于模型内/同族波动；
+- BWM-Offline：**不**纳入同场景配对（等级 C），仅可作外部域旁证。
 
 ### 规模
 

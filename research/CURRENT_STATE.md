@@ -1,6 +1,6 @@
 # WorldEngine 交通模型分歧研究：当前状态
 
-最后更新：2026-07-15
+最后更新：2026-07-21（已锁定统一 cutoff=4）
 
 ## 1. 文档用途与权威顺序
 
@@ -11,7 +11,7 @@
 1. `research/CURRENT_STATE.md`：当前研究问题、有效结论、下一阶段；
 2. `HANDOFF.md`：H20环境、工程进度和详细交接；
 3. `reports/`：具体实验的原始证据；
-4. `research/RESEARCH_HANDOFF.md`、`EXPERIMENT_PROTOCOL.md`：稳定研究定义与协议；
+4. `research/RESEARCH_HANDOFF.md`、`EXPERIMENT_PROTOCOL.md`、`PAPER_POSITIONING.md`：稳定研究定义、协议与论文叙事；
 5. 聊天记录：讨论过程，不作为最终事实来源。
 
 只有完成一个正式里程碑、改变研究判断或改变下一阶段时，才更新本文件。普通调试细节留在报告中。
@@ -21,10 +21,10 @@
 ## 2. 固定版本
 
 - 协作仓库分支：`h20/reproduction`
-- 最新有效协作提交：`2d8651dacef29eb5fb954af5e58998b2c82365bf`
-- 提交说明：`收紧BWM离线审计证据链`
+- 最新有效协作提交：`a68dea42070bbb63ed578033a028d378d95b837e`（本文档更新前；含 Mac 侧代码问答沉淀）
 - WorldEngine upstream：`fc79b937050ed9d68e18add2b480ae72578a7ea5`
 - 官方数据revision：`8728616abaf090d195b3bdc7af6aacde40271145`
+- 本地姊妹仓 SimScale（仅审计，非训练依赖）：`相关论文/World Engine/SimScale` @ `df99d45`
 
 后续计划和实验必须记录实际commit；若版本发生变化，先更新本节。
 
@@ -57,9 +57,12 @@
 - 分歧能够预测未见模型失败；
 - 分歧方法能够改善后训练；
 - 跨仿真器泛化；
-- sim-to-real或真实道路安全提升。
+- sim-to-real或真实道路安全提升；
+- 已复现或超越论文 Table 1 / full World Engine 数字。
 
-原因：目前只有一个已验证在线反应式模型IDM，Nexus尚未接入，BWM-Offline尚未审计，SMART当前不可直接使用。
+工程可用源（单场景已验证，多场景未做研究结论）：Log Replay、IDM（restore-physics）、Nexus sidecar（固定 seed）。BWM-Offline 定级 C，不入同场景配对。SMART 当前不可直接使用。
+
+**论文叙事与基线（2026-07-21 决策）：** 详见 `research/PAPER_POSITIONING.md`。WE 是平台与问题来源，不是必须打败的 Table 1 靶心；不启动忠实 Table 1 复现；方法阶段若需要开源弱基线，使用 OpenWE-SFT（`rl_finetuning=False`），并明确不等于论文 RL。后训开源审计见 `reports/POST_TRAINING_OPENSOURCE_AUDIT.md`。
 
 ---
 
@@ -304,7 +307,8 @@ Nexus + SMART → held-out IDM
 
 尚未开始的正式研究工作：
 
-- 统一时间锚点决定（cutoff=3 vs cutoff=4）；
+- ~~统一时间锚点决定（cutoff=3 vs 4）~~ **已锁定 cutoff=4**；
+- Replay/IDM 管线迁移到 cutoff=4 并与 Nexus 三源对齐冒烟；
 - train-side长尾场景多来源候选奖励比较；
 - 分歧是否存在、是否可预测held-out失败；
 - 第三个独立在线模型（SMART重训练）；
@@ -324,13 +328,24 @@ Nexus + SMART → held-out IDM
 
 约束：
 
-- 必须先确定并记录统一锚点，Replay/IDM/Nexus全部迁移到该锚点；
+- **统一锚点已锁定：`cutoff=4`**（与 Nexus 5 帧 past / `N_PAST-1` 对齐）。Replay 与 IDM（restore-physics）必须从既有 cutoff=3 工程管线**迁移到 4** 后再做三源并表；禁止混用 3/4 数字。
 - 只用train-side长尾场景开发，288 rare navtest保留最终测试；
 - BWM-Offline只作外部域旁证，不进入同场景共识；
 - 本阶段仍是工程/初步效应量，不做held-out泛化或研究go/no-go结论；
-- 不启动SMART训练、不设计后训练。
+- 不启动SMART训练、不设计后训练、不复现 Table 1、不训 OpenWE 基线。
 
-下一阶段计划必须先由H20 Agent在Plan Mode给出，再由Mac侧审核批准。
+**IDM 工作理解（用户确认，2026-07-21）：** 规则式、不训练。参考路径在默认设定下**先跟日志轨迹**（`IDMNavigation`），纵向速度/加速度由 IDM 跟车公式按当前前车与状态重算，故 path 形状大致沿日志、纵向可偏离日志；本项目 `enable_lane_change=False`。走出原轨迹末端后可接地图 lane（仍非学习模型）。
+
+**开展顺序（cutoff 已锁，待交 H20 Plan Mode）：**
+
+1. ~~锁锚点~~ **已决：cutoff=4**；
+2. **迁移 + 单场景三源对齐冒烟**：Replay/IDM→4，与 Nexus 同 scene / 同 8192 / 同 PDM，导出可逐候选 diff；重验 IDM 门控 A；
+3. **小规模 train-side**（建议先 ≤10，再视效应量到 ~50）：效应量、同模型波动、难度基线对照；
+4. **停/扩门**：效应量值得再扩样或评估 SMART；否则收缩主张。
+
+下一阶段可执行计划必须先由H20 Agent在Plan Mode给出，再由Mac侧审核批准。
+
+发给 H20 的提示词：`prompts/H20_CUTOFF4_THREE_SOURCE_PROMPT.md`（复制其中 `---` 之间正文）。
 
 ## 11. 该阶段之后的决策
 

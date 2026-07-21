@@ -1,6 +1,8 @@
 # 交通模型分歧研究交接
 
-最后更新：2026-07-15
+最后更新：2026-07-21
+
+论文叙事与基线定位见 `PAPER_POSITIONING.md`；后训开源审计见 `reports/POST_TRAINING_OPENSOURCE_AUDIT.md`。当前权威下一阶段以 `CURRENT_STATE.md` 为准。
 
 ## 1. 研究问题
 
