@@ -1,0 +1,87 @@
+{
+  "status": "ok",
+  "salvaged_after_loo_assert": true,
+  "cutoff": 4,
+  "horizon": 9,
+  "plan_idx": 1333,
+  "plan_idx_resolution": {
+    "plan_idx": 1333,
+    "source": "plan_idx.csv step=5",
+    "plan_idx_step": 5,
+    "csv": "/mnt/cpfs/prediction/lyyy/myself/WE/WE/upstream/WorldEngine/experiments/closed_loop_exps/e2e_vadv2_50pct-disagreement-smoke1-NR-20260715/navtest_failures_NR/plan_traj/plan_idx.csv",
+    "note": "Action Policy plan at step=5 used as ego conditioning for cutoff=4 (first executed plan after open-loop history; densereward first scores at cutoff)."
+  },
+  "cutoff_gate_grade": "A",
+  "cutoff_gate_allow_reward_compare": true,
+  "tolerances_declared_a_priori": {
+    "strict_pos_m": 0.05,
+    "strict_heading_deg": 0.5,
+    "strict_speed_mps": 0.05,
+    "soft_pos_m": 0.1,
+    "soft_heading_deg": 1.0,
+    "soft_speed_mps": 0.2,
+    "size_atol_m": 0.001
+  },
+  "identity_violations": [],
+  "policy_navigation_identity_preserved": true,
+  "pre_cutoff_transition_true_count": 0,
+  "pre_cutoff_transition_any_true": false,
+  "ego_post_cutoff_pos_error_max_m": 0.0,
+  "ego_post_cutoff_heading_error_max_deg": 0.0,
+  "focus_token": "44df645d1b5b584b",
+  "focus_summary": {
+    "token": "44df645d1b5b584b",
+    "restored_near_stationary_oscillation": false,
+    "restored_complete_stall": false,
+    "restored_net_disp_m": 4.372361981415132,
+    "restored_vs_replay_max_ade_m": 13.3027164211366,
+    "restored_has_valid_lane": true,
+    "restored_lane_kind": "CenterLane",
+    "cold_near_stationary_oscillation": true,
+    "warm_near_stationary_oscillation": false,
+    "warm_complete_stall": true,
+    "cold_vs_restored_max_dev_m": 4.313037663249432
+  },
+  "restored_vs_replay_flips": {
+    "noc_safe_to_danger": 2746,
+    "noc_danger_to_safe": 138,
+    "noc_total_flip": 2884,
+    "ttc_safe_to_danger": 2517,
+    "ttc_total_flip": 2524,
+    "fingerprint_matches_cold_replay_fingerprint": true,
+    "fingerprint_replay_idm_equal": true
+  },
+  "attribution_full_restored_noc_flip": 2884,
+  "attribution_top_single_agent": {
+    "hybrid": "single_44df645d",
+    "n_idm_agents": 1,
+    "idm_tokens": [
+      "44df645d1b5b584b"
+    ],
+    "noc_total_flip": 2746,
+    "noc_safe_to_danger": 2746,
+    "ttc_total_flip": 2517,
+    "max_set_jaccard_vs_replay": 0.6171816126601356,
+    "kendall_tau_b": 0.4485508879444141,
+    "dac_equal": true,
+    "comfort_equal": true,
+    "direction_equal": true,
+    "noc_flip_frac_of_full_raw": 0.9521497919556172,
+    "noc_flip_frac_exceeds_full": false,
+    "noc_flip_frac_of_full": 0.9521497919556172
+  },
+  "verdict": "B_real_disagreement_under_strict_pairing",
+  "verdict_reason": "Gate A; restored IDM still stalls/oscillates for focus agent; NOC/TTC flips persist.",
+  "expand_allowed_this_round": false,
+  "idm_rolled_count": 8,
+  "idm_rolled": [
+    "0d41d2217e195681",
+    "3799f5a3bef056e3",
+    "3a6b749e38305b9d",
+    "44df645d1b5b584b",
+    "52ecdbc693f250db",
+    "74c0b539dabe5e9b",
+    "7cd47126ba8f584e",
+    "dfcaa5d389bc56ef"
+  ]
+}

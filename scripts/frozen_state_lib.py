@@ -14,12 +14,14 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 import numpy as np
 
 REAR_AXLE_TO_CENTER = 1.461
-DEFAULT_CUTOFF = 3  # num_history - 1
+# Research-locked unified anchor (2026-07-21): cutoff=4 aligns Nexus N_PAST=5 → N_PAST-1.
+# This is NOT claimed to equal WorldEngine SCORER_CONFIG.num_history-1; do not change num_history here.
+DEFAULT_CUTOFF = 4
 DEFAULT_HORIZON = 9  # buffer_size / reward_buffer_size
-DEFAULT_PLAN_IDX = 1333  # NR Action Policy at step=4 for smoke_1scene
+DEFAULT_PLAN_IDX = 1333  # NR Action Policy at plan_idx.csv step=5 (also step=4) for smoke_1scene
 DEFAULT_SEED = 0
 SCORER_CONFIG = {
-    "num_history": 4,
+    "num_history": 4,  # WE densereward default; intentionally unchanged when research cutoff locked to 4
     "num_future": 8,
     "buffer_size": 9,
     "reward_sampling_poses": 8,

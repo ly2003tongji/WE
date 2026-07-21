@@ -1,0 +1,652 @@
+{
+  "status": "ok",
+  "engineering_smoke_not_research_go_nogo": true,
+  "scene_id": "2021.09.29.15.23.04_veh-28_00601_00802-6326d00e52115da4",
+  "scene_note": "navtest_failures engineering smoke subset; NOT research go/no-go",
+  "cutoff": 4,
+  "horizon": 9,
+  "forbid_merge_with_cutoff3": true,
+  "collaboration_head_sha": "47d0e4f4cd52f02167523970b0e00d357e13802c",
+  "worldengine_upstream_sha": "fc79b937050ed9d68e18add2b480ae72578a7ea5",
+  "plan_idx_provenance": {
+    "plan_idx": 1333,
+    "plan_idx_step": 5,
+    "plan_idx_csv": "/mnt/cpfs/prediction/lyyy/myself/WE/WE/upstream/WorldEngine/experiments/closed_loop_exps/e2e_vadv2_50pct-disagreement-smoke1-NR-20260715/navtest_failures_NR/plan_traj/plan_idx.csv",
+    "restore_plan_idx_resolution": {
+      "plan_idx": 1333,
+      "source": "plan_idx.csv step=5",
+      "plan_idx_step": 5,
+      "csv": "/mnt/cpfs/prediction/lyyy/myself/WE/WE/upstream/WorldEngine/experiments/closed_loop_exps/e2e_vadv2_50pct-disagreement-smoke1-NR-20260715/navtest_failures_NR/plan_traj/plan_idx.csv",
+      "note": "Action Policy plan at step=5 used as ego conditioning for cutoff=4 (first executed plan after open-loop history; densereward first scores at cutoff)."
+    },
+    "forbidden_legacy_nexus_plan_idx": 710,
+    "note": "Locked to Action Policy plan_idx.csv step=5 → 1333 for all three sources."
+  },
+  "fingerprint": {
+    "replay": "fcc78476ccb1e2972dc834db967c912f3a5ef2a78fe946962b49f792ce449a56",
+    "idm_restored": "fcc78476ccb1e2972dc834db967c912f3a5ef2a78fe946962b49f792ce449a56",
+    "nexus": "fcc78476ccb1e2972dc834db967c912f3a5ef2a78fe946962b49f792ce449a56",
+    "aligned": true,
+    "scorer_num_history_unchanged": 4,
+    "research_cutoff": 4
+  },
+  "idm_gate": {
+    "grade": "A",
+    "allow_reward_compare": true,
+    "pre_cutoff_transition_true_count": 0,
+    "pre_cutoff_transition_any_true": false
+  },
+  "nexus": {
+    "seed": 0,
+    "noise_hash": "df8738aceb08a02ba7c07e0b5bd036dd89b30ee2dff8d584874497919b2e7301",
+    "physics_log_fallback_tokens": [
+      "7cd47126ba8f584e",
+      "803cff565b865578"
+    ],
+    "coverage_counts": {
+      "nexus_generated": 12,
+      "log_fallback": 46,
+      "invalid_at_cutoff": 61
+    },
+    "hold_ok": true,
+    "future_hash": "5d7dcd94d35104bcbda4fa2682fbe780e3077af7aacc7b8f1e8f3042072c696f"
+  },
+  "pairwise": {
+    "replay_vs_idm": {
+      "noc_safe_to_danger": 2746,
+      "noc_danger_to_safe": 138,
+      "noc_total_flip": 2884,
+      "ttc_safe_to_danger": 2517,
+      "ttc_danger_to_safe": 7,
+      "ttc_total_flip": 2524,
+      "kendall_tau_b": 0.44704161243339613,
+      "score_range": {
+        "replay": {
+          "min": 0.0,
+          "max": 1.0
+        },
+        "idm": {
+          "min": 0.0,
+          "max": 1.0
+        }
+      },
+      "topk_overlap": {
+        "1": 1.0,
+        "10": 0.6,
+        "50": 0.66,
+        "100": 0.56
+      }
+    },
+    "replay_vs_nexus": {
+      "noc_safe_to_danger": 1316,
+      "noc_danger_to_safe": 200,
+      "noc_total_flip": 1516,
+      "ttc_safe_to_danger": 1177,
+      "ttc_danger_to_safe": 217,
+      "ttc_total_flip": 1394,
+      "kendall_tau_b": 0.7097352289333944,
+      "score_range": {
+        "replay": {
+          "min": 0.0,
+          "max": 1.0
+        },
+        "nexus": {
+          "min": 0.0,
+          "max": 1.0
+        }
+      },
+      "topk_overlap": {
+        "1": 1.0,
+        "10": 0.9,
+        "50": 0.82,
+        "100": 0.76
+      }
+    },
+    "idm_vs_nexus": {
+      "noc_safe_to_danger": 579,
+      "noc_danger_to_safe": 2071,
+      "noc_total_flip": 2650,
+      "ttc_safe_to_danger": 259,
+      "ttc_danger_to_safe": 1809,
+      "ttc_total_flip": 2068,
+      "kendall_tau_b": 0.4933639951923899,
+      "score_range": {
+        "idm": {
+          "min": 0.0,
+          "max": 1.0
+        },
+        "nexus": {
+          "min": 0.0,
+          "max": 1.0
+        }
+      },
+      "topk_overlap": {
+        "1": 1.0,
+        "10": 0.7,
+        "50": 0.62,
+        "100": 0.6
+      }
+    }
+  },
+  "replay_idm_attribution_hint": {
+    "full_restored_noc_flip": 2884,
+    "top_single_agent": {
+      "hybrid": "single_44df645d",
+      "n_idm_agents": 1,
+      "idm_tokens": [
+        "44df645d1b5b584b"
+      ],
+      "noc_total_flip": 2746,
+      "noc_safe_to_danger": 2746,
+      "ttc_total_flip": 2517,
+      "max_set_jaccard_vs_replay": 0.6171816126601356,
+      "kendall_tau_b": 0.4485508879444141,
+      "dac_equal": true,
+      "comfort_equal": true,
+      "direction_equal": true,
+      "noc_flip_frac_of_full_raw": 0.9521497919556172,
+      "noc_flip_frac_exceeds_full": false,
+      "noc_flip_frac_of_full": 0.9521497919556172
+    }
+  },
+  "ego_conditioning_hash": {
+    "requested": "1a5064ba2b794ae8c4e9e6d66488fbf15d70f9938711116b3a4402b0b7c0ab83",
+    "restore_requested": "1a5064ba2b794ae8c4e9e6d66488fbf15d70f9938711116b3a4402b0b7c0ab83",
+    "match_restore": true
+  },
+  "paths": {
+    "restore_dir": "/mnt/cpfs/prediction/lyyy/myself/WE/data/frozen_paired/smoke1_cutoff4_restore_v1",
+    "nexus_out": "/mnt/cpfs/prediction/lyyy/myself/WE/nexus_sidecar/outputs/smoke_cutoff4_three_source",
+    "report_md": "/mnt/cpfs/prediction/lyyy/myself/WE/WE/reports/CUTOFF4_THREE_SOURCE_SMOKE.md"
+  },
+  "wall_s": 50.85,
+  "rss_gb": 1.362,
+  "pairwise_detail": {
+    "replay_vs_idm": {
+      "pair": "replay_vs_idm",
+      "noc_flips": {
+        "n": 8192,
+        "both_safe": 3244,
+        "both_danger": 2064,
+        "a_safe_to_b_danger": 2746,
+        "a_danger_to_b_safe": 138,
+        "total_flip": 2884,
+        "flip_ratio": 0.35205078125,
+        "a_safe_to_b_danger_ratio": 0.335205078125,
+        "a_danger_to_b_safe_ratio": 0.016845703125,
+        "both_safe_ratio": 0.39599609375,
+        "both_danger_ratio": 0.251953125,
+        "labels": {
+          "a": "replay",
+          "b": "other",
+          "safe_threshold": 1.0
+        }
+      },
+      "ttc_flips": {
+        "n": 8192,
+        "both_safe": 2757,
+        "both_danger": 2911,
+        "a_safe_to_b_danger": 2517,
+        "a_danger_to_b_safe": 7,
+        "total_flip": 2524,
+        "flip_ratio": 0.30810546875,
+        "a_safe_to_b_danger_ratio": 0.3072509765625,
+        "a_danger_to_b_safe_ratio": 0.0008544921875,
+        "both_safe_ratio": 0.3365478515625,
+        "both_danger_ratio": 0.3553466796875,
+        "labels": {
+          "a": "replay",
+          "b": "other",
+          "safe_threshold": 1.0
+        }
+      },
+      "max_score_ties": {
+        "side_a_max_score": 1.0,
+        "side_b_max_score": 1.0,
+        "side_a_max_set_size": 1327,
+        "side_b_max_set_size": 819,
+        "intersection_size": 819,
+        "union_size": 1327,
+        "jaccard": 0.6171816126601356,
+        "frac_a_max_in_b_max": 0.6171816126601356,
+        "frac_b_max_in_a_max": 1.0,
+        "b_is_subset_of_a": true,
+        "a_is_subset_of_b": false,
+        "argmax_index_a": 5,
+        "argmax_index_b": 5,
+        "argmax_indices_equal": true,
+        "both_unique_optimum": false,
+        "can_claim_unique_top1_flip": false,
+        "interpretation": "存在大规模并列：不能声称唯一最优动作翻转；A max-set=1327, B max-set=819, 交集=819, Jaccard=0.617182",
+        "index_tie_broken_note": "np.argmax/argsort break ties by smaller index; index-tie-broken Top-K is implementation behavior, not a stable ranking conclusion"
+      },
+      "kendall_tau_b": 0.44704161243339613,
+      "topk_overlap_index_tie_broken": {
+        "1": 1.0,
+        "10": 0.6,
+        "50": 0.66,
+        "100": 0.56
+      },
+      "metrics": {
+        "no_at_fault_collisions": {
+          "equal": false,
+          "max_abs_diff": 1.0,
+          "mean_abs_diff": 0.35205078125,
+          "n_changed_gt_1e-6": 2884,
+          "replay_mean": 0.731201171875,
+          "idm_mean": 0.412841796875,
+          "replay_min": 0.0,
+          "replay_max": 1.0,
+          "idm_min": 0.0,
+          "idm_max": 1.0
+        },
+        "drivable_area_compliance": {
+          "equal": true,
+          "max_abs_diff": 0.0,
+          "mean_abs_diff": 0.0,
+          "n_changed_gt_1e-6": 0,
+          "replay_mean": 0.87060546875,
+          "idm_mean": 0.87060546875,
+          "replay_min": 0.0,
+          "replay_max": 1.0,
+          "idm_min": 0.0,
+          "idm_max": 1.0
+        },
+        "time_to_collision_within_bound": {
+          "equal": false,
+          "max_abs_diff": 1.0,
+          "mean_abs_diff": 0.30810546875,
+          "n_changed_gt_1e-6": 2524,
+          "replay_mean": 0.643798828125,
+          "idm_mean": 0.33740234375,
+          "replay_min": 0.0,
+          "replay_max": 1.0,
+          "idm_min": 0.0,
+          "idm_max": 1.0
+        },
+        "comfort": {
+          "equal": true,
+          "max_abs_diff": 0.0,
+          "mean_abs_diff": 0.0,
+          "n_changed_gt_1e-6": 0,
+          "replay_mean": 0.4371337890625,
+          "idm_mean": 0.4371337890625,
+          "replay_min": 0.0,
+          "replay_max": 1.0,
+          "idm_min": 0.0,
+          "idm_max": 1.0
+        },
+        "ego_progress": {
+          "equal": false,
+          "max_abs_diff": 1.0,
+          "mean_abs_diff": 0.29705810546875,
+          "n_changed_gt_1e-6": 2480,
+          "replay_mean": 0.46139450200912613,
+          "idm_mean": 0.16628952154037616,
+          "replay_min": 0.0,
+          "replay_max": 1.0,
+          "idm_min": 0.0,
+          "idm_max": 1.0
+        },
+        "driving_direction_compliance": {
+          "equal": true,
+          "max_abs_diff": 0.0,
+          "mean_abs_diff": 0.0,
+          "n_changed_gt_1e-6": 0,
+          "replay_mean": 0.5057373046875,
+          "idm_mean": 0.5057373046875,
+          "replay_min": 0.0,
+          "replay_max": 1.0,
+          "idm_min": 0.0,
+          "idm_max": 1.0
+        },
+        "score": {
+          "equal": false,
+          "max_abs_diff": 1.0,
+          "mean_abs_diff": 0.25472768147786456,
+          "n_changed_gt_1e-6": 2533,
+          "replay_mean": 0.5050121948475526,
+          "idm_mean": 0.2510983154530213,
+          "replay_min": 0.0,
+          "replay_max": 1.0,
+          "idm_min": 0.0,
+          "idm_max": 1.0
+        }
+      },
+      "score_range": {
+        "replay": {
+          "min": 0.0,
+          "max": 1.0
+        },
+        "idm": {
+          "min": 0.0,
+          "max": 1.0
+        }
+      }
+    },
+    "replay_vs_nexus": {
+      "pair": "replay_vs_nexus",
+      "noc_flips": {
+        "n": 8192,
+        "both_safe": 4674,
+        "both_danger": 2002,
+        "a_safe_to_b_danger": 1316,
+        "a_danger_to_b_safe": 200,
+        "total_flip": 1516,
+        "flip_ratio": 0.18505859375,
+        "a_safe_to_b_danger_ratio": 0.16064453125,
+        "a_danger_to_b_safe_ratio": 0.0244140625,
+        "both_safe_ratio": 0.570556640625,
+        "both_danger_ratio": 0.244384765625,
+        "labels": {
+          "a": "replay",
+          "b": "other",
+          "safe_threshold": 1.0
+        }
+      },
+      "ttc_flips": {
+        "n": 8192,
+        "both_safe": 4097,
+        "both_danger": 2701,
+        "a_safe_to_b_danger": 1177,
+        "a_danger_to_b_safe": 217,
+        "total_flip": 1394,
+        "flip_ratio": 0.170166015625,
+        "a_safe_to_b_danger_ratio": 0.1436767578125,
+        "a_danger_to_b_safe_ratio": 0.0264892578125,
+        "both_safe_ratio": 0.5001220703125,
+        "both_danger_ratio": 0.3297119140625,
+        "labels": {
+          "a": "replay",
+          "b": "other",
+          "safe_threshold": 1.0
+        }
+      },
+      "max_score_ties": {
+        "side_a_max_score": 1.0,
+        "side_b_max_score": 1.0,
+        "side_a_max_set_size": 1327,
+        "side_b_max_set_size": 1134,
+        "intersection_size": 1129,
+        "union_size": 1332,
+        "jaccard": 0.8475975975975976,
+        "frac_a_max_in_b_max": 0.8507912584777694,
+        "frac_b_max_in_a_max": 0.9955908289241623,
+        "b_is_subset_of_a": false,
+        "a_is_subset_of_b": false,
+        "argmax_index_a": 5,
+        "argmax_index_b": 5,
+        "argmax_indices_equal": true,
+        "both_unique_optimum": false,
+        "can_claim_unique_top1_flip": false,
+        "interpretation": "存在大规模并列：不能声称唯一最优动作翻转；A max-set=1327, B max-set=1134, 交集=1129, Jaccard=0.847598",
+        "index_tie_broken_note": "np.argmax/argsort break ties by smaller index; index-tie-broken Top-K is implementation behavior, not a stable ranking conclusion"
+      },
+      "kendall_tau_b": 0.7097352289333944,
+      "topk_overlap_index_tie_broken": {
+        "1": 1.0,
+        "10": 0.9,
+        "50": 0.82,
+        "100": 0.76
+      },
+      "metrics": {
+        "no_at_fault_collisions": {
+          "equal": false,
+          "max_abs_diff": 1.0,
+          "mean_abs_diff": 0.18505859375,
+          "n_changed_gt_1e-6": 1516,
+          "replay_mean": 0.731201171875,
+          "nexus_mean": 0.594970703125,
+          "replay_min": 0.0,
+          "replay_max": 1.0,
+          "nexus_min": 0.0,
+          "nexus_max": 1.0
+        },
+        "drivable_area_compliance": {
+          "equal": true,
+          "max_abs_diff": 0.0,
+          "mean_abs_diff": 0.0,
+          "n_changed_gt_1e-6": 0,
+          "replay_mean": 0.87060546875,
+          "nexus_mean": 0.87060546875,
+          "replay_min": 0.0,
+          "replay_max": 1.0,
+          "nexus_min": 0.0,
+          "nexus_max": 1.0
+        },
+        "time_to_collision_within_bound": {
+          "equal": false,
+          "max_abs_diff": 1.0,
+          "mean_abs_diff": 0.170166015625,
+          "n_changed_gt_1e-6": 1394,
+          "replay_mean": 0.643798828125,
+          "nexus_mean": 0.526611328125,
+          "replay_min": 0.0,
+          "replay_max": 1.0,
+          "nexus_min": 0.0,
+          "nexus_max": 1.0
+        },
+        "comfort": {
+          "equal": true,
+          "max_abs_diff": 0.0,
+          "mean_abs_diff": 0.0,
+          "n_changed_gt_1e-6": 0,
+          "replay_mean": 0.4371337890625,
+          "nexus_mean": 0.4371337890625,
+          "replay_min": 0.0,
+          "replay_max": 1.0,
+          "nexus_min": 0.0,
+          "nexus_max": 1.0
+        },
+        "ego_progress": {
+          "equal": false,
+          "max_abs_diff": 1.0,
+          "mean_abs_diff": 0.1495361328125,
+          "n_changed_gt_1e-6": 1227,
+          "replay_mean": 0.46139450200912613,
+          "nexus_mean": 0.35702438482162613,
+          "replay_min": 0.0,
+          "replay_max": 1.0,
+          "nexus_min": 0.0,
+          "nexus_max": 1.0
+        },
+        "driving_direction_compliance": {
+          "equal": true,
+          "max_abs_diff": 0.0,
+          "mean_abs_diff": 0.0,
+          "n_changed_gt_1e-6": 0,
+          "replay_mean": 0.5057373046875,
+          "nexus_mean": 0.5057373046875,
+          "replay_min": 0.0,
+          "replay_max": 1.0,
+          "nexus_min": 0.0,
+          "nexus_max": 1.0
+        },
+        "score": {
+          "equal": false,
+          "max_abs_diff": 1.0,
+          "mean_abs_diff": 0.1265869140625,
+          "n_changed_gt_1e-6": 1244,
+          "replay_mean": 0.5050121948475526,
+          "nexus_mean": 0.41423257245171924,
+          "replay_min": 0.0,
+          "replay_max": 1.0,
+          "nexus_min": 0.0,
+          "nexus_max": 1.0
+        }
+      },
+      "score_range": {
+        "replay": {
+          "min": 0.0,
+          "max": 1.0
+        },
+        "nexus": {
+          "min": 0.0,
+          "max": 1.0
+        }
+      }
+    },
+    "idm_vs_nexus": {
+      "pair": "idm_vs_nexus",
+      "noc_flips": {
+        "n": 8192,
+        "both_safe": 2803,
+        "both_danger": 2739,
+        "a_safe_to_b_danger": 579,
+        "a_danger_to_b_safe": 2071,
+        "total_flip": 2650,
+        "flip_ratio": 0.323486328125,
+        "a_safe_to_b_danger_ratio": 0.0706787109375,
+        "a_danger_to_b_safe_ratio": 0.2528076171875,
+        "both_safe_ratio": 0.3421630859375,
+        "both_danger_ratio": 0.3343505859375,
+        "labels": {
+          "a": "replay",
+          "b": "other",
+          "safe_threshold": 1.0
+        }
+      },
+      "ttc_flips": {
+        "n": 8192,
+        "both_safe": 2505,
+        "both_danger": 3619,
+        "a_safe_to_b_danger": 259,
+        "a_danger_to_b_safe": 1809,
+        "total_flip": 2068,
+        "flip_ratio": 0.25244140625,
+        "a_safe_to_b_danger_ratio": 0.0316162109375,
+        "a_danger_to_b_safe_ratio": 0.2208251953125,
+        "both_safe_ratio": 0.3057861328125,
+        "both_danger_ratio": 0.4417724609375,
+        "labels": {
+          "a": "replay",
+          "b": "other",
+          "safe_threshold": 1.0
+        }
+      },
+      "max_score_ties": {
+        "side_a_max_score": 1.0,
+        "side_b_max_score": 1.0,
+        "side_a_max_set_size": 819,
+        "side_b_max_set_size": 1134,
+        "intersection_size": 686,
+        "union_size": 1267,
+        "jaccard": 0.5414364640883977,
+        "frac_a_max_in_b_max": 0.8376068376068376,
+        "frac_b_max_in_a_max": 0.6049382716049383,
+        "b_is_subset_of_a": false,
+        "a_is_subset_of_b": false,
+        "argmax_index_a": 5,
+        "argmax_index_b": 5,
+        "argmax_indices_equal": true,
+        "both_unique_optimum": false,
+        "can_claim_unique_top1_flip": false,
+        "interpretation": "存在大规模并列：不能声称唯一最优动作翻转；A max-set=819, B max-set=1134, 交集=686, Jaccard=0.541436",
+        "index_tie_broken_note": "np.argmax/argsort break ties by smaller index; index-tie-broken Top-K is implementation behavior, not a stable ranking conclusion"
+      },
+      "kendall_tau_b": 0.4933639951923899,
+      "topk_overlap_index_tie_broken": {
+        "1": 1.0,
+        "10": 0.7,
+        "50": 0.62,
+        "100": 0.6
+      },
+      "metrics": {
+        "no_at_fault_collisions": {
+          "equal": false,
+          "max_abs_diff": 1.0,
+          "mean_abs_diff": 0.323486328125,
+          "n_changed_gt_1e-6": 2650,
+          "idm_mean": 0.412841796875,
+          "nexus_mean": 0.594970703125,
+          "idm_min": 0.0,
+          "idm_max": 1.0,
+          "nexus_min": 0.0,
+          "nexus_max": 1.0
+        },
+        "drivable_area_compliance": {
+          "equal": true,
+          "max_abs_diff": 0.0,
+          "mean_abs_diff": 0.0,
+          "n_changed_gt_1e-6": 0,
+          "idm_mean": 0.87060546875,
+          "nexus_mean": 0.87060546875,
+          "idm_min": 0.0,
+          "idm_max": 1.0,
+          "nexus_min": 0.0,
+          "nexus_max": 1.0
+        },
+        "time_to_collision_within_bound": {
+          "equal": false,
+          "max_abs_diff": 1.0,
+          "mean_abs_diff": 0.25244140625,
+          "n_changed_gt_1e-6": 2068,
+          "idm_mean": 0.33740234375,
+          "nexus_mean": 0.526611328125,
+          "idm_min": 0.0,
+          "idm_max": 1.0,
+          "nexus_min": 0.0,
+          "nexus_max": 1.0
+        },
+        "comfort": {
+          "equal": true,
+          "max_abs_diff": 0.0,
+          "mean_abs_diff": 0.0,
+          "n_changed_gt_1e-6": 0,
+          "idm_mean": 0.4371337890625,
+          "nexus_mean": 0.4371337890625,
+          "idm_min": 0.0,
+          "idm_max": 1.0,
+          "nexus_min": 0.0,
+          "nexus_max": 1.0
+        },
+        "ego_progress": {
+          "equal": false,
+          "max_abs_diff": 1.0,
+          "mean_abs_diff": 0.23541259765625,
+          "n_changed_gt_1e-6": 1973,
+          "idm_mean": 0.16628952154037616,
+          "nexus_mean": 0.35702438482162613,
+          "idm_min": 0.0,
+          "idm_max": 1.0,
+          "nexus_min": 0.0,
+          "nexus_max": 1.0
+        },
+        "driving_direction_compliance": {
+          "equal": true,
+          "max_abs_diff": 0.0,
+          "mean_abs_diff": 0.0,
+          "n_changed_gt_1e-6": 0,
+          "idm_mean": 0.5057373046875,
+          "nexus_mean": 0.5057373046875,
+          "idm_min": 0.0,
+          "idm_max": 1.0,
+          "nexus_min": 0.0,
+          "nexus_max": 1.0
+        },
+        "score": {
+          "equal": false,
+          "max_abs_diff": 1.0,
+          "mean_abs_diff": 0.2022374471028646,
+          "n_changed_gt_1e-6": 1986,
+          "idm_mean": 0.2510983154530213,
+          "nexus_mean": 0.41423257245171924,
+          "idm_min": 0.0,
+          "idm_max": 1.0,
+          "nexus_min": 0.0,
+          "nexus_max": 1.0
+        }
+      },
+      "score_range": {
+        "idm": {
+          "min": 0.0,
+          "max": 1.0
+        },
+        "nexus": {
+          "min": 0.0,
+          "max": 1.0
+        }
+      }
+    }
+  }
+}

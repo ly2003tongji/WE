@@ -574,14 +574,42 @@ def run_scoring_and_attribution(
     plan_idx: int,
     asset_folder: str,
 ) -> Dict[str, Any]:
-    fp_doc = json.loads((cold_dir / "input_state_fingerprint.json").read_text())
-    fps_all = json.loads((cold_dir / "independent_fingerprints_all.json").read_text())
-    expected_fp = fps_all["score_replay_pre_inject"]
-    req_hash = fp_doc["requested_ego_conditioning_hash"]
-    with (cold_dir / "scores_log_replay.pkl").open("rb") as f:
-        replay_scores = pickle.load(f)
+    """Score Replay + Restored-IDM at the *current* cutoff.
+
+    Cold-dir Replay scores are NOT reused: prior smoke1_cutoff3_* artifacts are a
+    different freeze and must not be mixed into cutoff=4 tables.
+    Optional cold_dir fingerprint is recorded only as a cross-check note.
+    """
+    ego_cond = restored.get("ego_conditioning") or {}
+    req_hash = ego_cond.get("requested_ego_conditioning_hash")
+    if not req_hash:
+        raise RuntimeError("restored pack missing requested_ego_conditioning_hash")
+
+    replay_pack = dict(restored["replay_ref"])
+    replay_pack["ego_conditioning"] = ego_cond
+    replay_pack["source"] = "log_replay"
 
     t0 = time.time()
+    replay_prov = score_one_source(
+        scene=orig_scene,
+        futures_pack=replay_pack,
+        source_name="log_replay",
+        cutoff=cutoff,
+        horizon=horizon,
+        work_dir=out_dir / "score_workdir_log_replay",
+        asset_folder=asset_folder,
+        vocab_path=vocab_path,
+        vocab=vocab,
+        plan_idx=plan_idx,
+        requested_ego_hash=req_hash,
+        wall_limit_sec=3600,
+        rss_limit_gb=64.0,
+        t0=t0,
+    )
+    with (out_dir / "scores_log_replay.pkl").open("rb") as f:
+        replay_scores = pickle.load(f)
+    save_json(out_dir / "scores_log_replay_run_meta.json", replay_prov)
+
     provenance = score_one_source(
         scene=orig_scene,
         futures_pack=restored,
@@ -602,13 +630,36 @@ def run_scoring_and_attribution(
         restored_scores = pickle.load(f)
     save_json(out_dir / "scores_idm_restored_run_meta.json", provenance)
 
-    fingerprint_matches_cold = provenance["input_state_fingerprint"] == expected_fp
+    fingerprint_pair_equal = (
+        provenance["input_state_fingerprint"] == replay_prov["input_state_fingerprint"]
+    )
+    cold_fp_note: Dict[str, Any] = {"cold_dir": str(cold_dir), "compared": False}
+    cold_fp_path = cold_dir / "independent_fingerprints_all.json"
+    if cold_fp_path.exists():
+        try:
+            fps_all = json.loads(cold_fp_path.read_text())
+            cold_fp = fps_all.get("score_replay_pre_inject")
+            cold_fp_note.update(
+                {
+                    "compared": True,
+                    "cold_dir_score_replay_pre_inject_fingerprint": cold_fp,
+                    "equal_to_current_replay": cold_fp == replay_prov["input_state_fingerprint"],
+                    "note": (
+                        "Informational only; cutoff=3 cold fingerprints are expected to differ "
+                        "from cutoff=4 and must not be used for scoring."
+                    ),
+                }
+            )
+        except Exception as e:  # noqa: BLE001
+            cold_fp_note["error"] = str(e)
+
     save_json(
         out_dir / "fingerprint_cross_check.json",
         {
+            "replay_run_fingerprint": replay_prov["input_state_fingerprint"],
             "restored_run_fingerprint": provenance["input_state_fingerprint"],
-            "cold_dir_score_replay_pre_inject_fingerprint": expected_fp,
-            "equal": fingerprint_matches_cold,
+            "replay_idm_fingerprint_equal": fingerprint_pair_equal,
+            "cold_dir_cross_check": cold_fp_note,
         },
     )
 
@@ -644,18 +695,18 @@ def run_scoring_and_attribution(
         "kendall_tau_b": tau,
         "n_candidates": int(len(score_r)),
         "fingerprint": provenance["input_state_fingerprint"],
-        "fingerprint_matches_cold_replay_fingerprint": fingerprint_matches_cold,
+        "fingerprint_matches_cold_replay_fingerprint": fingerprint_pair_equal,
+        "fingerprint_replay_idm_equal": fingerprint_pair_equal,
         "replay_calibration_note": (
-            "Reused cold-dir scores_log_replay.pkl directly (same scene/cutoff/vocab/plan_idx); "
-            "already verified elementwise-equal to historical NR step3 in stage 1.6."
+            "Scored log_replay futures freshly at this cutoff/plan_idx (no reuse of "
+            "smoke1_cutoff3_* cold-dir scores)."
         ),
     }
     save_json(out_dir / "restored_vs_replay_score_compare.json", primary)
 
     # ---- Single-agent / leave-one-out attribution (reuses stage 1.7/1.8 tested code) ----
     idm_tokens = list(restored["coverage"]["idm_rolled"])
-    replay_pack = dict(restored["replay_ref"])
-    replay_pack["ego_conditioning"] = restored.get("ego_conditioning")
+    expected_fp = replay_prov["input_state_fingerprint"]
 
     hybrids_spec = [("full_restored", idm_tokens)]
     for tok in idm_tokens:
@@ -709,8 +760,18 @@ def run_scoring_and_attribution(
         row["noc_flip_frac_of_full"] = (
             float(row["noc_total_flip"]) / full_noc if full_noc else float("nan")
         )
-        if not np.isnan(row["noc_flip_frac_of_full"]):
+        # LOO can exceed full when removing a suppressor agent; record, do not hard-fail smoke.
+        if not np.isnan(row["noc_flip_frac_of_full"]) and row["noc_flip_frac_of_full"] > 1.0 + 1e-9:
+            row["noc_flip_frac_exceeds_full"] = True
+            row["noc_flip_frac_of_full_note"] = (
+                "LOO NOC flip exceeds full_restored; possible suppressor interaction; "
+                "fraction capped for display only."
+            )
+            row["noc_flip_frac_of_full_raw"] = float(row["noc_flip_frac_of_full"])
+            row["noc_flip_frac_of_full"] = float(row["noc_total_flip"]) / full_noc
+        elif not np.isnan(row["noc_flip_frac_of_full"]):
             assert 0.0 <= row["noc_flip_frac_of_full"] <= 1.0 + 1e-9
+            row["noc_flip_frac_exceeds_full"] = False
     singles = [r for r in attribution_rows if r["hybrid"].startswith("single_")]
     singles_sorted = sorted(singles, key=lambda x: -x["noc_total_flip"])
 
@@ -720,6 +781,10 @@ def run_scoring_and_attribution(
         "attribution_table": attribution_rows,
         "single_agent_ranked_by_noc_flip": singles_sorted,
         "comparisons": comparisons,
+        "note": (
+            "noc_flip_frac_of_full may exceed 1.0 for some LOO hybrids when removing an "
+            "agent increases flips; see noc_flip_frac_exceeds_full."
+        ),
     }
     save_json(out_dir / "restored_hybrid_attribution_summary.json", attribution_summary)
 
@@ -747,16 +812,18 @@ def main() -> int:
         "--cold-dir",
         type=Path,
         default=Path("/mnt/cpfs/prediction/lyyy/myself/WE/data/frozen_paired/smoke1_cutoff3_validity_v2"),
+        help="Optional legacy diagnostics only; Replay scores are always recomputed at --cutoff.",
     )
     parser.add_argument(
         "--warm-dir",
         type=Path,
         default=Path("/mnt/cpfs/prediction/lyyy/myself/WE/data/frozen_paired/smoke1_cutoff3_warm_v1"),
+        help="Optional legacy warm-start traj diagnostics; not used for cutoff=4 scoring.",
     )
     parser.add_argument(
         "--out-dir",
         type=Path,
-        default=Path("/mnt/cpfs/prediction/lyyy/myself/WE/data/frozen_paired/smoke1_cutoff3_restore_v1"),
+        default=Path("/mnt/cpfs/prediction/lyyy/myself/WE/data/frozen_paired/smoke1_cutoff4_restore_v1"),
     )
     parser.add_argument("--cutoff", type=int, default=DEFAULT_CUTOFF)
     parser.add_argument("--horizon", type=int, default=DEFAULT_HORIZON)

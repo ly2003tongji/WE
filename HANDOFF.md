@@ -1,6 +1,6 @@
 # WorldEngine 双 Agent 交接
 
-最后更新：2026-07-21（**统一 cutoff=4 已锁定**；后训审计与叙事已定位；下一阶段：迁移+三源分歧冒烟）
+最后更新：2026-07-21（**cutoff=4 单场景三源冒烟已完成**；下一阶段待批：train-side≤10）
 
 ## 共同目标
 
@@ -83,13 +83,19 @@
 
 - 阶段 1–5 与分歧工程链路（0+1+1.5–1.9、Nexus 可用、BWM-Offline 等级 C）已完成；细节见既有 `reports/*`。
 - Upstream 固定 `fc79b937…`；未改 upstream。
-- 冻结态 Replay vs Restored-IDM：1-scene 门控 A，NOC/TTC 翻转存在且归因明确——**仅工程证据**。
-- Nexus sidecar 单场景可用（固定 seed）；缺闭环 wrapper。
+- **cutoff=4 三源冒烟（2026-07-21）已完成（工程 smoke ≠ research go/no-go）**：
+  - Replay/Restored-IDM：门控 **A**；`pre_cutoff_transition_flags` 全 False；
+  - ego conditioning 锁定 `plan_idx.csv` step=5 → **1333**（禁用旧 Nexus 710）；
+  - 三源 fingerprint **对齐**；
+  - Replay↔IDM：NOC flip 2884（safe→danger 2746），TTC flip 2524；单车 `44df645d…` 主导（2746/2884）；
+  - Replay↔Nexus / IDM↔Nexus 亦有显著 NOC/TTC 翻转（见报告）；
+  - 报告：`reports/CUTOFF4_THREE_SOURCE_SMOKE.md`；摘要 json/csv 同目录；大数组在 `data/frozen_paired/smoke1_cutoff4_restore_v1/` 与 `nexus_sidecar/outputs/smoke_cutoff4_three_source/`（Git 外）。
+- 旧 cutoff=3 产物保留未覆盖；**禁止与 4 并表**。
 - BWM-Offline 禁止同场景配对奖励。
 
 ## 尚未解决的问题
 
-- ~~最终统一 cutoff 未决定~~ **已锁定 `cutoff=4`（用户 2026-07-21）**。Replay/IDM 既有证据在 cutoff=3，须迁移到 4 后才能与 Nexus 并表；旧 3 的数字不得与 4 混用。
+- ~~最终统一 cutoff 未决定~~ **已锁定 `cutoff=4`**；~~Replay/IDM→4 + 三源冒烟~~ **已完成（单场景工程）**。
 - train-side 多源分歧与 held-out 预测尚未做。
 - SMART 可用性未核验；BWM 不可配对；Table 1 / full WE 无法开源对齐。
 - 288 全量耗时与 part001/002 索引等工程项仍开放。
@@ -105,13 +111,11 @@
 
 ## H20 下一步
 
-**唯一下一阶段：** `cutoff=4` 下 train-side 多来源候选奖励分歧首轮（Replay / IDM / Nexus）。
+**本批已停在单场景三源冒烟。** 未自动 commit/push。
 
-下一步：H20 出 Plan Mode（先把 Replay/IDM 迁到 4 + 单场景三源冒烟）。明确不做：Table 1 复现、后训方法、SMART 训练、BWM 配对奖励。
+**建议下一批准项（不自动执行）：** 同协议 train-side ≤10 scenes 效应量；288 `navtest_failures` 仍不参与公式/调参。明确不做：Table 1、后训、SMART 训练、BWM 配对奖励。
 
-**IDM 口径：** 规则式；path 先沿日志参考轨迹，纵向由 IDM 重算（可变速）；`enable_lane_change=False`。
-
-备选（仅当用户改优先级）：restore-physics 扩 10-scene 工程子集；Nexus 闭环 wrapper；SMART 公开性复核。
+**IDM 口径：** 规则式；path 先沿日志参考轨迹，纵向由 IDM 重算；`enable_lane_change=False`。
 
 ## 同步协议
 

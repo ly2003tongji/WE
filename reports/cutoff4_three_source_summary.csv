@@ -1,0 +1,4 @@
+pair,noc_safe_to_danger,noc_danger_to_safe,noc_total_flip,ttc_safe_to_danger,ttc_danger_to_safe,ttc_total_flip,kendall_tau_b
+replay_vs_idm,2746,138,2884,2517,7,2524,0.44704161243339613
+replay_vs_nexus,1316,200,1516,1177,217,1394,0.7097352289333944
+idm_vs_nexus,579,2071,2650,259,1809,2068,0.4933639951923899
