@@ -139,3 +139,17 @@
 - 建议（未执行）：初步：主表 Replay↔Nexus NOC 仍见非微小分歧（R↔I 近 0），可考虑扩至 ~50 稳分位数；SMART 仅当扩样后仍有剩余信号再议。本批不执行。
 <!-- TRAIN_SIDE_LE10_BLOCK -->
 
+<!-- TRAIN_SIDE_LE50_BLOCK -->
+## train-side ~50（2026-07-23）
+
+- 报告：[`reports/TRAIN_SIDE_LE50_DISAGREEMENT.md`](reports/TRAIN_SIDE_LE50_DISAGREEMENT.md)
+- scene list：[`reports/train_side_le50_scene_list.md`](reports/train_side_le50_scene_list.md)
+- 摘要：[`reports/train_side_le50_summary.json`](reports/train_side_le50_summary.json)
+- 复用 / 新尝试 / 门控 A / degraded：7 / 55 / 36 / 29
+- 总 restore 尝试（含 le10）：65 / 65
+- conditioning：`static_feasible_median_path_length`（≠冒烟 NR 1333）
+- 声称边界：效应量/分位数 only；未作 go/no-go / held-out 主张
+- **停止线**：不自动 SMART / 后训 / held-out
+- 建议（未执行）：门控 A=36 未达目标 48–50（尝试已触顶 65；degraded 偏高，多见 restore/gateC）；建议优先修 IDM routing/门控再扩，SMART 暂缓。本批不执行。
+<!-- TRAIN_SIDE_LE50_BLOCK -->
+

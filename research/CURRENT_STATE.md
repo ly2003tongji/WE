@@ -1,6 +1,6 @@
 # WorldEngine 交通模型分歧研究：当前状态
 
-最后更新：2026-07-23（用户决策：**先扩充 ~50**；下一 H20 任务见 `prompts/H20_TRAIN_SIDE_LE50_PROMPT.md`）
+最后更新：2026-07-23（train-side~50 汇总完成；下一决策见建议字段）
 
 ## 1. 文档用途与权威顺序
 
@@ -21,7 +21,7 @@
 ## 2. 固定版本
 
 - 协作仓库分支：`h20/reproduction`
-- 最新有效协作提交：`54dac5f`（train-side≤10 初步效应量）
+- 最新有效协作提交：见 `git log -1`（~50 报告可能尚未 commit）（train-side≤10 初步效应量）
 - WorldEngine upstream：`fc79b937050ed9d68e18add2b480ae72578a7ea5`
 - 官方数据revision：`8728616abaf090d195b3bdc7af6aacde40271145`
 - 本地姊妹仓 SimScale（仅审计，非训练依赖）：`相关论文/World Engine/SimScale` @ `df99d45`
@@ -395,3 +395,12 @@ Mac侧确定唯一下一任务
 - 普通工程调试由H20 Agent内部解决，不单独升级为研究阶段；
 - 每次向Mac侧汇报前，H20结果必须commit并push；
 - 未进入Git的本地结果不能作为Mac侧最终审核依据。
+
+
+## 下一决策指针（train-side ~50 后）
+
+- 报告：`reports/TRAIN_SIDE_LE50_DISAGREEMENT.md`
+- 门控 A / degraded：36 / 29
+- 建议（未执行）：门控 A=36 未达目标 48–50（尝试已触顶 65；degraded 偏高，多见 restore/gateC）；建议优先修 IDM routing/门控再扩，SMART 暂缓。本批不执行。
+- 停止：不自动启动 SMART / 后训 / held-out；待 Mac 决策。
+
