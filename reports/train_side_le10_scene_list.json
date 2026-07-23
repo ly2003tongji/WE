@@ -1,0 +1,120 @@
+{
+  "n": 10,
+  "buckets": {
+    "collision": 5,
+    "ep": 5,
+    "offroad": 0
+  },
+  "offroad_note": "Deferred: no original offroad pkl; not using BWM/augmented.",
+  "isolation": {
+    "navtest_failures_n": 288,
+    "intersection_tokens_with_navtest": [],
+    "intersection_scene_ids_with_smoke": [],
+    "union_rare_train_tokens": 5307,
+    "rare_train_intersect_navtest": 0
+  },
+  "scenes": [
+    {
+      "bucket": "collision",
+      "token": "0008e2e718e15240",
+      "scene_id": "2021.09.15.14.00.15_veh-28_01274_01543-0008e2e718e15240",
+      "veh": "veh-28",
+      "source_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/data/hf/data/sim_engine/scenarios/original/navtrain_50pct_collision/all_scenarios.pkl",
+      "single_scene_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/data/frozen_paired/train_side_le10/0008e2e718e15240/scene/all_scenarios.pkl",
+      "selection_reason": "preferred_token",
+      "yaml_bucket_exclusive": true
+    },
+    {
+      "bucket": "collision",
+      "token": "028a2f461cfe5f1c",
+      "scene_id": "2021.07.16.01.22.41_veh-14_02626_04289-028a2f461cfe5f1c",
+      "veh": "veh-14",
+      "source_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/data/hf/data/sim_engine/scenarios/original/navtrain_50pct_collision/all_scenarios.pkl",
+      "single_scene_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/data/frozen_paired/train_side_le10/028a2f461cfe5f1c/scene/all_scenarios.pkl",
+      "selection_reason": "preferred_token",
+      "yaml_bucket_exclusive": true
+    },
+    {
+      "bucket": "collision",
+      "token": "031a7e846efb505b",
+      "scene_id": "2021.09.15.13.16.40_veh-28_00366_00631-031a7e846efb505b",
+      "veh": "veh-28",
+      "source_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/data/hf/data/sim_engine/scenarios/original/navtrain_50pct_collision/all_scenarios.pkl",
+      "single_scene_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/data/frozen_paired/train_side_le10/031a7e846efb505b/scene/all_scenarios.pkl",
+      "selection_reason": "preferred_token",
+      "yaml_bucket_exclusive": true
+    },
+    {
+      "bucket": "collision",
+      "token": "26bf0f9e0f245afe",
+      "scene_id": "2021.08.17.18.11.12_veh-08_00629_01599-26bf0f9e0f245afe",
+      "veh": "veh-08",
+      "source_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/data/hf/data/sim_engine/scenarios/original/navtrain_50pct_collision/all_scenarios.pkl",
+      "single_scene_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/data/frozen_paired/train_side_le10/26bf0f9e0f245afe/scene/all_scenarios.pkl",
+      "selection_reason": "veh_diverse_fill",
+      "yaml_bucket_exclusive": true
+    },
+    {
+      "bucket": "collision",
+      "token": "0aff3a7c4652586c",
+      "scene_id": "2021.06.23.15.56.12_veh-16_01308_04289-0aff3a7c4652586c",
+      "veh": "veh-16",
+      "source_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/data/hf/data/sim_engine/scenarios/original/navtrain_50pct_collision/all_scenarios.pkl",
+      "single_scene_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/data/frozen_paired/train_side_le10/0aff3a7c4652586c/scene/all_scenarios.pkl",
+      "selection_reason": "veh_diverse_fill",
+      "yaml_bucket_exclusive": true
+    },
+    {
+      "bucket": "ep",
+      "token": "38e8a4b341b7575c",
+      "scene_id": "2021.08.17.16.57.11_veh-08_01200_01636-38e8a4b341b7575c",
+      "veh": "veh-08",
+      "source_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/data/hf/data/sim_engine/scenarios/original/navtrain_ep_per1/all_scenarios.pkl",
+      "single_scene_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/data/frozen_paired/train_side_le10/38e8a4b341b7575c/scene/all_scenarios.pkl",
+      "selection_reason": "veh_diverse_fill",
+      "yaml_bucket_exclusive": true
+    },
+    {
+      "bucket": "ep",
+      "token": "1ecef78a8bb85ddd",
+      "scene_id": "2021.07.16.01.22.41_veh-14_00572_01716-1ecef78a8bb85ddd",
+      "veh": "veh-14",
+      "source_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/data/hf/data/sim_engine/scenarios/original/navtrain_ep_per1/all_scenarios.pkl",
+      "single_scene_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/data/frozen_paired/train_side_le10/1ecef78a8bb85ddd/scene/all_scenarios.pkl",
+      "selection_reason": "veh_diverse_fill",
+      "yaml_bucket_exclusive": true
+    },
+    {
+      "bucket": "ep",
+      "token": "0a6c2c37c5335ad2",
+      "scene_id": "2021.07.09.23.23.48_veh-26_04648_06327-0a6c2c37c5335ad2",
+      "veh": "veh-26",
+      "source_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/data/hf/data/sim_engine/scenarios/original/navtrain_ep_per1/all_scenarios.pkl",
+      "single_scene_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/data/frozen_paired/train_side_le10/0a6c2c37c5335ad2/scene/all_scenarios.pkl",
+      "selection_reason": "veh_diverse_fill",
+      "yaml_bucket_exclusive": true
+    },
+    {
+      "bucket": "ep",
+      "token": "1836fa024ead5671",
+      "scene_id": "2021.05.12.23.36.44_veh-35_01133_01535-1836fa024ead5671",
+      "veh": "veh-35",
+      "source_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/data/hf/data/sim_engine/scenarios/original/navtrain_ep_per1/all_scenarios.pkl",
+      "single_scene_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/data/frozen_paired/train_side_le10/1836fa024ead5671/scene/all_scenarios.pkl",
+      "selection_reason": "veh_diverse_fill",
+      "yaml_bucket_exclusive": true
+    },
+    {
+      "bucket": "ep",
+      "token": "49218363cc6b530f",
+      "scene_id": "2021.08.31.14.01.15_veh-40_00407_00497-49218363cc6b530f",
+      "veh": "veh-40",
+      "source_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/data/hf/data/sim_engine/scenarios/original/navtrain_ep_per1/all_scenarios.pkl",
+      "single_scene_pkl": "/mnt/cpfs/prediction/lyyy/myself/WE/data/frozen_paired/train_side_le10/49218363cc6b530f/scene/all_scenarios.pkl",
+      "selection_reason": "veh_diverse_fill",
+      "yaml_bucket_exclusive": true
+    }
+  ],
+  "conditioning_rule": "static_feasible_median_path_length",
+  "cutoff": 4
+}

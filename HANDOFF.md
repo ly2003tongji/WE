@@ -124,3 +124,17 @@
 - 任一 Agent 得到影响另一侧的重要结论时，更新本文件。
 - 实验细节写入 `reports/`，本文件只保留结论和下一步。
 - 不在本文件保存 token、主机密码、内部下载凭据或个人信息。
+
+<!-- TRAIN_SIDE_LE10_BLOCK -->
+## train-side ≤10（2026-07-21）
+
+- 报告：[`reports/TRAIN_SIDE_LE10_DISAGREEMENT.md`](reports/TRAIN_SIDE_LE10_DISAGREEMENT.md)
+- scene list：[`reports/train_side_le10_scene_list.md`](reports/train_side_le10_scene_list.md)
+- 摘要：[`reports/train_side_le10_summary.json`](reports/train_side_le10_summary.json)
+- 门控 A / degraded：7 / 3
+- conditioning：`static_feasible_median_path_length`（**≠** 冒烟 NR 1333；不可直接数值对比）
+- 声称边界：初步效应量 only；未作 go/no-go / held-out 主张
+- **停止线**：本批不扩 50、不后训、不 Table1、不 SMART
+- 建议（未执行）：初步：主表 Replay↔Nexus NOC 仍见非微小分歧（R↔I 近 0），可考虑扩至 ~50 稳分位数；SMART 仅当扩样后仍有剩余信号再议。本批不执行。
+<!-- TRAIN_SIDE_LE10_BLOCK -->
+

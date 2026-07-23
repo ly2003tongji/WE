@@ -573,6 +573,7 @@ def run_scoring_and_attribution(
     horizon: int,
     plan_idx: int,
     asset_folder: str,
+    skip_attribution: bool = False,
 ) -> Dict[str, Any]:
     """Score Replay + Restored-IDM at the *current* cutoff.
 
@@ -704,6 +705,17 @@ def run_scoring_and_attribution(
     }
     save_json(out_dir / "restored_vs_replay_score_compare.json", primary)
 
+    if skip_attribution:
+        attribution_summary = {
+            "skipped": True,
+            "reason": "skip_attribution flag (train-side batch)",
+            "idm_tokens": list(restored["coverage"]["idm_rolled"]),
+            "full_restored_noc_flip": primary["noc_flips"]["total_flip"],
+            "single_agent_ranked_by_noc_flip": [],
+        }
+        save_json(out_dir / "restored_hybrid_attribution_summary.json", attribution_summary)
+        return {"primary": primary, "attribution": attribution_summary}
+
     # ---- Single-agent / leave-one-out attribution (reuses stage 1.7/1.8 tested code) ----
     idm_tokens = list(restored["coverage"]["idm_rolled"])
     expected_fp = replay_prov["input_state_fingerprint"]
@@ -833,6 +845,11 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
     parser.add_argument("--asset-folder", type=str, default=None)
     parser.add_argument("--skip-score", action="store_true")
+    parser.add_argument(
+        "--skip-attribution",
+        action="store_true",
+        help="Score Replay vs Restored-IDM only; skip hybrid single/LOO attribution (train-side batch).",
+    )
     args = parser.parse_args()
 
     t0 = time.time()
@@ -939,6 +956,7 @@ def main() -> int:
                 args.horizon,
                 plan_idx,
                 asset_folder,
+                skip_attribution=bool(args.skip_attribution),
             )
         except Exception as e:
             save_json(out_dir / "restore_score_error.json", {"error": str(e), "trace": traceback.format_exc()})

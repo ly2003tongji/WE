@@ -1,0 +1,707 @@
+{
+  "status": "ok",
+  "updated_utc": "2026-07-21T12:34:55.896343+00:00",
+  "collaboration_head_sha": "abe131da3be35f735a6515428a37b5765e86c805",
+  "worldengine_upstream_sha": "fc79b937050ed9d68e18add2b480ae72578a7ea5",
+  "claim_boundary": "preliminary_effect_size_and_descriptive_difficulty_only",
+  "forbid_research_go_nogo": true,
+  "forbid_heldout_predictable_failure_claim": true,
+  "protocol_pointer": "reports/CUTOFF4_THREE_SOURCE_SMOKE.md",
+  "conditioning_note": "本轮 conditioning ≠ 冒烟 NR plan_idx=1333，故效应量不可与单场景冒烟数字直接数值对比。",
+  "isolation": {
+    "navtest_failures_n": 288,
+    "intersection_tokens_with_navtest": [],
+    "intersection_scene_ids_with_smoke": [],
+    "union_rare_train_tokens": 5307,
+    "rare_train_intersect_navtest": 0
+  },
+  "n_scenes": 10,
+  "n_gate_a_main": 7,
+  "n_degraded": 3,
+  "pairwise_distributions_main_table": {
+    "replay_vs_idm": {
+      "noc_total_flip": {
+        "n": 7,
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "median": 0.0
+      },
+      "ttc_total_flip": {
+        "n": 7,
+        "min": 0.0,
+        "max": 4.0,
+        "mean": 0.5714285714285714,
+        "median": 0.0
+      },
+      "kendall_tau_b": {
+        "n": 7,
+        "min": 0.9995705887022877,
+        "max": 1.0,
+        "mean": 0.9999386555288983,
+        "median": 1.0
+      }
+    },
+    "replay_vs_nexus": {
+      "noc_total_flip": {
+        "n": 7,
+        "min": 1.0,
+        "max": 1311.0,
+        "mean": 237.28571428571428,
+        "median": 67.0
+      },
+      "ttc_total_flip": {
+        "n": 7,
+        "min": 0.0,
+        "max": 1355.0,
+        "mean": 239.85714285714286,
+        "median": 45.0
+      },
+      "kendall_tau_b": {
+        "n": 7,
+        "min": 0.5296000698958359,
+        "max": 1.0,
+        "mean": 0.9167368083143541,
+        "median": 0.9829846638511531
+      }
+    },
+    "idm_vs_nexus": {
+      "noc_total_flip": {
+        "n": 7,
+        "min": 1.0,
+        "max": 1311.0,
+        "mean": 237.28571428571428,
+        "median": 67.0
+      },
+      "ttc_total_flip": {
+        "n": 7,
+        "min": 0.0,
+        "max": 1355.0,
+        "mean": 240.42857142857142,
+        "median": 45.0
+      },
+      "kendall_tau_b": {
+        "n": 7,
+        "min": 0.5296000698958359,
+        "max": 1.0,
+        "mean": 0.9166792326326525,
+        "median": 0.9829846638511531
+      }
+    }
+  },
+  "multiseed": [
+    {
+      "token": "0008e2e718e15240",
+      "seed": 1,
+      "nexus_seed_vs0_replay_noc_flip_delta": 4,
+      "nexus_seed_vs0_replay_ttc_flip_delta": 5,
+      "seed_replay_vs_nexus_noc": 63,
+      "seed0_replay_vs_nexus_noc": 67,
+      "seed0_replay_vs_idm_noc": 0,
+      "seed0_idm_vs_nexus_noc": 67
+    },
+    {
+      "token": "0008e2e718e15240",
+      "seed": 2,
+      "nexus_seed_vs0_replay_noc_flip_delta": 11,
+      "nexus_seed_vs0_replay_ttc_flip_delta": 3,
+      "seed_replay_vs_nexus_noc": 56,
+      "seed0_replay_vs_nexus_noc": 67,
+      "seed0_replay_vs_idm_noc": 0,
+      "seed0_idm_vs_nexus_noc": 67
+    },
+    {
+      "token": "028a2f461cfe5f1c",
+      "seed": 1,
+      "nexus_seed_vs0_replay_noc_flip_delta": 35,
+      "nexus_seed_vs0_replay_ttc_flip_delta": 29,
+      "seed_replay_vs_nexus_noc": 140,
+      "seed0_replay_vs_nexus_noc": 105,
+      "seed0_replay_vs_idm_noc": 0,
+      "seed0_idm_vs_nexus_noc": 105
+    },
+    {
+      "token": "028a2f461cfe5f1c",
+      "seed": 2,
+      "nexus_seed_vs0_replay_noc_flip_delta": 125,
+      "nexus_seed_vs0_replay_ttc_flip_delta": 103,
+      "seed_replay_vs_nexus_noc": 230,
+      "seed0_replay_vs_nexus_noc": 105,
+      "seed0_replay_vs_idm_noc": 0,
+      "seed0_idm_vs_nexus_noc": 105
+    },
+    {
+      "token": "26bf0f9e0f245afe",
+      "seed": 1,
+      "nexus_seed_vs0_replay_noc_flip_delta": 14,
+      "nexus_seed_vs0_replay_ttc_flip_delta": 1,
+      "seed_replay_vs_nexus_noc": 127,
+      "seed0_replay_vs_nexus_noc": 141,
+      "seed0_replay_vs_idm_noc": 0,
+      "seed0_idm_vs_nexus_noc": 141
+    },
+    {
+      "token": "26bf0f9e0f245afe",
+      "seed": 2,
+      "nexus_seed_vs0_replay_noc_flip_delta": 24,
+      "nexus_seed_vs0_replay_ttc_flip_delta": 19,
+      "seed_replay_vs_nexus_noc": 117,
+      "seed0_replay_vs_nexus_noc": 141,
+      "seed0_replay_vs_idm_noc": 0,
+      "seed0_idm_vs_nexus_noc": 141
+    }
+  ],
+  "seed_vs_model_one_liner": "Nexus 多种子相对 seed0 的 Replay↔Nexus NOC_flip |Δ| 中位=19.0；同批模型间 Replay↔Nexus NOC_flip 中位=105.0（Replay↔IDM 中位=0.0）。初步：模型间（尤其 vs Nexus）明显大于多种子波动。",
+  "difficulty_one_liner": "描述性：主表 n=7，R↔I NOC_flip 几乎全 0（中位 0），与难度代理的相关不可估；R↔N 分歧为主信号。不作因果结论。",
+  "scenes": [
+    {
+      "token": "0008e2e718e15240",
+      "bucket": "collision",
+      "scene_id": "2021.09.15.14.00.15_veh-28_01274_01543-0008e2e718e15240",
+      "status": "ok",
+      "gate_a": true,
+      "degraded": false,
+      "degraded_reasons": [],
+      "plan_idx": 2709,
+      "n_feasible": 2416,
+      "path_length_m": 0.782278322729945,
+      "fingerprint_aligned": true,
+      "difficulty": {
+        "n_object_tracks": 56,
+        "n_agents_scored_hint": 56,
+        "replay_ttc_mean": 0.2655029296875,
+        "replay_ttc_min": 0.0,
+        "replay_score_mean": 0.2560221354166667,
+        "replay_score_min": 0.0,
+        "replay_score_p10": 0.0
+      },
+      "pairwise": {
+        "replay_vs_idm": {
+          "noc_safe_to_danger": 0,
+          "noc_danger_to_safe": 0,
+          "noc_total_flip": 0,
+          "ttc_safe_to_danger": 0,
+          "ttc_danger_to_safe": 0,
+          "ttc_total_flip": 0,
+          "kendall_tau_b": 1.0,
+          "topk_overlap": {
+            "1": 1.0,
+            "10": 1.0,
+            "50": 1.0,
+            "100": 1.0
+          }
+        },
+        "replay_vs_nexus": {
+          "noc_safe_to_danger": 30,
+          "noc_danger_to_safe": 37,
+          "noc_total_flip": 67,
+          "ttc_safe_to_danger": 23,
+          "ttc_danger_to_safe": 22,
+          "ttc_total_flip": 45,
+          "kendall_tau_b": 0.9829846638511531,
+          "topk_overlap": {
+            "1": 1.0,
+            "10": 0.9,
+            "50": 0.92,
+            "100": 0.95
+          }
+        },
+        "idm_vs_nexus": {
+          "noc_safe_to_danger": 30,
+          "noc_danger_to_safe": 37,
+          "noc_total_flip": 67,
+          "ttc_safe_to_danger": 23,
+          "ttc_danger_to_safe": 22,
+          "ttc_total_flip": 45,
+          "kendall_tau_b": 0.9829846638511531,
+          "topk_overlap": {
+            "1": 1.0,
+            "10": 0.9,
+            "50": 0.92,
+            "100": 0.95
+          }
+        }
+      },
+      "nexus_fallback_n": 0
+    },
+    {
+      "token": "028a2f461cfe5f1c",
+      "bucket": "collision",
+      "scene_id": "2021.07.16.01.22.41_veh-14_02626_04289-028a2f461cfe5f1c",
+      "status": "ok",
+      "gate_a": true,
+      "degraded": false,
+      "degraded_reasons": [],
+      "plan_idx": 5680,
+      "n_feasible": 2487,
+      "path_length_m": 1.2106108286334019,
+      "fingerprint_aligned": true,
+      "difficulty": {
+        "n_object_tracks": 100,
+        "n_agents_scored_hint": 100,
+        "replay_ttc_mean": 0.2464599609375,
+        "replay_ttc_min": 0.0,
+        "replay_score_mean": 0.22652689615885419,
+        "replay_score_min": 0.0,
+        "replay_score_p10": 0.0
+      },
+      "pairwise": {
+        "replay_vs_idm": {
+          "noc_safe_to_danger": 0,
+          "noc_danger_to_safe": 0,
+          "noc_total_flip": 0,
+          "ttc_safe_to_danger": 0,
+          "ttc_danger_to_safe": 0,
+          "ttc_total_flip": 0,
+          "kendall_tau_b": 1.0,
+          "topk_overlap": {
+            "1": 1.0,
+            "10": 1.0,
+            "50": 1.0,
+            "100": 1.0
+          }
+        },
+        "replay_vs_nexus": {
+          "noc_safe_to_danger": 1,
+          "noc_danger_to_safe": 104,
+          "noc_total_flip": 105,
+          "ttc_safe_to_danger": 2,
+          "ttc_danger_to_safe": 103,
+          "ttc_total_flip": 105,
+          "kendall_tau_b": 0.9678821400705974,
+          "topk_overlap": {
+            "1": 1.0,
+            "10": 1.0,
+            "50": 0.94,
+            "100": 0.95
+          }
+        },
+        "idm_vs_nexus": {
+          "noc_safe_to_danger": 1,
+          "noc_danger_to_safe": 104,
+          "noc_total_flip": 105,
+          "ttc_safe_to_danger": 2,
+          "ttc_danger_to_safe": 103,
+          "ttc_total_flip": 105,
+          "kendall_tau_b": 0.9678821400705974,
+          "topk_overlap": {
+            "1": 1.0,
+            "10": 1.0,
+            "50": 0.94,
+            "100": 0.95
+          }
+        }
+      },
+      "nexus_fallback_n": 0
+    },
+    {
+      "token": "031a7e846efb505b",
+      "bucket": "collision",
+      "scene_id": "2021.09.15.13.16.40_veh-28_00366_00631-031a7e846efb505b",
+      "status": "degraded_no_scores",
+      "gate_a": false,
+      "degraded": true,
+      "degraded_reasons": [
+        "gate_grade=C",
+        "transition_true=2",
+        "missing_restore_scores"
+      ],
+      "plan_idx": 710,
+      "n_feasible": 3103,
+      "path_length_m": 2.960054708452642,
+      "fingerprint_aligned": null,
+      "difficulty": null,
+      "pairwise": {},
+      "nexus_fallback_n": 0
+    },
+    {
+      "token": "26bf0f9e0f245afe",
+      "bucket": "collision",
+      "scene_id": "2021.08.17.18.11.12_veh-08_00629_01599-26bf0f9e0f245afe",
+      "status": "ok",
+      "gate_a": true,
+      "degraded": false,
+      "degraded_reasons": [],
+      "plan_idx": 201,
+      "n_feasible": 3175,
+      "path_length_m": 3.4256039273455707,
+      "fingerprint_aligned": true,
+      "difficulty": {
+        "n_object_tracks": 79,
+        "n_agents_scored_hint": 79,
+        "replay_ttc_mean": 0.2108154296875,
+        "replay_ttc_min": 0.0,
+        "replay_score_mean": 0.19339705626585835,
+        "replay_score_min": 0.0,
+        "replay_score_p10": 0.0
+      },
+      "pairwise": {
+        "replay_vs_idm": {
+          "noc_safe_to_danger": 0,
+          "noc_danger_to_safe": 0,
+          "noc_total_flip": 0,
+          "ttc_safe_to_danger": 0,
+          "ttc_danger_to_safe": 4,
+          "ttc_total_flip": 4,
+          "kendall_tau_b": 0.9995705887022877,
+          "topk_overlap": {
+            "1": 1.0,
+            "10": 1.0,
+            "50": 1.0,
+            "100": 1.0
+          }
+        },
+        "replay_vs_nexus": {
+          "noc_safe_to_danger": 50,
+          "noc_danger_to_safe": 91,
+          "noc_total_flip": 141,
+          "ttc_safe_to_danger": 71,
+          "ttc_danger_to_safe": 61,
+          "ttc_total_flip": 132,
+          "kendall_tau_b": 0.9436249671933765,
+          "topk_overlap": {
+            "1": 1.0,
+            "10": 0.9,
+            "50": 0.92,
+            "100": 0.82
+          }
+        },
+        "idm_vs_nexus": {
+          "noc_safe_to_danger": 50,
+          "noc_danger_to_safe": 91,
+          "noc_total_flip": 141,
+          "ttc_safe_to_danger": 75,
+          "ttc_danger_to_safe": 61,
+          "ttc_total_flip": 136,
+          "kendall_tau_b": 0.9432219374214647,
+          "topk_overlap": {
+            "1": 1.0,
+            "10": 0.9,
+            "50": 0.92,
+            "100": 0.82
+          }
+        }
+      },
+      "nexus_fallback_n": 0
+    },
+    {
+      "token": "0aff3a7c4652586c",
+      "bucket": "collision",
+      "scene_id": "2021.06.23.15.56.12_veh-16_01308_04289-0aff3a7c4652586c",
+      "status": "ok",
+      "gate_a": true,
+      "degraded": false,
+      "degraded_reasons": [],
+      "plan_idx": 5063,
+      "n_feasible": 2929,
+      "path_length_m": 2.5752445150326846,
+      "fingerprint_aligned": true,
+      "difficulty": {
+        "n_object_tracks": 84,
+        "n_agents_scored_hint": 84,
+        "replay_ttc_mean": 0.3740234375,
+        "replay_ttc_min": 0.0,
+        "replay_score_mean": 0.3273518880208333,
+        "replay_score_min": 0.0,
+        "replay_score_p10": 0.0
+      },
+      "pairwise": {
+        "replay_vs_idm": {
+          "noc_safe_to_danger": 0,
+          "noc_danger_to_safe": 0,
+          "noc_total_flip": 0,
+          "ttc_safe_to_danger": 0,
+          "ttc_danger_to_safe": 0,
+          "ttc_total_flip": 0,
+          "kendall_tau_b": 1.0,
+          "topk_overlap": {
+            "1": 1.0,
+            "10": 1.0,
+            "50": 1.0,
+            "100": 1.0
+          }
+        },
+        "replay_vs_nexus": {
+          "noc_safe_to_danger": 26,
+          "noc_danger_to_safe": 5,
+          "noc_total_flip": 31,
+          "ttc_safe_to_danger": 28,
+          "ttc_danger_to_safe": 12,
+          "ttc_total_flip": 40,
+          "kendall_tau_b": 0.9944637203560793,
+          "topk_overlap": {
+            "1": 1.0,
+            "10": 1.0,
+            "50": 1.0,
+            "100": 0.99
+          }
+        },
+        "idm_vs_nexus": {
+          "noc_safe_to_danger": 26,
+          "noc_danger_to_safe": 5,
+          "noc_total_flip": 31,
+          "ttc_safe_to_danger": 28,
+          "ttc_danger_to_safe": 12,
+          "ttc_total_flip": 40,
+          "kendall_tau_b": 0.9944637203560793,
+          "topk_overlap": {
+            "1": 1.0,
+            "10": 1.0,
+            "50": 1.0,
+            "100": 0.99
+          }
+        }
+      },
+      "nexus_fallback_n": 2
+    },
+    {
+      "token": "38e8a4b341b7575c",
+      "bucket": "ep",
+      "scene_id": "2021.08.17.16.57.11_veh-08_01200_01636-38e8a4b341b7575c",
+      "status": "ok",
+      "gate_a": true,
+      "degraded": false,
+      "degraded_reasons": [],
+      "plan_idx": 1804,
+      "n_feasible": 2428,
+      "path_length_m": 0.8473109081559052,
+      "fingerprint_aligned": true,
+      "difficulty": {
+        "n_object_tracks": 35,
+        "n_agents_scored_hint": 35,
+        "replay_ttc_mean": 0.8233642578125,
+        "replay_ttc_min": 0.0,
+        "replay_score_mean": 0.6830874060554719,
+        "replay_score_min": 0.0,
+        "replay_score_p10": 0.0
+      },
+      "pairwise": {
+        "replay_vs_idm": {
+          "noc_safe_to_danger": 0,
+          "noc_danger_to_safe": 0,
+          "noc_total_flip": 0,
+          "ttc_safe_to_danger": 0,
+          "ttc_danger_to_safe": 0,
+          "ttc_total_flip": 0,
+          "kendall_tau_b": 1.0,
+          "topk_overlap": {
+            "1": 1.0,
+            "10": 1.0,
+            "50": 1.0,
+            "100": 1.0
+          }
+        },
+        "replay_vs_nexus": {
+          "noc_safe_to_danger": 20,
+          "noc_danger_to_safe": 1291,
+          "noc_total_flip": 1311,
+          "ttc_safe_to_danger": 20,
+          "ttc_danger_to_safe": 1335,
+          "ttc_total_flip": 1355,
+          "kendall_tau_b": 0.5296000698958359,
+          "topk_overlap": {
+            "1": 0.0,
+            "10": 0.7,
+            "50": 0.68,
+            "100": 0.65
+          }
+        },
+        "idm_vs_nexus": {
+          "noc_safe_to_danger": 20,
+          "noc_danger_to_safe": 1291,
+          "noc_total_flip": 1311,
+          "ttc_safe_to_danger": 20,
+          "ttc_danger_to_safe": 1335,
+          "ttc_total_flip": 1355,
+          "kendall_tau_b": 0.5296000698958359,
+          "topk_overlap": {
+            "1": 0.0,
+            "10": 0.7,
+            "50": 0.68,
+            "100": 0.65
+          }
+        }
+      },
+      "nexus_fallback_n": 0
+    },
+    {
+      "token": "1ecef78a8bb85ddd",
+      "bucket": "ep",
+      "scene_id": "2021.07.16.01.22.41_veh-14_00572_01716-1ecef78a8bb85ddd",
+      "status": "degraded_restore_failed",
+      "gate_a": false,
+      "degraded": true,
+      "degraded_reasons": [
+        "restore_failed",
+        "'NoneType' object is not subscriptable"
+      ],
+      "plan_idx": 4523,
+      "n_feasible": 1330,
+      "path_length_m": 0.02986319137777599,
+      "fingerprint_aligned": null,
+      "difficulty": null,
+      "pairwise": {},
+      "nexus_fallback_n": 0
+    },
+    {
+      "token": "0a6c2c37c5335ad2",
+      "bucket": "ep",
+      "scene_id": "2021.07.09.23.23.48_veh-26_04648_06327-0a6c2c37c5335ad2",
+      "status": "degraded_restore_failed",
+      "gate_a": false,
+      "degraded": true,
+      "degraded_reasons": [
+        "restore_failed",
+        "'NoneType' object is not subscriptable"
+      ],
+      "plan_idx": 4477,
+      "n_feasible": 2706,
+      "path_length_m": 1.3943070386050445,
+      "fingerprint_aligned": null,
+      "difficulty": null,
+      "pairwise": {},
+      "nexus_fallback_n": 0
+    },
+    {
+      "token": "1836fa024ead5671",
+      "bucket": "ep",
+      "scene_id": "2021.05.12.23.36.44_veh-35_01133_01535-1836fa024ead5671",
+      "status": "ok",
+      "gate_a": true,
+      "degraded": false,
+      "degraded_reasons": [],
+      "plan_idx": 1842,
+      "n_feasible": 2044,
+      "path_length_m": 0.10698017106576393,
+      "fingerprint_aligned": true,
+      "difficulty": {
+        "n_object_tracks": 48,
+        "n_agents_scored_hint": 48,
+        "replay_ttc_mean": 0.47509765625,
+        "replay_ttc_min": 0.0,
+        "replay_score_mean": 0.20133493668632826,
+        "replay_score_min": 0.0,
+        "replay_score_p10": 0.0
+      },
+      "pairwise": {
+        "replay_vs_idm": {
+          "noc_safe_to_danger": 0,
+          "noc_danger_to_safe": 0,
+          "noc_total_flip": 0,
+          "ttc_safe_to_danger": 0,
+          "ttc_danger_to_safe": 0,
+          "ttc_total_flip": 0,
+          "kendall_tau_b": 1.0,
+          "topk_overlap": {
+            "1": 1.0,
+            "10": 1.0,
+            "50": 1.0,
+            "100": 1.0
+          }
+        },
+        "replay_vs_nexus": {
+          "noc_safe_to_danger": 5,
+          "noc_danger_to_safe": 0,
+          "noc_total_flip": 5,
+          "ttc_safe_to_danger": 1,
+          "ttc_danger_to_safe": 1,
+          "ttc_total_flip": 2,
+          "kendall_tau_b": 0.9986020968334369,
+          "topk_overlap": {
+            "1": 1.0,
+            "10": 1.0,
+            "50": 1.0,
+            "100": 1.0
+          }
+        },
+        "idm_vs_nexus": {
+          "noc_safe_to_danger": 5,
+          "noc_danger_to_safe": 0,
+          "noc_total_flip": 5,
+          "ttc_safe_to_danger": 1,
+          "ttc_danger_to_safe": 1,
+          "ttc_total_flip": 2,
+          "kendall_tau_b": 0.9986020968334369,
+          "topk_overlap": {
+            "1": 1.0,
+            "10": 1.0,
+            "50": 1.0,
+            "100": 1.0
+          }
+        }
+      },
+      "nexus_fallback_n": 0
+    },
+    {
+      "token": "49218363cc6b530f",
+      "bucket": "ep",
+      "scene_id": "2021.08.31.14.01.15_veh-40_00407_00497-49218363cc6b530f",
+      "status": "ok",
+      "gate_a": true,
+      "degraded": false,
+      "degraded_reasons": [],
+      "plan_idx": 898,
+      "n_feasible": 2757,
+      "path_length_m": 1.5931595479791987,
+      "fingerprint_aligned": true,
+      "difficulty": {
+        "n_object_tracks": 57,
+        "n_agents_scored_hint": 57,
+        "replay_ttc_mean": 1.0,
+        "replay_ttc_min": 1.0,
+        "replay_score_mean": 0.8075902040148586,
+        "replay_score_min": 0.0,
+        "replay_score_p10": 0.0
+      },
+      "pairwise": {
+        "replay_vs_idm": {
+          "noc_safe_to_danger": 0,
+          "noc_danger_to_safe": 0,
+          "noc_total_flip": 0,
+          "ttc_safe_to_danger": 0,
+          "ttc_danger_to_safe": 0,
+          "ttc_total_flip": 0,
+          "kendall_tau_b": 1.0,
+          "topk_overlap": {
+            "1": 1.0,
+            "10": 1.0,
+            "50": 1.0,
+            "100": 1.0
+          }
+        },
+        "replay_vs_nexus": {
+          "noc_safe_to_danger": 1,
+          "noc_danger_to_safe": 0,
+          "noc_total_flip": 1,
+          "ttc_safe_to_danger": 0,
+          "ttc_danger_to_safe": 0,
+          "ttc_total_flip": 0,
+          "kendall_tau_b": 1.0,
+          "topk_overlap": {
+            "1": 1.0,
+            "10": 1.0,
+            "50": 1.0,
+            "100": 1.0
+          }
+        },
+        "idm_vs_nexus": {
+          "noc_safe_to_danger": 1,
+          "noc_danger_to_safe": 0,
+          "noc_total_flip": 1,
+          "ttc_safe_to_danger": 0,
+          "ttc_danger_to_safe": 0,
+          "ttc_total_flip": 0,
+          "kendall_tau_b": 1.0,
+          "topk_overlap": {
+            "1": 1.0,
+            "10": 1.0,
+            "50": 1.0,
+            "100": 1.0
+          }
+        }
+      },
+      "nexus_fallback_n": 0
+    }
+  ],
+  "suggest_expand_50_or_smart": "初步：主表 Replay↔Nexus NOC 仍见非微小分歧（R↔I 近 0），可考虑扩至 ~50 稳分位数；SMART 仅当扩样后仍有剩余信号再议。本批不执行。"
+}
