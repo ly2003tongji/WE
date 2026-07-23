@@ -1,6 +1,6 @@
 # WorldEngine 双 Agent 交接
 
-最后更新：2026-07-21（**cutoff=4 单场景三源冒烟已完成**；下一阶段待批：train-side≤10）
+最后更新：2026-07-23（**先扩充 ~50 已拍板**；提示词 `prompts/H20_TRAIN_SIDE_LE50_PROMPT.md`）
 
 ## 共同目标
 
@@ -17,9 +17,8 @@
   - `research/PAPER_POSITIONING.md`（2026-07-21 新增）
   - `reports/POST_TRAINING_OPENSOURCE_AUDIT.md`（2026-07-21 新增）
 - H20 新会话使用：
-  - **当前唯一阶段**：`prompts/H20_TRAIN_SIDE_LE10_PROMPT.md`（train-side≤10 效应量；先 Plan Mode）
-  - 已完成冒烟批准副本：`prompts/H20_CUTOFF4_PLAN_APPROVAL.md`
-  - 冒烟任务原文：`prompts/H20_CUTOFF4_THREE_SOURCE_PROMPT.md`
+  - **当前唯一阶段**：`prompts/H20_TRAIN_SIDE_LE50_PROMPT.md`（~50 扩样；先 Plan Mode）
+  - 已完成：`prompts/H20_TRAIN_SIDE_LE10_*`、`prompts/H20_CUTOFF4_*`
   - 总览/旧全量：`prompts/H20_DISAGREEMENT_AGENT_PROMPT.md`（勿覆盖锁定决策）
 - **叙事决策**：WE = 平台/问题来源，不复现 Table 1 全消融；方法阶段可选 OpenWE-SFT（`rl_finetuning=False`）作弱基线。详见定位文档。
 
@@ -113,11 +112,13 @@
 
 ## H20 下一步
 
-**单场景三源冒烟已完成并 push（`df99739`）。**
+**用户已拍板：先扩充 ~50。**
 
-**下一批准项：** 发 `prompts/H20_TRAIN_SIDE_LE10_PROMPT.md` → H20 先 Plan Mode，Mac 批 scene 池后再执行。明确不做：Table 1、后训、SMART 训练、BWM 配对；288 navtest 不进抽样池。
+下一动作：发 [`prompts/H20_TRAIN_SIDE_LE50_PROMPT.md`](prompts/H20_TRAIN_SIDE_LE50_PROMPT.md) → H20 **Plan Mode** → Mac 批名单/耗时后再执行。
 
-**IDM 口径：** 规则式；path 先沿日志参考轨迹，纵向由 IDM 重算；`enable_lane_change=False`。
+明确不做：Table 1、后训、本批 SMART、BWM 配对；288 navtest 不进池。
+
+**IDM 口径：** 规则式；path 先沿日志；纵向 IDM；`enable_lane_change=False`。
 
 ## 同步协议
 

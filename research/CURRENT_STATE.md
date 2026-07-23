@@ -1,6 +1,6 @@
 # WorldEngine 交通模型分歧研究：当前状态
 
-最后更新：2026-07-21（cutoff=4 单场景三源冒烟已完成；下一阶段 train-side≤10）
+最后更新：2026-07-23（用户决策：**先扩充 ~50**；下一 H20 任务见 `prompts/H20_TRAIN_SIDE_LE50_PROMPT.md`）
 
 ## 1. 文档用途与权威顺序
 
@@ -21,7 +21,7 @@
 ## 2. 固定版本
 
 - 协作仓库分支：`h20/reproduction`
-- 最新有效协作提交：`df99739`（cutoff=4 三源冒烟；Mac 随后将追加 train-side≤10 提示词提交）
+- 最新有效协作提交：`54dac5f`（train-side≤10 初步效应量）
 - WorldEngine upstream：`fc79b937050ed9d68e18add2b480ae72578a7ea5`
 - 官方数据revision：`8728616abaf090d195b3bdc7af6aacde40271145`
 - 本地姊妹仓 SimScale（仅审计，非训练依赖）：`相关论文/World Engine/SimScale` @ `df99d45`
@@ -309,42 +309,33 @@ Nexus + SMART → held-out IDM
 
 - ~~统一时间锚点决定（cutoff=3 vs 4）~~ **已锁定 cutoff=4**；
 - ~~Replay/IDM 管线迁移到 cutoff=4 并与 Nexus 三源对齐冒烟~~ **已完成**（单场景 engineering；见 `reports/CUTOFF4_THREE_SOURCE_SMOKE.md`）；
-- train-side长尾场景多来源候选奖励比较（≤10）；
-- 分歧是否存在、是否可预测held-out失败；
-- 第三个独立在线模型（SMART重训练）；
+- ~~train-side长尾场景多来源候选奖励比较（≤10）~~ **已完成初步**（见 `reports/TRAIN_SIDE_LE10_DISAGREEMENT.md`）；
+- 是否扩至 ~50 稳 R↔N 分位数；R↔I≈0 是否协议/场景特异；
+- 分歧是否可预测held-out失败；
+- 第三个独立在线模型（SMART）；
 - 后训练方法。
 
 ## 10. 当前唯一下一阶段
 
-> **统一锚点下 train-side 多来源候选奖励分歧首轮验证（Replay / IDM / Nexus）**
+> **train-side ~50 扩样（用户已拍板：先扩充）**
 
-该阶段回答：
+同协议（cutoff=4；静态可行中位数 conditioning；Replay / Restored-IDM / Nexus）将样本扩到约 50，以：
 
-1. Replay、IDM、Nexus能否在同一统一锚点、同一候选、同一PDM协议下生成可逐候选比较的子奖励；
-2. 固定seed的Nexus与Replay/IDM在合理候选上是否产生非噪声级NOC/TTC/排序分歧；
-3. 分歧主要集中在哪些子奖励和场景类别；
-4. 模型间差异是否大于同模型（含Nexus多seed）内部波动；
-5. 少量train-side场景上的初步效应量，用于判断是否值得扩样与投入SMART。
+1. 稳定 **R↔N / I↔N** flip 分位数；
+2. 检验 **R↔I≈0** 是否持续（若持续，主张改为日志/规则式 vs 学习式）；
+3. 抽样 Nexus 多种子对照；仍**不作** go/no-go / held-out / 后训 / SMART。
 
-约束：
+### 10.1 已完成的初步效应量（≤10）
 
-- **统一锚点已锁定：`cutoff=4`**（与 Nexus 5 帧 past / `N_PAST-1` 对齐）。Replay 与 IDM（restore-physics）必须从既有 cutoff=3 工程管线**迁移到 4** 后再做三源并表；禁止混用 3/4 数字。
-- 只用train-side长尾场景开发，288 rare navtest保留最终测试；
-- BWM-Offline只作外部域旁证，不进入同场景共识；
-- 本阶段仍是工程/初步效应量，不做held-out泛化或研究go/no-go结论；
-- 不启动SMART训练、不设计后训练、不复现 Table 1、不训 OpenWE 基线。
+证据：`reports/TRAIN_SIDE_LE10_DISAGREEMENT.md`（`54dac5f`）。主信号 R↔N；R↔I≈0；多种子 ≪ 模型间（抽样）。
 
-**IDM 工作理解（用户确认，2026-07-21）：** 规则式、不训练。参考路径在默认设定下**先跟日志轨迹**（`IDMNavigation`），纵向速度/加速度由 IDM 跟车公式按当前前车与状态重算，故 path 形状大致沿日志、纵向可偏离日志；本项目 `enable_lane_change=False`。走出原轨迹末端后可接地图 lane（仍非学习模型）。
+### 10.2 开展顺序
 
-**开展顺序：**
+1. ~~锁 cutoff=4~~；~~三源冒烟~~；~~train-side≤10~~；
+2. **当前：发 `prompts/H20_TRAIN_SIDE_LE50_PROMPT.md` → H20 Plan Mode → Mac 批后执行**；
+3. 扩样报告后再议 SMART / 主张收缩 / held-out。
 
-1. ~~锁锚点~~ **已决：cutoff=4**；
-2. ~~迁移 + 单场景三源对齐冒烟~~ **已完成**（门控 A；fingerprint 对齐；engineering smoke ≠ research）；
-3. **小规模 train-side ≤10**（效应量、同模型波动、难度基线对照）——**当前唯一待批执行项**；
-4. **停/扩门**：效应量值得再扩样或评估 SMART；否则收缩主张。
-
-发给 H20 的提示词：`prompts/H20_TRAIN_SIDE_LE10_PROMPT.md`（复制其中 `---` 之间正文；先 Plan Mode）。  
-冒烟已完成：勿再发 `H20_CUTOFF4_THREE_SOURCE_PROMPT.md` 作为主任务。
+发给 H20：复制 `prompts/H20_TRAIN_SIDE_LE50_PROMPT.md` 中 `---` 之间正文。
 
 ## 11. 该阶段之后的决策
 
