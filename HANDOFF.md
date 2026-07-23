@@ -1,6 +1,6 @@
 # WorldEngine 双 Agent 交接
 
-最后更新：2026-07-23（**先扩充 ~50 已拍板**；提示词 `prompts/H20_TRAIN_SIDE_LE50_PROMPT.md`）
+最后更新：2026-07-23（**已拍板修 IDM restore**；提示词 `prompts/H20_IDM_RESTORE_FIX_PROMPT.md`）
 
 ## 共同目标
 
@@ -17,8 +17,8 @@
   - `research/PAPER_POSITIONING.md`（2026-07-21 新增）
   - `reports/POST_TRAINING_OPENSOURCE_AUDIT.md`（2026-07-21 新增）
 - H20 新会话使用：
-  - **当前唯一阶段**：`prompts/H20_TRAIN_SIDE_LE50_PROMPT.md`（~50 扩样；先 Plan Mode）
-  - 已完成：`prompts/H20_TRAIN_SIDE_LE10_*`、`prompts/H20_CUTOFF4_*`
+  - **当前唯一阶段**：`prompts/H20_IDM_RESTORE_FIX_PROMPT.md`（修 IDM restore/门控；先 Plan Mode）
+  - 已完成：`prompts/H20_TRAIN_SIDE_LE50_*`、`H20_TRAIN_SIDE_LE10_*`、`H20_CUTOFF4_*`
   - 总览/旧全量：`prompts/H20_DISAGREEMENT_AGENT_PROMPT.md`（勿覆盖锁定决策）
 - **叙事决策**：WE = 平台/问题来源，不复现 Table 1 全消融；方法阶段可选 OpenWE-SFT（`rl_finetuning=False`）作弱基线。详见定位文档。
 
@@ -112,11 +112,11 @@
 
 ## H20 下一步
 
-**用户已拍板：先扩充 ~50。**
+**用户已拍板：修 IDM restore/routing。**
 
-下一动作：发 [`prompts/H20_TRAIN_SIDE_LE50_PROMPT.md`](prompts/H20_TRAIN_SIDE_LE50_PROMPT.md) → H20 **Plan Mode** → Mac 批名单/耗时后再执行。
+下一动作：发 [`prompts/H20_IDM_RESTORE_FIX_PROMPT.md`](prompts/H20_IDM_RESTORE_FIX_PROMPT.md) → H20 **Plan Mode** → Mac 批根因后再打补丁并重跑 degraded。
 
-明确不做：Table 1、后训、本批 SMART、BWM 配对；288 navtest 不进池。
+明确不做：放宽门控灌水、后训、Table 1、SMART、盲目再抽。
 
 **IDM 口径：** 规则式；path 先沿日志；纵向 IDM；`enable_lane_change=False`。
 

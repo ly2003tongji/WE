@@ -1,6 +1,6 @@
 # WorldEngine 交通模型分歧研究：当前状态
 
-最后更新：2026-07-23（train-side~50 汇总完成；下一决策见建议字段）
+最后更新：2026-07-23（用户拍板：**修 IDM restore/门控**；提示词 `prompts/H20_IDM_RESTORE_FIX_PROMPT.md`）
 
 ## 1. 文档用途与权威顺序
 
@@ -21,7 +21,7 @@
 ## 2. 固定版本
 
 - 协作仓库分支：`h20/reproduction`
-- 最新有效协作提交：见 `git log -1`（~50 报告可能尚未 commit）（train-side≤10 初步效应量）
+- 最新有效协作提交：`a36d0cb`（train-side~50 扩样汇总）
 - WorldEngine upstream：`fc79b937050ed9d68e18add2b480ae72578a7ea5`
 - 官方数据revision：`8728616abaf090d195b3bdc7af6aacde40271145`
 - 本地姊妹仓 SimScale（仅审计，非训练依赖）：`相关论文/World Engine/SimScale` @ `df99d45`
@@ -310,32 +310,41 @@ Nexus + SMART → held-out IDM
 - ~~统一时间锚点决定（cutoff=3 vs 4）~~ **已锁定 cutoff=4**；
 - ~~Replay/IDM 管线迁移到 cutoff=4 并与 Nexus 三源对齐冒烟~~ **已完成**（单场景 engineering；见 `reports/CUTOFF4_THREE_SOURCE_SMOKE.md`）；
 - ~~train-side长尾场景多来源候选奖励比较（≤10）~~ **已完成初步**（见 `reports/TRAIN_SIDE_LE10_DISAGREEMENT.md`）；
-- 是否扩至 ~50 稳 R↔N 分位数；R↔I≈0 是否协议/场景特异；
+- ~~扩至 ~50~~ **已完成汇总**（A=36；见 `reports/TRAIN_SIDE_LE50_DISAGREEMENT.md`）；
+- 修 IDM restore/门控 vs 冻结 n=36 做归因分析（待拍板）；
 - 分歧是否可预测held-out失败；
 - 第三个独立在线模型（SMART）；
 - 后训练方法。
 
 ## 10. 当前唯一下一阶段
 
-> **train-side ~50 扩样（用户已拍板：先扩充）**
+> **扩样已完成（n_A=36）；下一决策：优先修 IDM restore/门控，或基于现有 n=36 推进分析**
 
-同协议（cutoff=4；静态可行中位数 conditioning；Replay / Restored-IDM / Nexus）将样本扩到约 50，以：
+### 10.1 train-side~50 结果摘要（`a36d0cb`，不作 go/no-go）
 
-1. 稳定 **R↔N / I↔N** flip 分位数；
-2. 检验 **R↔I≈0** 是否持续（若持续，主张改为日志/规则式 vs 学习式）；
-3. 抽样 Nexus 多种子对照；仍**不作** go/no-go / held-out / 后训 / SMART。
+证据：`reports/TRAIN_SIDE_LE50_DISAGREEMENT.md`。
 
-### 10.1 已完成的初步效应量（≤10）
+| 发现 | 含义 |
+|------|------|
+| 尝试 65 触顶；A=36 / degraded=29 | 产量瓶颈在 **IDM restore**（`NoneType` 下标、gate C、transition flags），不是 Nexus 主因 |
+| **R↔N NOC med=135**（IQR≈332） | 相对 Nexus 的候选安全标签分歧在更大样本上**仍非微**，且高于 le10 中位 67 |
+| **R↔I NOC med=0**，但 =0 仅≈56%；p75=66、max=720 | le10「几乎全 0」被修正：中位仍近 0，**尾部存在**；不可再写「R↔I 恒为零」 |
+| 多种子 \|Δ\| med=17 ≪ 模型间 135 | 继续支持：vs Nexus 的模型间差异 > 种子波动 |
+| 新增子集 R↔N med=168 > le10 子集 67 | 扩样后信号未塌缩 |
 
-证据：`reports/TRAIN_SIDE_LE10_DISAGREEMENT.md`（`54dac5f`）。主信号 R↔N；R↔I≈0；多种子 ≪ 模型间（抽样）。
+对研究主张：
 
-### 10.2 开展顺序
+- 主信号仍是 **日志/规则式 ↔ 学习式 Nexus**；
+- IDM 不是「永远等于 Replay」，而是多数近、少数分叉——需归因（场景类 / restore 质量）；
+- **SMART 暂缓**（同意 H20）：先修门控提高 A，或先用 n=36 做难度/归因分析，再谈第三模型。
 
-1. ~~锁 cutoff=4~~；~~三源冒烟~~；~~train-side≤10~~；
-2. **当前：发 `prompts/H20_TRAIN_SIDE_LE50_PROMPT.md` → H20 Plan Mode → Mac 批后执行**；
-3. 扩样报告后再议 SMART / 主张收缩 / held-out。
+### 10.2 下一决策（用户已拍板）
 
-发给 H20：复制 `prompts/H20_TRAIN_SIDE_LE50_PROMPT.md` 中 `---` 之间正文。
+**已选：修 IDM restore / routing（NoneType + gate C）**。
+
+发给 H20：`prompts/H20_IDM_RESTORE_FIX_PROMPT.md`（先 Plan Mode，Mac 批根因与拟改文件后再打补丁/重跑 degraded）。
+
+明确不做：放宽门控定义灌水、后训、Table 1、本轮 SMART、盲目再抽大池。
 
 ## 11. 该阶段之后的决策
 
